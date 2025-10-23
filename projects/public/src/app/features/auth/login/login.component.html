@@ -1,0 +1,41 @@
+<mat-card class="login_card">
+    <mat-card-header>
+        <mat-card-title>Login</mat-card-title>
+    </mat-card-header>
+    <mat-divider role="separator"></mat-divider>
+    <div class="logo_container">
+        <div><img src="https://ardhisasa.lands.go.ke/assets/img/logo.svg" alt="MoLPP Logo" class="logo-img" tabindex="0"></div>
+    </div>
+    <mat-card-content>
+        <form novalidate [formGroup]="loginForm" class="form">
+            <div>
+                <ngx-loading></ngx-loading>
+            </div>
+            <label class="font-weight-bold">Identification Number or Ardhisasa ID</label>
+            <mat-form-field appearance="outline" class="form_field">
+                <input matInput formControlName="username" id="emailOrPhone" placeholder="Enter Identification number" type="text" required aria-required="true">
+                <mat-error>Enter Identification Number</mat-error>
+            </mat-form-field>
+            <label for="password" class="font-weight-bold">Password</label>
+            <mat-form-field appearance="outline" class="form_field">
+                <input matInput formControlName="password" id="password" placeholder="Enter password" required type="password" aria-required="true">
+                <!-- <span matsuffix class="suffix_text">
+                    <span class="material-icons show_password">visibility_off</span>
+                </span> -->
+                <mat-error>This field is required</mat-error>
+            </mat-form-field>
+
+            <div class="loginButton">
+                <button mat-raised-button type="submit" style="width: 100%;" color="primary" class="form_button" [disabled]="!loginForm.get('password')?.value" (click)="onSubmit()">
+                    Login
+                </button>
+            </div>
+            <div class="other_details">
+                <div><span style="color: gray;">Don't have an account. </span><a routerlink="/account/public-registration" class="register" href="/account/public-registration">Register here</a></div>
+                <div><a routerlink="/" href="/"><span class="register">Back to home</span></a></div>
+                <div><a routerlink="/account/forgot-password" href="/account/forgot-password"><span
+                            class="register">Forgot your password?</span></a></div>
+            </div>
+        </form>
+    </mat-card-content>
+</mat-card>

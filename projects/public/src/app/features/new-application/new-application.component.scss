@@ -1,0 +1,317 @@
+.user-newApplicationBackground {
+    min-height: 100vh;
+    background-color: #f5f5f5;
+    .newApplication_card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 12px;
+        margin: 0 auto;
+        // max-width: 1200px;
+        mat-card-header {
+            margin-bottom: 16px;
+        }
+    }
+}
+
+//Customize stepper
+// .mat-stepper-horizontal {
+//     background: transparent !important;
+//     .mat-horizontal-stepper-header-container {
+//         margin-bottom: 32px;
+//         position: relative;
+//         &::before {
+//             content: '';
+//             position: absolute;
+//             top: 20px;
+//             left: 0;
+//             right: 0;
+//             height: 2px;
+//             background: #e0e0e0;
+//             z-index: 1;
+//         }
+//     }
+// .mat-step-header {
+//     position: relative;
+//     z-index: 2;
+//     background: transparent !important;
+//     height: auto !important;
+//     padding: 0 !important;
+//     .mat-step-icon {
+//         width: 40px;
+//         height: 40px;
+//         border-radius: 50%;
+//         background: #e0e0e0;
+//         color: #757575;
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         margin-bottom: 8px;
+//         font-weight: 500;
+//         position: relative;
+//         .mat-step-icon-content {
+//             .mat-icon {
+//                 font-size: 20px;
+//                 width: 20px;
+//                 height: 20px;
+//             }
+//         }
+//     }
+//     .mat-step-label {
+//         font-size: 14px;
+//         color: #757575;
+//         text-align: center;
+//         font-weight: normal;
+//     }
+//     &.cdk-program-focused {
+//         background-color: transparent !important;
+//     }
+//     &.mat-step-header-selected {
+//         .mat-step-icon {
+//             background: #8B4513;
+//             color: white;
+//         }
+//         .mat-step-label {
+//             color: #8B4513;
+//             font-weight: 500;
+//         }
+//     }
+// }
+// .mat-horizontal-content-container {
+//     padding: 0 !important;
+//     overflow: visible !important;
+// }
+// .mat-horizontal-stepper-content {
+//     padding: 24px 0 !important;
+//     &.mat-horizontal-stepper-content-inactive {
+//         visibility: hidden !important;
+//         position: absolute !important;
+//     }
+// }
+//}
+// Section headers
+.section_header {
+    .title {
+        background: #f5f5f5;
+        padding: 16px;
+        border-radius: 4px;
+    }
+}
+
+// Disclaimer: video link
+.disclaimer {
+    padding: 16px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    a {
+        color: #2c2c2c;
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+// Accordion styling
+.details_accordion {
+    .mat-expansion-panel {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: none !important;
+        .mat-expansion-panel-header {
+            // background: #f5f5f5;
+            height: auto !important;
+            min-height: 48px;
+            .mat-expansion-panel-header-title {
+                font-weight: 500;
+                color: inherit;
+            }
+            &.mat-expanded {
+                background: #f5f5f5;
+            }
+        }
+        .mat-expansion-panel-content {
+            .mat-expansion-panel-body {
+                background: white;
+            }
+        }
+    }
+}
+
+// Form
+.row_section {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    &.row_section_margins {
+        margin: 32px 0;
+    }
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 32px;
+}
+
+.required {
+    color: #f44336;
+}
+
+// Form fields
+.form_field {
+    // width: 100%;
+    width: 90%;
+    margin-bottom: 10px;
+}
+
+// Radio buttons
+.radio_btn {
+    display: block;
+    // margin-bottom: 5px;
+}
+
+// Buttons
+.form_button {
+    // margin-right: 16px;
+    min-width: 120px;
+    font-weight: 400;
+    font-size: 14px;
+    text-transform: uppercase;
+    &.next_btn,
+    &.back_btn {
+        padding: 0 24px;
+    }
+}
+
+// Helper text
+.helper_text {
+    font-size: 12px;
+    color: #757575;
+    display: block;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+// Tables
+.table-responsive {
+    // width: 100%;
+    width: 90%;
+    overflow-x: auto;
+    margin-top: 24px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    th,
+    td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0 !important;
+    }
+    th {
+        background: #f5f5f5;
+        font-weight: 500;
+    }
+}
+
+//Additional docs upload
+.file_upload_form {
+    margin-top: 50px;
+}
+
+.file_input {
+    // width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.custom_upload_btn {
+    border: 1px solid #ddd;
+    padding: 12px 16px;
+    background: #f5f5f5;
+    color: #757575;
+    &:hover {
+        background: #e0e0e0;
+    }
+}
+
+// Confirmation tables
+.table2 {
+    width: 100%;
+    border-collapse: collapse;
+    &.table_borders {
+        td,
+        th {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        .header {
+            background-color: #f5f5f5;
+            font-weight: 500;
+            width: 30%;
+        }
+    }
+}
+
+// Form layout utilities
+[fxLayout="row"] {
+    display: flex;
+    flex-direction: row;
+}
+
+[fxLayoutAlign="start start"] {
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+[fxFlex] {
+    flex: 1;
+}
+
+[fxFlex="50"] {
+    flex: 1 1 100%;
+    max-width: 50%;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .user-newApplicationBackground {
+        padding: 10px;
+    }
+    .newApplication_card {
+        padding: 16px;
+    }
+    .row_section {
+        flex-direction: column;
+        gap: 16px;
+    }
+    [fxFlex="50"] {
+        max-width: 100%;
+        margin-right: 0 !important;
+    }
+    .mat-stepper-horizontal {
+        .mat-horizontal-stepper-header-container {
+            flex-wrap: wrap;
+        }
+        .mat-step-header {
+            margin-bottom: 16px;
+        }
+    }
+    .table-responsive {
+        // width: 100%;
+        width: 90%;
+        overflow-x: auto;
+        margin-top: 5px;
+        margin-bottom: 60px;
+    }
+}

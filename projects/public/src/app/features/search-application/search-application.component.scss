@@ -1,0 +1,20 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    th,
+    td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0 !important;
+    }
+    th {
+        background: #f5f5f5;
+        font-weight: 500;
+    }
+}
+
+button {
+    margin-right: 8px;
+}

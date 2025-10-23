@@ -1,0 +1,376 @@
+<!-- Chief Registry Registrar Dashboard -->
+<div class="container-fluid mt-3">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="h3 mb-1">{{ currentUserRole === 'is_registrar_in_charge' ? 'Registrar In Charge' : currentUserRole }} Dashboard</h1>
+              <p class="mb-0">Welcome, {{ currentUserName }} - {{ currentUserRegistry }} Registry</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="badge bg-light text-dark fs-6 p-2">
+                Role: {{ currentUserRole === 'is_registrar_in_charge' ? 'Registrar In Charge' : currentUserRole }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Testing Switcher (Development Only) -->
+ <div class="card mb-3" *ngIf="currentUserRole === 'is_registrar_in_charge' || currentUserRole === 'is_registrar'"><!-- Show for registrar in charge -->
+    <div class="card-header">
+      <h6 class="mb-0">Role</h6>
+    </div>
+    <div class="card-body">
+      <div class="btn-group">
+        <button class="btn btn-sm btn-outline-primary" (click)="setUserRole('is_registrar_in_charge', 'Registry Registrar In Charge')">
+          Switch to Registrar In Charge
+        </button>
+        <button class="btn btn-sm btn-outline-success" (click)="setUserRole('is_registrar', 'Individual Registrar')">
+         Switch to Individual Registrar
+        </button>
+      </div>
+        <small class="text-muted mt-2 d-block">
+      Current Role: <strong>{{ currentUserRole === 'is_registrar_in_charge' ? 'Registrar In Charge' : 'Individual Registrar' }}</strong> | User: <strong>{{ currentUserName }}</strong>
+    </small>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-warning text-dark">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ getStatusCount('unassigned') }}</h4>
+              <p class="mb-0">Unassigned</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-clock-history fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ getStatusCount('ongoing') }}</h4>
+              <p class="mb-0">Ongoing</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-gear fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ getStatusCount('completed') }}</h4>
+              <p class="mb-0">Completed</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-check-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ getStatusCount('registry') }}</h4>
+              <p class="mb-0">Total in Registry</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-folder fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Card -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Search Applications</h5>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="onSearch()">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Search Type</label>
+            <select class="form-select"
+                    [(ngModel)]="selectedSearchType"
+                    (change)="onSearchTypeChange()"
+                    name="searchType"
+                    required>
+              <option value="invoice">Invoice Number</option>
+              <option value="parcel">Parcel Number</option>
+              <option value="document">Document Number</option>
+              <option value="receipt">Receipt Number</option>
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label fw-semibold">{{ inputLabel }}</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="searchValue"
+                   [placeholder]="inputPlaceholder"
+                   name="searchValue"
+                   required>
+          </div>
+          <div class="col-md-3">
+            <div class="d-grid gap-2 d-md-flex">
+              <button type="submit" class="btn btn-success flex-fill">
+                <i class="bi bi-search me-2"></i>Search
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
+                <i class="bi bi-x-circle me-2"></i>Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Applications Section -->
+  <div class="card">
+    <div class="card-header bg-light">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Applications Management</h5>
+        <div class="text-muted small">
+          Registry: <strong>{{ currentUserRegistry }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                [class.active]="currentTab === 'unassigned'"
+                (click)="setTab('unassigned')"
+                type="button">
+          Unassigned
+          <span class="badge bg-warning ms-1">{{ getStatusCount('unassigned') }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                [class.active]="currentTab === 'ongoing'"
+                (click)="setTab('ongoing')"
+                type="button">
+          Ongoing
+          <span class="badge bg-danger ms-1">{{ getStatusCount('ongoing') }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                [class.active]="currentTab === 'completed'"
+                (click)="setTab('completed')"
+                type="button">
+          Completed
+          <span class="badge bg-success ms-1">{{ getStatusCount('completed') }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                [class.active]="currentTab === 'registry'"
+                (click)="setTab('registry')"
+                type="button">
+          All Applications
+          <span class="badge bg-primary ms-1">{{ getStatusCount('registry') }}</span>
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="card-body">
+      <!-- Search within table -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <div class="text-muted">
+            Showing {{ filteredApplications.length }} applications
+            <span *ngIf="tableSearchValue" class="text-info">
+              • Filtered by: "{{ tableSearchValue }}"
+            </span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-search"></i>
+            </span>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="tableSearchValue"
+                   (input)="onTableSearch()"
+                   [placeholder]="'Search in ' + currentTab + '...'">
+            <button *ngIf="tableSearchValue"
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="tableSearchValue = ''; onTableSearch()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications Table -->
+      <div class="table-responsive" *ngIf="filteredApplications.length > 0">
+        <table class="table table-striped table-hover">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Reference No.</th>
+              <th scope="col">Parcel No.</th>
+              <th scope="col">Applicant</th>
+              <th scope="col">Date Submitted</th>
+              <th scope="col">Time Elapsed</th>
+              <th scope="col">Status</th>
+              <th scope="col" *ngIf="currentTab === 'unassigned'">Assign To Registrar</th>
+              <th scope="col" *ngIf="currentTab === 'ongoing'">Assigned Registrar</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let app of filteredApplications; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <strong>{{ app.referenceNo }}</strong>
+              </td>
+              <td>{{ app.parcelNo }}</td>
+              <td>
+                <div>{{ app.applicantName }}</div>
+                <small class="text-muted">{{ app.county }} • {{ app.registry }}</small>
+              </td>
+              <td>{{ app.dateSubmitted }}</td>
+              <td>
+                <span class="badge bg-secondary">{{ app.timeElapsed }}</span>
+              </td>
+              <td>
+                <span class="badge"
+                      [class.bg-warning]="app.status === 'unassigned'"
+                      [class.bg-danger]="app.status === 'ongoing'"
+                      [class.bg-success]="app.status === 'completed'">
+                  {{ app.status | titlecase }}
+                </span>
+              </td>
+
+              <!-- Assignment Column for Unassigned Tab -->
+              <td *ngIf="currentTab === 'unassigned'">
+                <div *ngIf="canAssignRegistrar(app)" class="dropdown">
+                  <select class="form-select form-select-sm"
+                          (change)="assignToRegistrar(app.id, $any($event.target).value)"
+                          [disabled]="!canAssignRegistrar(app)">
+                    <option value="">Select Registrar</option>
+                    <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
+                            [value]="registrar.id">
+                      {{ registrar.username }}
+                    </option>
+                  </select>
+                </div>
+                <span *ngIf="!canAssignRegistrar(app)" class="text-muted small">
+                  Cannot assign
+                </span>
+              </td>
+
+              <!-- Assigned Registrar for Ongoing Tab -->
+              <td *ngIf="currentTab === 'ongoing'">
+                <span *ngIf="app.assignedRegistrar" class="text-success">
+                  {{ app.assignedRegistrar }}
+                </span>
+                <span *ngIf="!app.assignedRegistrar" class="text-muted">
+                  Not assigned
+                </span>
+              </td>
+
+              <!-- Actions Column -->
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary"
+                          (click)="viewApplicationDetails(app)"
+                          title="View Details">
+                    <i class="bi bi-eye"></i> View
+                  </button>
+
+                  <!-- Mark as Complete Button -->
+                  <button *ngIf="currentTab === 'ongoing' && canMarkCompleted(app)"
+                          class="btn btn-outline-success"
+                          (click)="markAsCompleted(app.id)"
+                          title="Mark as Completed">
+                    <i class="bi bi-check-lg"></i> Complete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+        <div class="mb-3">
+          <i class="bi bi-inbox fs-1 text-muted"></i>
+        </div>
+        <h5 class="text-muted">No applications found</h5>
+        <p class="text-muted mb-3">
+          {{ currentTab === 'unassigned' ? 'No unassigned applications' :
+             currentTab === 'ongoing' ? 'No ongoing applications' :
+             currentTab === 'completed' ? 'No completed applications' :
+             'No applications in registry' }}
+        </p>
+        <button class="btn btn-outline-primary" (click)="clearSearch()">
+          <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add custom CSS styles -->
+<style>
+.nav-tabs .nav-link {
+  font-weight: 500;
+  color: #6c757d;
+}
+.nav-tabs .nav-link.active {
+  font-weight: 600;
+  color: #0d6efd;
+  border-bottom: 3px solid #0d6efd;
+}
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+.table th {
+  font-weight: 600;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+.badge {
+  font-size: 0.75em;
+}
+</style>
+
+<!-- External Dependencies -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+

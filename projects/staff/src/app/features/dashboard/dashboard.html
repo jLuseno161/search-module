@@ -1,0 +1,229 @@
+<!-- Search Card -->
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title mb-0">Search</h5>
+  </div>
+  <div class="card-body">
+    <form (ngSubmit)="onSearch()">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">
+            Type of Search <span class="text-danger">*</span>
+          </label>
+          <select class="form-select"
+                  [(ngModel)]="selectedSearchType"
+                  (change)="onSearchTypeChange()"
+                  name="searchType"
+                  required>
+            <option value="invoice">Invoice</option>
+            <option value="parcel">Parcel</option>
+            <option value="county">County</option>
+            <option value="document">Document</option>
+            <option value="receipt">Receipt</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ inputLabel }}</label>
+          <input type="text"
+                 class="form-control"
+                 [(ngModel)]="searchValue"
+                 [placeholder]="inputPlaceholder"
+                 name="searchValue"
+                 required>
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-success w-100">Search</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">Clear</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Applications Card -->
+<div class="card mt-4">
+  <div class="card-header bg-light">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <div class="flex-grow-1">
+        <h5 class="mb-0">Search Applications</h5>
+      </div>
+      <div class="flex-grow-1" style="max-width: 30%;">
+        <div class="d-flex gap-2">
+          <!-- Action buttons can go here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <ul class="nav nav-tabs" id="applicationsTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link"
+              [class.active]="currentTab === 'ongoing'"
+              (click)="setTab('ongoing')"
+              type="button">
+        Ongoing <span class="badge bg-danger ms-1">{{ getStatusCount('ongoing') }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link"
+              [class.active]="currentTab === 'completed'"
+              (click)="setTab('completed')"
+              type="button">
+        Completed <span class="badge bg-secondary ms-1">{{ getStatusCount('completed') }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content p-3">
+    <!-- Ongoing Tab -->
+    <div class="tab-pane" [class.show]="currentTab === 'ongoing'" [class.active]="currentTab === 'ongoing'">
+      <div class="card">
+        <div class="card-body">
+          <!-- Search and Filter Section -->
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <div class="text-muted">
+                Showing {{ filteredApplications.length }} of {{ getStatusCount('ongoing') }} ongoing applications
+                <span *ngIf="searchValue" class="text-info">
+                  • Filtered by: "{{ searchValue }}"
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       [(ngModel)]="tableSearchValue"
+                       (input)="onTableSearch()"
+                       placeholder="Search in table...">
+                <button *ngIf="tableSearchValue"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        (click)="tableSearchValue = ''; onTableSearch()">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <div class="table-responsive" *ngIf="filteredApplications.length > 0">
+            <table class="table table-striped table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">No.</th>
+                  <th scope="col">Reference No.</th>
+                  <th scope="col">Parcel No.</th>
+                  <th scope="col">Date of submission</th>
+                  <th scope="col">Time elapsed</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let app of filteredApplications">
+                  <td>{{ app.id }}</td>
+                  <td>{{ app.referenceNo }}</td>
+                  <td>{{ app.parcelNo }}</td>
+                  <td>{{ app.dateSubmitted }}</td>
+                  <td>{{ app.timeElapsed }}</td>
+                  <td>
+                  <button class="btn btn-success btn-sm" (click)="viewApplicationDetails(app)">View</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- No results message -->
+          <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+            <p class="text-muted">No applications found</p>
+            <button class="btn btn-outline-primary" (click)="clearSearch()">Clear Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Tab -->
+    <div class="tab-pane" [class.show]="currentTab === 'completed'" [class.active]="currentTab === 'completed'">
+      <div class="card">
+        <div class="card-body">
+          <!-- Similar structure as ongoing tab but for completed applications -->
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <div class="text-muted">
+                Showing {{ filteredApplications.length }} of {{ getStatusCount('completed') }} completed applications
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       [(ngModel)]="tableSearchValue"
+                       (input)="onTableSearch()"
+                       placeholder="Search in table...">
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive" *ngIf="filteredApplications.length > 0">
+            <!-- In your dashboard.html -->
+            <table mat-table [dataSource]="filteredApplications" class="mat-elevation-z8">
+              <!-- Reference No Column -->
+              <ng-container matColumnDef="referenceNo">
+                <th mat-header-cell *matHeaderCellDef>Reference No.</th>
+                <td mat-cell *matCellDef="let application">{{ application.referenceNo }}</td>
+              </ng-container>
+
+              <!-- Parcel No Column -->
+              <ng-container matColumnDef="parcelNo">
+                <th mat-header-cell *matHeaderCellDef>Parcel No.</th>
+                <td mat-cell *matCellDef="let application">{{ application.parcelNo }}</td>
+              </ng-container>
+
+              <!-- Date Submitted Column -->
+              <ng-container matColumnDef="dateSubmitted">
+                <th mat-header-cell *matHeaderCellDef>Date Submitted</th>
+                <td mat-cell *matCellDef="let application">{{ application.dateSubmitted }}</td>
+              </ng-container>
+
+              <!-- Time Elapsed Column -->
+              <ng-container matColumnDef="timeElapsed">
+                <th mat-header-cell *matHeaderCellDef>Time Elapsed</th>
+                <td mat-cell *matCellDef="let application">{{ application.timeElapsed }}</td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+               <td mat-cell *matCellDef="let application">
+                <button mat-raised-button color="primary" (click)="viewApplicationDetails(application)">
+                  <mat-icon>visibility</mat-icon>
+                  View Details
+                </button>
+              </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+
+          <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+            <p class="text-muted">No completed applications found</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>

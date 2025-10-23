@@ -1,0 +1,66 @@
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light sidenav-content-toolbar home_nav_container">
+  <div class="container-fluid">
+    <!-- Toggle button -->
+    <button class="navbar-toggler" type="button" aria-label="Toggle sidenav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Main content -->
+    <div class="w-100">
+      <!-- Top row -->
+      <div class="row align-items-center search_banner" style="min-height: 60px;">
+        <!-- Time/Date section -->
+        <div class="col-md-2 col-4 d-none d-md-block">
+          <div class="title-dash text-start">
+            <div class="time-font">{{ currentDateTime }}</div>
+          </div>
+        </div>
+
+        <!-- Ministry text -->
+        <div class="col-md-5 col-12 text-center">
+          <p class="ministry mb-0 d-none d-md-block">SHAMBA LAKO, HATI SAFI</p>
+        </div>
+
+        <!-- Notifications and Profile -->
+        <div class="col-md-5 col-8">
+          <div class="row align-items-center justify-content-end">
+            <!-- Notifications -->
+            <div class="col-auto">
+              <!-- <span style="cursor: pointer;">
+                <a href="#" class="text-decoration-none position-relative">
+                  <i class="bi bi-bell-fill fs-5 text-dark"></i>
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    936
+                  </span>
+                </a>
+              </span> -->
+            </div>
+
+            <!-- Profile -->
+            <div class="col-auto">
+              <div class="d-flex align-items-center">
+                <a href="#" class="text-decoration-none">
+                  <img src="../../../../assets/images/avatar.png"
+                       class="rounded-circle personal_acc_icon"
+                       width="40" height="40"
+                       alt="Profile">
+                </a>
+                <div class="ms-2 account_name d-none d-md-block">
+                  <span class="text-dark">  {{ currentUser?.first_name || currentUser?.username || 'User' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom row - Greeting -->
+      <div class="row">
+        <div class="col-md-2 col-4">
+          <button class="greetings mb-0 d-none d-md-block" (click)="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

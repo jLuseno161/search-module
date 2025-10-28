@@ -41,3 +41,12 @@ export interface SearchApplication {
     elapsed: string;
     status: string;
 }
+
+export interface Invoice {
+  id: number;
+  date: string;
+  paymentFor: string;
+  amount: string;
+  balance: string;
+  status: string;
+}

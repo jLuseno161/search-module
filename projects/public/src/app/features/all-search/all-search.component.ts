@@ -60,7 +60,7 @@ export class AllSearchComponent {
           this.loadTabData('pending');
         },
         error: (error: any) => {
-          console.log('No Data Fetched:', error);
+          console.log(error);
         }
       });
   }
@@ -106,8 +106,10 @@ export class AllSearchComponent {
     this.router.navigate(['/new-application']);
   }
 
-  viewApplication(appId: string, status: string) {
-    console.log(`Navigating to ${status} application: ${appId}`);
-    this.router.navigate([`${status}`, appId]);
+  // When clicking to view application details
+  viewApplication(application: any) {
+    this.router.navigate(['search-application', application.status, application.id], {
+      state: { applicationData: application },
+    });
   }
 }

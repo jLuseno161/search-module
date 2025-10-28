@@ -17,15 +17,22 @@ export class AuthService {
   }
 
   getToken(): string | null {
-  if (!this.authToken && typeof localStorage !== 'undefined') {
-    this.authToken = localStorage.getItem('auth_token');
+    if (!this.authToken && typeof localStorage !== 'undefined') {
+      this.authToken = localStorage.getItem('auth_token');
+    }
+    return this.authToken;
   }
-  return this.authToken;
-}
+
+  removeToken() {
+    this.authToken = null;
+    localStorage.removeItem('auth_token');
+  }
 
   constructor(private http: HttpClient) { }
 
   login(formData: any): Observable<any> {
+    this.removeToken();
+
     return this.http.post<any>(`${this.authUrl}/login`, formData)
       .pipe(
         tap((response: any) => {

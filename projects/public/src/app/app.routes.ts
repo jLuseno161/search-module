@@ -7,11 +7,11 @@ import { SearchApplicationComponent } from '../../../public/src/app/features/sea
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: '',
+        redirectTo: 'search-application',
         pathMatch: 'full'
     },
     {
-        path: '',
+        path: 'login',
         component: LoginComponent
     },
     {
@@ -22,11 +22,6 @@ export const routes: Routes = [
         path: 'search-application',
         component: AllSearchComponent
     },
-    //     { 
-    //     path: 'ongoing/:id', 
-    //     component: SearchApplicationComponent, 
-    //     data: { status: 'ongoing' } 
-    // },
     {
         path: 'search-application/pending/:id',
         component: SearchApplicationComponent,
@@ -42,7 +37,7 @@ export const routes: Routes = [
         component: SearchApplicationComponent,
         data: { status: 'submitted' }
     },
-        {
+    {
         path: 'search-application/rejected/:id',
         component: SearchApplicationComponent,
         data: { status: 'rejected' }

@@ -37,16 +37,19 @@ table {
     }
 }
 
-// // Status badges
-// .status-pending {
-//     color: #ff9800;
-// }
-// .status-completed {
-//     color: #4caf50;
-// }
-// .status-rejected {
-//     color: #f44336;
-// }
-// .status-submitted {
-//     color: #2196f3;
-// }
+// Status badges
+.status-pending {
+    color: #ff9800;
+}
+
+.status-completed {
+    color: #4caf50;
+}
+
+.status-rejected {
+    color: #f44336;
+}
+
+.status-submitted {
+    color: #2196f3;
+}

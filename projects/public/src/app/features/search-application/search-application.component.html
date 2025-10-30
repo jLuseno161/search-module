@@ -33,7 +33,7 @@
                         <table class="table_borders table-responsive application-details-table">
                             <tr>
                                 <td class="header"><strong>Applicant:</strong></td>
-                                <td> ID NO. {{applicationData.applicant }} </td>
+                                <td>{{ currentUser.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{ currentUser.id }}</td>
                             </tr>
                             <tr>
                                 <td class="header"><strong>County:</strong></td>

@@ -52,7 +52,7 @@ export class SearchService {
     {
       county: 'Nairobi',
       registries: [
-        'Nairobi Central Registry',
+        'Nairobi',
         'Nairobi West Registry',
         'Nairobi South Registry'
       ]

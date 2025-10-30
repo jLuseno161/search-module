@@ -9,6 +9,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Invoice, Document } from '../../interfaces/search';
 import { SearchService } from '../../services/search.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-search-application',
@@ -42,6 +43,9 @@ export class SearchApplicationComponent implements OnInit {
   currentPage = 0;
   totalItems = 1;
 
+  //user
+  currentUser: any;
+
   //fetch application data
   applicationData: any = {};
   documents: Document[] = [];
@@ -50,12 +54,17 @@ export class SearchApplicationComponent implements OnInit {
   //on pay
   selectedInvoice: any = null;
 
-  constructor(private searchService: SearchService, private router: Router) {
+  constructor(private searchService: SearchService, private router: Router, private authService: AuthService) {
     // Initialize with empty invoice, to populate on ngOnInit
     this.invoice = {} as Invoice;
 
     this.dataSource = new MatTableDataSource([this.invoice]);
     this.appDataSource = new MatTableDataSource<any>([]);
+
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user || 'User';
+    }
   }
 
   ngOnInit() {
@@ -104,8 +113,9 @@ export class SearchApplicationComponent implements OnInit {
         alert(phone ? 'Please enter a valid phone number' : 'Phone number is required');
         return;
       }
+
       const paymentData = {
-        phone: '0712603434',
+        phone: phone,
       };
 
       this.searchService.makePayment(this.applicationData.id, paymentData).subscribe({

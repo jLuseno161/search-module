@@ -17,6 +17,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { SearchService } from '../../services/search.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-new-application',
@@ -39,7 +40,7 @@ import { Router } from '@angular/router';
     MatSelectModule,
     MatOptionModule,
     NgxLoadingModule,
-],
+  ],
   templateUrl: './new-application.component.html',
   styleUrl: './new-application.component.scss'
 })
@@ -47,6 +48,9 @@ export class NewApplicationComponent {
   searchForm: FormGroup;
   parcelsForm: FormGroup;
   documentsForm: FormGroup;
+
+  //user
+  currentUser:any;
 
   parcels: Parcel[] = [];
   documents: Document[] = [];
@@ -69,7 +73,7 @@ export class NewApplicationComponent {
   parcelColumns: string[] = ['no', 'parcel', 'action'];
   documentColumns: string[] = ['no', 'document', 'action'];
 
-  constructor(private fb: FormBuilder, private searchService: SearchService, private router: Router) {
+  constructor(private fb: FormBuilder, private searchService: SearchService, private router: Router, private authService: AuthService) {
     this.searchForm = this.fb.group({
       // search_type: ['PARCEL_SEARCH', Validators.required],
       purpose_of_search: ['', Validators.required],
@@ -99,6 +103,12 @@ export class NewApplicationComponent {
     this.searchForm.get('county')?.valueChanges.subscribe(selectedCounty => {
       this.onCountyChange(selectedCounty);
     });
+
+    //get current user
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user
+    }
   }
 
   get parcelNumberControl() {

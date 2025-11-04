@@ -207,7 +207,7 @@
                                         <div class="col-md-3 text-center">
                                             <hr class="d-md-none">
                                             <button class="btn btn-outline-success" *ngIf="canAssignOfficers()" (click)="assignOfficer()">
-                                            <i class="bi bi-arrow-repeat"></i> Assign Officer
+                                            <i class="bi bi-arrow-repeat"></i> Re assign Officer
                                         </button>
                                             <div *ngIf="!canAssignOfficers()" class="text-muted">
                                                 <small>Assignment controls disabled</small>
@@ -279,7 +279,7 @@
                                         Only assigned registrars can upload certificates for applications with "assigned" status.
                                     </p>
                                     <div class="mt-3">
-                                        <strong>Current Status:</strong> 
+                                        <strong>Current Status:</strong>
                                         <span [class]="getStatusBadgeClass(application?.status || '')" class="ms-2">
                                             {{ application?.status | titlecase }}
                                         </span>

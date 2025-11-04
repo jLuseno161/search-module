@@ -32,7 +32,7 @@ interface MenuItem {
 export class PublicDashboardComponent implements OnInit {
 
   currentDate = new Date();
-  currentUser:any;
+  currentUser: any = null;
   notificationCount = 0;
   sidebarOpen = true;
 
@@ -59,7 +59,9 @@ export class PublicDashboardComponent implements OnInit {
 
     const user = this.authService.getCurrentUser();
     if (user) {
-      this.currentUser = user|| 'User';
+      // this.currentUser = user || 'User';
+      this.currentUser = user; // Only set if user exists
+
     }
   }
 

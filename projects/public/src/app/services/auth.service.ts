@@ -33,8 +33,13 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
+  isAuthenticated(): boolean {
+    const token = this.getToken()
+    return !!token; // Returns true if token exists, false otherwise
+  }
+
   login(formData: any): Observable<any> {
-    this.removeToken();
+    // this.removeToken();
 
     return this.http.post<any>(`${this.authUrl}/login`, formData)
       .pipe(

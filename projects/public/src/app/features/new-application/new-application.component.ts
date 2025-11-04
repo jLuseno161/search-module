@@ -18,6 +18,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { SearchService } from '../../services/search.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-new-application',
@@ -50,7 +51,7 @@ export class NewApplicationComponent {
   documentsForm: FormGroup;
 
   //user
-  currentUser:any;
+  currentUser: any;
 
   parcels: Parcel[] = [];
   documents: Document[] = [];
@@ -193,30 +194,62 @@ export class NewApplicationComponent {
   }
 
   submitApplication() {
+    // Check if form is valid
     if (this.searchForm.valid && this.parcels.length > 0) {
-      const formData = {
-        ...this.searchForm.value,
-        purpose: this.searchForm.value.purpose_of_search,
-        parcel_number: this.parcels[0]?.parcel_number || '',
-        // parcels: this.parcels,
-        // documents: this.documents
-      }
-      delete formData.purpose_of_search;
+      // Confirmation dialog
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'Are you sure you want to submit your search application?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#8B4513',
+        cancelButtonColor: '#aeb5bbff',
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Clicked "Yes" - proceed with submission
+          const formData = {
+            ...this.searchForm.value,
+            purpose: this.searchForm.value.purpose_of_search,
+            parcel_number: this.parcels[0]?.parcel_number || '',
+          };
+          delete formData.purpose_of_search;
 
-      this.searchService.createSearchApplication(formData).subscribe(
-        {
-          next: (response: any) => {
-            alert('Application submitted successfully!');
-            console.log('Application Submitted Successfuly', response);
-            this.router.navigate(['/search-application']);
-          },
-          error: (error: any) => {
-            console.error('Application creation failed', error);
-          }
-        });
+          this.searchService.createSearchApplication(formData).subscribe({
+            next: (response: any) => {
+              // Success message
+              Swal.fire({
+                title: 'Success!',
+                text: 'Application submitted successfully!',
+                icon: 'success',
+                confirmButtonColor: '#8B4513'
+              }).then(() => {
+                console.log('Application Submitted Successfully', response);
+                this.router.navigate(['/search-application']);
+              });
+            },
+            error: (error: any) => {
+              console.error('Application creation failed', error);
+              // Error message
+              Swal.fire({
+                title: 'Error!',
+                text: 'Submission failed. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#8B4513'
+              });
+            }
+          });
+        }
+      });
+    } else {
+      console.log('Form not valid');
+      Swal.fire({
+        title: 'Incomplete Form',
+        text: 'Please complete all required fields and add at least one parcel.',
+        icon: 'warning',
+        confirmButtonColor: '#8B4513'
+      });
     }
-    else (
-      console.log('Form not valid')
-    )
   }
 }

@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { Invoice, Document } from '../../interfaces/search';
 import { SearchService } from '../../services/search.service';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-search-application',
@@ -104,41 +105,108 @@ export class SearchApplicationComponent implements OnInit {
     console.log('View invoice details:', invoice);
   }
 
-  onMockPayment() {
-    if (this.selectedInvoice) {
+  async onMockPayment() {
+    if (!this.selectedInvoice) return;
 
-      const phone = prompt('Please enter your phone number:');
+    // Get phone number
+    const { value: phone } = await Swal.fire({
+      title: 'Enter Phone Number',
+      input: 'text',
+      inputPlaceholder: 'Enter your phone number',
+      showCancelButton: true,
+      confirmButtonColor: '#8B4513',
+      cancelButtonColor: '#aeb5bbff',
+      confirmButtonText: 'Pay',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => !value ? 'Phone number is required!' : !this.isValidPhone(value) ? 'Invalid phone number!' : null
+    });
 
-      if (!phone || !this.isValidPhone(phone)) {
-        alert(phone ? 'Please enter a valid phone number' : 'Phone number is required');
-        return;
+    // If user cancelled or closed the dialog
+    if (!phone) return;
+
+    // Confirm payment
+    const confirmed = await Swal.fire({
+      title: 'Confirm Payment',
+      text: `Are you sure you want to proceed with payment for application REG/SRCH/${this.applicationData.reference_number}?`,
+      // text: `Pay for application REG/SRCH/${this.applicationData.reference_number}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#8B4513',
+      cancelButtonColor: '#aeb5bbff',
+      confirmButtonText: 'Yes, Pay',
+      cancelButtonText: 'Cancel'
+    });
+
+    // If user confirms payment
+    if (!confirmed.isConfirmed) return;
+
+    // Loading
+    Swal.fire({
+      title: 'Processing...',
+      text: 'Initiating payment',
+      icon: 'info',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    // Process payment
+    const paymentData = { phone: phone };
+
+    this.searchService.makePayment(this.applicationData.id, paymentData).subscribe({
+      next: (response) => {
+        Swal.close();
+        this.confirmPaymentReceipt();
+      },
+      error: (error) => {
+        Swal.close();
+        Swal.fire({
+          title: 'Payment Failed',
+          text: 'Please try again',
+          icon: 'error',
+          confirmButtonColor: '#8B4513'
+        });
       }
-
-      const paymentData = {
-        phone: phone,
-      };
-
-      this.searchService.makePayment(this.applicationData.id, paymentData).subscribe({
-        next: (response) => {
-          const referenceNo = this.applicationData.reference_number
-          alert(`Payment successful for application no REG/SRCH/${referenceNo}`);
-
-          this.selectedInvoice = null;
-          // console.log('Payment response:', response);
-          this.router.navigate(['application-details']);
-        },
-        error: (error) => {
-          console.error(error);
-          alert('Payment failed. Please try again.');
-        }
-      });
-    }
+    });
   }
 
   //Validate phone number
   private isValidPhone(phone: string): boolean {
     const phoneRegex = /^[0-9]{10,12}$/;
     return phoneRegex.test(phone.replace(/\s+/g, ''));
+  }
+
+  //confirm payment receipt
+  private async confirmPaymentReceipt() {
+    const receiptConfirmed = await Swal.fire({
+      title: 'Check Your Phone',
+      text: 'Payment sent to your phone. Did you complete the payment?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#8B4513',
+      cancelButtonColor: '#aeb5bbff',
+      confirmButtonText: 'Yes, Done',
+      cancelButtonText: 'No'
+    });
+
+    if (receiptConfirmed.isConfirmed) {
+      await Swal.fire({
+        title: 'Success!',
+        text: `Payment completed for REG/SRCH/${this.applicationData.reference_number}`,
+        icon: 'success',
+        confirmButtonColor: '#8B4513'
+      });
+
+      this.selectedInvoice = null;
+      this.router.navigate(['application-details']);
+    } else {
+      await Swal.fire({
+        title: 'Pending',
+        text: 'Please complete payment on your phone',
+        icon: 'info',
+        confirmButtonColor: '#8B4513'
+      });
+    }
   }
 
   //Disable action buttons in search status table(Application details)

@@ -117,7 +117,7 @@ export class ChiefRegistryRegistrar implements OnInit {
   currentUserRole: UserRole = 'is_registrar_in_charge';
   currentUserName: string = 'Registry Registrar In Charge';
   currentUserRegistry: string = 'Nairobi Central';
-  currentUserId: number = 1; // Default value, you can get this from your user object if available
+  currentUserId: number = 1;
   filteredApplications: Application[] = [];
 
   // API data properties
@@ -145,76 +145,78 @@ export class ChiefRegistryRegistrar implements OnInit {
     this.currentUserRole = this.authService.getCurrentUserRole() as UserRole;
     this.currentUserName = this.authService.getCurrentUserName();
     this.currentUserRegistry = this.authService.getCurrentUserRegistry();
-
-    // Remove the getCurrentUserId call since it doesn't exist
-    // You can get the user ID from your user object if available in AuthService
-    // For now, we'll use a default value
-    this.currentUserId = 1; // Or get from this.authService.currentUser if available
-
-    console.log('👤 User initialized:', {
-      role: this.currentUserRole,
-      name: this.currentUserName,
-      registry: this.currentUserRegistry,
-      id: this.currentUserId
-    });
+    this.currentUserId = 1;
   }
 
   ngOnInit(): void {
     this.loadApplications();
     this.loadRegistrars();
-
     this.applicationService.debugAllRoles().subscribe();
-
   }
 
   // ========== API METHODS ==========
   loadApplications(): void {
-    this.isLoading = true;
-    this.error = '';
+  this.isLoading = true;
+  this.error = '';
 
-    this.applicationService.getRegistrarInChargeApplications()
-      .subscribe({
-        next: (response: ApiResponse) => {
-          this.apiApplications = response.results;
-          this.isLoading = false;
-          console.log('✅ Applications loaded from API:', this.apiApplications);
-
-          // Map API data to local applications format
-          this.mapApiToLocalApplications();
-        },
-        error: (error: any) => {
-          this.isLoading = false;
-          this.error = 'Failed to load applications from API. Please try again later.';
-          console.error('❌ Error loading applications from API:', error);
-          this.applications = [];
-          this.filteredApplications = [];
-        }
-      });
-  }
-
- // In your component
-loadRegistrars(): void {
-  this.isRegistrarsLoading = true;
-
-  // ADD the currentUserRegistry parameter here ↓
-  this.applicationService.getAvailableRegistrars(this.currentUserRegistry)
+  this.applicationService.getRegistrarInChargeApplications()
     .subscribe({
-      next: (registrars: Registrar[]) => {
-        this.registrars = registrars;
-        this.isRegistrarsLoading = false;
-        console.log('✅ Registrars loaded:', this.registrars.length, 'for registry:', this.currentUserRegistry);
+      next: (response: ApiResponse) => {
+        this.apiApplications = response.results;
+        this.isLoading = false;
+
+        console.log('🔍 RAW API RESPONSE ANALYSIS:');
+        response.results.forEach((apiApp, index) => {
+          console.log(`Application ${index + 1}:`, {
+            id: apiApp.id,
+            reference_number: apiApp.reference_number,
+            status: apiApp.status,
+            assigned_to: apiApp.assigned_to,
+            user_object: apiApp.user,
+            has_registrar: !!apiApp.user?.registrar,
+            registrar_data: apiApp.user?.registrar
+          });
+        });
+
+        // Map API data to local applications format
+        this.mapApiToLocalApplications();
       },
       error: (error: any) => {
-        this.isRegistrarsLoading = false;
-        console.error('❌ Error loading registrars:', error);
-        this.registrars = [];
+        this.isLoading = false;
+        this.error = 'Failed to load applications from API. Please try again later.';
+        console.error('❌ Error loading applications from API:', error);
+        this.applications = [];
+        this.filteredApplications = [];
       }
     });
 }
 
+
+  loadRegistrars(): void {
+    this.isRegistrarsLoading = true;
+
+    this.applicationService.getAvailableRegistrars(this.currentUserRegistry)
+      .subscribe({
+        next: (registrars: Registrar[]) => {
+          this.registrars = registrars;
+          this.isRegistrarsLoading = false;
+
+        },
+        error: (error: any) => {
+          this.isRegistrarsLoading = false;
+
+          this.registrars = [];
+        }
+      });
+  }
+
   // Map API data to your local Application interface
-private mapApiToLocalApplications(): void {
+ private mapApiToLocalApplications(): void {
+  console.log('🔄 mapApiToLocalApplications - FIXED VERSION');
+
   this.applications = this.apiApplications.map(apiApp => {
+    console.log('🔍 Processing application:', apiApp.reference_number);
+
     // Map backend status to frontend status
     const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
       'pending': 'unassigned',
@@ -227,21 +229,42 @@ private mapApiToLocalApplications(): void {
 
     const frontendStatus = statusMap[apiApp.status] || 'unassigned';
 
-    // Extract user information based on your API structure with safe access
-    const applicant = apiApp.user?.normal; // Applicant is normal user
-    const assignedRegistrar = apiApp.user?.registrar; // Assigned registrar
+    // Extract user information - FIX: Handle missing user object
+    const applicant = apiApp.user?.normal;
 
     // Handle applicant data
     let applicantName = 'Unknown Applicant';
     let applicantId = 0;
-    
+
     if (applicant) {
       applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
       applicantId = applicant.id || 0;
     }
 
-    // Get assigned registrar name
-    const assignedRegistrarName = assignedRegistrar?.username || 'Not assigned';
+    // **CRITICAL FIX: Look up registrar from local registrars array**
+    let assignedRegistrarName = 'Not assigned';
+    let assignedRegistrarId = null;
+
+    console.log('👤 FIXED Assignment Debug for', apiApp.reference_number, ':', {
+      apiAssignedTo: apiApp.assigned_to,
+      localRegistrarsCount: this.registrars.length,
+      localRegistrars: this.registrars.map(r => ({ id: r.id, username: r.username }))
+    });
+
+    // FIX: Look up registrar name from local registrars array
+    if (apiApp.assigned_to) {
+      const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
+
+      if (assignedRegistrar) {
+        assignedRegistrarName = assignedRegistrar.username;
+        assignedRegistrarId = apiApp.assigned_to;
+        console.log('✅ FOUND REGISTRAR IN LOCAL ARRAY:', assignedRegistrarName);
+      } else {
+        console.log('❌ Registrar ID', apiApp.assigned_to, 'not found in local registrars array');
+        assignedRegistrarName = 'Assigned (Unknown)';
+        assignedRegistrarId = apiApp.assigned_to;
+      }
+    }
 
     // Create application object with safe property access
     const application: Application = {
@@ -256,24 +279,38 @@ private mapApiToLocalApplications(): void {
       county: apiApp.county,
       registry: apiApp.registry,
       assignedRegistrar: assignedRegistrarName,
-      assignedRegistrarId: apiApp.assigned_to,
+      assignedRegistrarId: assignedRegistrarId,
       purpose: apiApp.purpose,
       submitted_at: apiApp.submitted_at,
-      // Remove payment and reviews if they don't exist in your API
-      payment: undefined, // Remove if not available
       certificate: apiApp.certificate ? {
         signed_file: apiApp.certificate.signed_file,
         uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
       } : undefined,
-      reviews: [] // Remove or handle properly if available
+      reviews: []
     };
+
+    console.log('🎯 Final application object:', {
+      id: application.id,
+      status: application.status,
+      assignedRegistrar: application.assignedRegistrar,
+      assignedRegistrarId: application.assignedRegistrarId
+    });
 
     return application;
   });
 
-  console.log('✅ Mapped applications:', this.applications);
+  console.log('✅ ALL APPLICATIONS AFTER FIXED MAPPING:', this.applications.map(app => ({
+    id: app.id,
+    referenceNo: app.referenceNo,
+    status: app.status,
+    assignedRegistrar: app.assignedRegistrar,
+    assignedRegistrarId: app.assignedRegistrarId
+  })));
+
   this.filterByStatus(this.currentTab);
 }
+
+
   private formatDate(dateString: string): string {
     try {
       const date = new Date(dateString);
@@ -309,11 +346,8 @@ private mapApiToLocalApplications(): void {
   }
 
   private getRegistrarById(registrarId: number): Registrar | undefined {
-    return this.registrars.find(registrar => registrar.id === registrarId);
-  }
-
-  private getRegistrarByName(registrarName: string): Registrar | undefined {
-    return this.registrars.find(registrar => registrar.name === registrarName);
+    const registrar = this.registrars.find(registrar => registrar.id === registrarId);
+    return registrar;
   }
 
   // ========== SEARCH TYPE CHANGE METHOD ==========
@@ -326,76 +360,59 @@ private mapApiToLocalApplications(): void {
   }
 
   // ========== ASSIGNMENT METHODS ==========
+
+
+// COMPLETELY REVISED assignToRegistrar method:
 assignToRegistrar(applicationId: number, registrarId: string): void {
+  console.log('🎯 ASSIGNMENT WITH LOCAL LOOKUP');
+
   if (!registrarId || registrarId === '') return;
 
-  const application = this.applications.find(app => app.id === applicationId);
-  if (!application) return;
-
-  // Check permissions - only registrar in charge can assign to registrars
-  if (this.currentUserRole !== 'is_registrar_in_charge') {
-    alert('Only Registrar In Charge can assign applications to registrars');
-    return;
-  }
-
-  // Verify the application belongs to this registry
-  if (application.registry !== this.currentUserRegistry) {
-    alert('You can only assign applications from your registry');
-    return;
-  }
-
   const registrarIdNum = parseInt(registrarId, 10);
-  const registrar = this.getRegistrarById(registrarIdNum);
+
+  // Look up registrar from local array
+  const registrar = this.registrars.find(r => r.id === registrarIdNum);
 
   if (!registrar) {
-    alert('Registrar not found');
+    console.error('Registrar not found in local array');
     return;
   }
 
-  console.log('🔄 Assigning application:', {
-    applicationId: applicationId,
-    registrarId: registrarIdNum,
-    registrarName: registrar.name,
-    currentRegistry: this.currentUserRegistry
+  console.log('Assigning to registrar:', registrar.username);
+
+  // Update local state
+  const appIndex = this.applications.findIndex(app => app.id === applicationId);
+  if (appIndex === -1) return;
+
+  const updatedApplication: Application = {
+    ...this.applications[appIndex],
+    status: 'ongoing',
+    assignedRegistrar: registrar.username,
+    assignedRegistrarId: registrar.id
+  };
+
+  this.applications[appIndex] = updatedApplication;
+  this.applications = [...this.applications]; // Force change detection
+
+  console.log('Local state updated:', {
+    assignedRegistrar: this.applications[appIndex].assignedRegistrar,
+    assignedRegistrarId: this.applications[appIndex].assignedRegistrarId
   });
 
-  // Call API to assign application
+  // Update view
+  this.currentTab = 'ongoing';
+  this.filterByStatus('ongoing');
+
+  // Call API
   this.applicationService.assignApplication(applicationId, registrarIdNum)
     .subscribe({
       next: (response: any) => {
-        console.log('✅ Assignment API response:', response);
-        
-        // Update local state
-        const index = this.applications.findIndex(app => app.id === applicationId);
-        if (index !== -1) {
-          this.applications[index] = {
-            ...this.applications[index],
-            status: 'ongoing',
-            assignedRegistrar: registrar.name,
-            assignedRegistrarId: registrar.id
-          };
-          
-          console.log('✅ Local state updated:', {
-            applicationId: applicationId,
-            newStatus: 'ongoing',
-            assignedTo: registrar.name
-          });
-        }
-        
-        alert(`Application successfully assigned to ${registrar.name}`);
-        this.filterByStatus(this.currentTab);
+        console.log('API success');
+        alert(`Application successfully assigned to ${registrar.username}`);
       },
       error: (error: any) => {
-        console.error('❌ Error assigning application:', error);
-        
-        let errorMessage = 'Failed to assign application. ';
-        if (error.error) {
-          errorMessage += error.error.detail || error.error.message || 'Please try again.';
-        } else {
-          errorMessage += 'Please try again.';
-        }
-        
-        alert(errorMessage);
+        console.error('API failed:', error);
+        alert('Assignment saved locally but API failed');
       }
     });
 }
@@ -539,8 +556,6 @@ assignToRegistrar(applicationId: number, registrarId: string): void {
     } else if (status === 'verified') {
       filtered = filtered.filter(app => app.status === 'verified');
     }
-    // If status is 'registry', show all applications from the registry without status filtering
-
     this.filteredApplications = filtered;
     this.tableSearchValue = '';
   }
@@ -567,10 +582,18 @@ assignToRegistrar(applicationId: number, registrarId: string): void {
 
   // ========== PERMISSION METHODS ==========
   canAssignRegistrar(application: Application): boolean {
-    return this.currentUserRole === 'is_registrar_in_charge' &&
+    // Check if registrar is truly unassigned
+    const isTrulyUnassigned =
+      (!application.assignedRegistrar ||
+       application.assignedRegistrar === 'Not assigned' ||
+       application.assignedRegistrar === '') &&
+      (!application.assignedRegistrarId || application.assignedRegistrarId === null);
+
+    const result = this.currentUserRole === 'is_registrar_in_charge' &&
            application.registry === this.currentUserRegistry &&
            application.status === 'unassigned' &&
-           !application.assignedRegistrar;
+           isTrulyUnassigned;
+    return result;
   }
 
   canMarkCompleted(application: Application): boolean {
@@ -586,18 +609,24 @@ assignToRegistrar(applicationId: number, registrarId: string): void {
   }
 
   getRegistrarsForCurrentRegistry(): Registrar[] {
+    if (!this.registrars || this.registrars.length === 0) {
+      return [];
+    }
+
     // Filter registrars by current user's registry
-    return this.registrars.filter(registrar =>
+    const filteredRegistrars = this.registrars.filter(registrar =>
       registrar.registry === this.currentUserRegistry &&
       registrar.role === 'is_registrar'
     );
+
+
+    return filteredRegistrars;
   }
 
   // ========== UTILITY METHODS ==========
   setUserRole(role: UserRole, userName: string): void {
     this.currentUserRole = role;
     this.currentUserName = userName;
-    console.log(`User role changed to: ${role}, User: ${userName}`);
     this.filterByStatus(this.currentTab);
   }
 
@@ -675,7 +704,6 @@ assignToRegistrar(applicationId: number, registrarId: string): void {
   }
 
   switchToRegistrarInChargeRole(): void {
-    console.log('🔄 Switching to registrar in charge role');
 
     // Update user role using AuthService
     this.authService.setCurrentUserRole('is_registrar_in_charge');
@@ -683,8 +711,6 @@ assignToRegistrar(applicationId: number, registrarId: string): void {
     // Update local component state
     this.currentUserRole = 'is_registrar_in_charge';
     this.currentUserName = 'Registry Registrar In Charge';
-
-    console.log('✅ Switched to registrar in charge role');
 
     // Navigate to registrar in charge dashboard
     this.router.navigate(['/registrarInCharge']);
@@ -728,4 +754,31 @@ assignToRegistrar(applicationId: number, registrarId: string): void {
       alert('No reviews available for this application');
     }
   }
+
+  // Debug method
+  debugAssignmentPermission(application: Application): void {
+    console.log('🔍 DEBUG canAssignRegistrar for application:', application.referenceNo);
+    console.log('Application details:', {
+      id: application.id,
+      referenceNo: application.referenceNo,
+      status: application.status,
+      registry: application.registry,
+      assignedRegistrar: application.assignedRegistrar,
+      assignedRegistrarId: application.assignedRegistrarId
+    });
+
+    // console.log('User details:', {
+    //   currentUserRole: this.currentUserRole,
+    //   currentUserRegistry: this.currentUserRegistry,
+    //   requiredRole: 'is_registrar_in_charge'
+    // });
+
+    const conditions = {
+      hasCorrectRole: this.currentUserRole === 'is_registrar_in_charge',
+      sameRegistry: application.registry === this.currentUserRegistry,
+      isUnassigned: application.status === 'unassigned',
+      noAssignedRegistrar: !application.assignedRegistrar && !application.assignedRegistrarId
+    };
+  }
+
 }

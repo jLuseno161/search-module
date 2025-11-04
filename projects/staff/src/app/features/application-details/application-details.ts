@@ -40,6 +40,10 @@ export class ApplicationDetails implements OnInit {
   error: string | null = null;
   isLoading: boolean = true;
 
+  //adding registrar data
+  registrars: any[] = [];
+  isRegistrarsLoading: boolean = false;
+
   // Certificate upload properties
   selectedFile: File | null = null;
   isUploadingCertificate: boolean = false;
@@ -65,7 +69,9 @@ export class ApplicationDetails implements OnInit {
       name: this.currentUserName,
       id: this.currentUserId
     });
-
+ // Load registrars first
+    this.loadRegistrars();
+    
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       console.log('Route parameter id:', id);
@@ -81,7 +87,24 @@ export class ApplicationDetails implements OnInit {
       }
     });
   }
+  // Add method to load registrars
+  private loadRegistrars(): void {
+    this.isRegistrarsLoading = true;
+    const currentUserRegistry = this.authService.getCurrentUserRegistry();
 
+    this.applicationService.getAvailableRegistrars(currentUserRegistry).subscribe({
+      next: (registrars: any[]) => {
+        this.registrars = registrars;
+        this.isRegistrarsLoading = false;
+        console.log('✅ Registrars loaded for application details:', this.registrars);
+      },
+      error: (error: any) => {
+        this.isRegistrarsLoading = false;
+        console.error('❌ Error loading registrars:', error);
+        this.registrars = [];
+      }
+    });
+  }
   private loadApplicationDetails(id: number): void {
     this.isLoading = true;
     this.error = null;
@@ -119,7 +142,7 @@ export class ApplicationDetails implements OnInit {
 
   private fetchApplicantDetails(applicantId: number): void {
     if (!applicantId) return;
-    
+
     this.applicationService.getUserDetails(applicantId).subscribe({
       next: (user) => {
         if (this.application) {
@@ -140,7 +163,7 @@ export class ApplicationDetails implements OnInit {
 
   private fetchAssignedRegistrarDetails(registrarId: number): void {
     if (!registrarId) return;
-    
+
     this.applicationService.getUserDetails(registrarId).subscribe({
       next: (user) => {
         if (this.application) {
@@ -163,7 +186,7 @@ export class ApplicationDetails implements OnInit {
     this.applicationService.getRegistrarInChargeApplications().subscribe({
       next: (response) => {
         const apiApplication = response.results.find(app => app.id === id);
-        
+
         if (apiApplication) {
           this.application = this.mapApiToApplication(apiApplication);
           console.log('✅ Application loaded from API:', this.application);
@@ -188,7 +211,7 @@ export class ApplicationDetails implements OnInit {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     console.log('🔍 APPLICATION DATA FOR MAPPING:', apiApp);
-    
+
     return {
       id: apiApp.id,
       reference_number: apiApp.reference_number,
@@ -198,9 +221,9 @@ export class ApplicationDetails implements OnInit {
       registry: apiApp.registry,
       status: apiApp.status as any,
       submitted_at: apiApp.submitted_at,
-      assigned_to: apiApp.assigned_to, 
+      assigned_to: apiApp.assigned_to,
       assigned_to_username: 'Loading...',
-      applicant: apiApp.applicant, 
+      applicant: apiApp.applicant,
       dateSubmitted: submittedDate.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -210,7 +233,7 @@ export class ApplicationDetails implements OnInit {
       referenceNo: apiApp.reference_number,
       parcelNo: apiApp.parcel_number,
       applicantName: 'Loading applicant...',
-      applicantId: apiApp.applicant 
+      applicantId: apiApp.applicant
     };
   }
 
@@ -262,20 +285,20 @@ export class ApplicationDetails implements OnInit {
     this.applicationService.uploadCertificate(this.applicationId, this.selectedFile).subscribe({
       next: (response) => {
         this.isUploadingCertificate = false;
-        
+
         this.selectedFile = null;
         this.clearSelectedFile();
-        
+
         console.log('✅ Certificate uploaded successfully:', response);
         alert('Application approved and certificate uploaded successfully!');
-        
+
         // Refresh application data to show new status
         this.loadApplicationDetails(this.applicationId!);
       },
       error: (error) => {
         this.isUploadingCertificate = false;
         console.error('❌ Error uploading certificate:', error);
-        
+
         let errorMessage = 'Error uploading certificate. Please try again.';
         if (error.error && error.error.error) {
           errorMessage = error.error.error;
@@ -305,16 +328,16 @@ export class ApplicationDetails implements OnInit {
       next: (response) => {
         this.isRejecting = false;
         this.rejectReason = '';
-        
+
         console.log('✅ Application rejected successfully:', response);
         alert('Application rejected successfully!');
-        
+
         this.loadApplicationDetails(this.applicationId!);
       },
       error: (error) => {
         this.isRejecting = false;
         console.error('❌ Error rejecting application:', error);
-        
+
         let errorMessage = 'Error rejecting application. Please try again.';
         if (error.error && error.error.error) {
           errorMessage = error.error.error;
@@ -327,20 +350,20 @@ export class ApplicationDetails implements OnInit {
   }
 
   canUploadCertificate(): boolean {
-    const canUpload = this.currentUserRole === 'is_registrar' && 
+    const canUpload = this.currentUserRole === 'is_registrar' &&
            this.application?.status === 'assigned';
-    
+
     console.log('🔍 Certificate upload check:', {
       userRole: this.currentUserRole,
       appStatus: this.application?.status,
       canUpload: canUpload
     });
-    
+
     return canUpload;
   }
 
   canRejectApplication(): boolean {
-    return this.currentUserRole === 'is_registrar' && 
+    return this.currentUserRole === 'is_registrar' &&
            this.application?.status === 'assigned';
   }
 
@@ -361,7 +384,7 @@ export class ApplicationDetails implements OnInit {
     if (!applicant) {
       return 'Unknown Applicant';
     }
-    
+
     return `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
   }
 
@@ -370,7 +393,7 @@ export class ApplicationDetails implements OnInit {
     if (!applicant) {
       return 'No email provided';
     }
-    
+
     return applicant.email || 'No email provided';
   }
 

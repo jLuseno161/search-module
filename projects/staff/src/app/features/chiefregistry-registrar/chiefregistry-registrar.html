@@ -275,14 +275,14 @@
               </td>
 
               <!-- Assignment Column for Unassigned Tab -->
-              <td *ngIf="currentTab === 'unassigned'">
+               <td *ngIf="currentTab === 'unassigned'">
                 <div *ngIf="canAssignRegistrar(app)" class="dropdown">
                   <select class="form-select form-select-sm"
                           (change)="assignToRegistrar(app.id, $any($event.target).value)"
                           [disabled]="!canAssignRegistrar(app)">
                     <option value="">Select Registrar</option>
                     <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
-                            [value]="registrar.id">
+                            [value]="registrar.id">  <!-- Pass ID instead of object -->
                       {{ registrar.username }}
                     </option>
                   </select>
@@ -291,11 +291,10 @@
                   Cannot assign
                 </span>
               </td>
-
               <!-- Assigned Registrar for Ongoing Tab -->
               <td *ngIf="currentTab === 'ongoing'">
                 <span *ngIf="app.assignedRegistrar" class="text-success">
-                  {{ app.assignedRegistrar }}
+                  {{ app.assignedRegistrar }} 
                 </span>
                 <span *ngIf="!app.assignedRegistrar" class="text-muted">
                   Not assigned

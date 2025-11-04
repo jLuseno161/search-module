@@ -52,7 +52,7 @@ export class SearchService {
     {
       county: 'Nairobi',
       registries: [
-        'Nairobi Central Registry',
+        'Nairobi',
         'Nairobi West Registry',
         'Nairobi South Registry'
       ]
@@ -133,7 +133,11 @@ export class SearchService {
     return this.http.get(`${this.apiUrl}/applications`);
   }
 
-  validateParcel(parcelNumber: string): Observable<boolean> {
-    return this.http.get<boolean>(`/api/parcels/validate/${parcelNumber}`);
+  makePayment(applicationId: number, paymentData?: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/applications/${applicationId}/pay`, paymentData);
+  }
+
+  downloadSearchResult(applicationId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/certificates/${applicationId}`);
   }
 }

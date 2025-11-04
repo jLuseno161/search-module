@@ -2,128 +2,222 @@
     <mat-card-header style="padding-top: 0;">
         <div class="header-content">
             <div class="title-section">
-                <mat-card-title>Search: Application REG/SRCH/{{applicationId}}</mat-card-title>
+                <mat-card-title>Search: Application REG/SRCH/{{applicationData.reference_number}}</mat-card-title>
             </div>
         </div>
     </mat-card-header>
 
     <br>
     <mat-divider></mat-divider>
-
     <mat-card-content class="card-content">
         <!-- Add progress bar here-->
 
-        <mat-tab-group class="tab-group">
+        <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
             <mat-tab label="Application Details">
                 <div class="tab-content">
-                    <p>Application details content goes here...</p>
+                    <div class="application-details-container">
+                        <div class="application-header-details">
+                            <div class="application-status">
+                                Status: {{ applicationData.status | titlecase }}
+                            </div>
+                            <div class="reference-number">
+                                Search Number: REG/SRCH/{{ applicationData.reference_number }}
+                            </div>
+                        </div>
+
+                        <div class="section_header">
+                            <h4 class="title">Application Details</h4>
+                        </div>
+
+                        <!-- Application Details -->
+                        <table class="table_borders table-responsive application-details-table">
+                            <tr>
+                                <td class="header"><strong>Applicant:</strong></td>
+                                <td>{{ currentUser.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{ currentUser.id }}</td>
+                            </tr>
+                            <tr>
+                                <td class="header"><strong>County:</strong></td>
+                                <td>{{ applicationData.county }}</td>
+                            </tr>
+                            <tr>
+                                <td class="header"><strong>Registry:</strong></td>
+                                <td>{{ applicationData.registry }}</td>
+                            </tr>
+                            <tr>
+                                <td class="header"><strong>Type of search:</strong></td>
+                                <td> Parcel search </td>
+                            </tr>
+                            <tr>
+                                <td class="header"><strong>Purpose of search:</strong></td>
+                                <td>{{ applicationData.purpose }}</td>
+                            </tr>
+                            <tr>
+                                <td class="header"><strong>Scope of search:</strong></td>
+                                <td>Particulars of the subsisting entries in the register of the above-mentioned parcel
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Search Results -->
+                        <table mat-table [dataSource]="appDataSource" class="search-results-table">
+                            <ng-container matColumnDef="id">
+                                <th mat-header-cell *matHeaderCellDef> No. </th>
+                                <td mat-cell *matCellDef="let element; let i = index">
+                                    {{ i + 1 }}
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="parcel_number">
+                                <th mat-header-cell *matHeaderCellDef> Parcel No. </th>
+                                <td mat-cell *matCellDef="let element"> {{ element.parcel_number }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="status">
+                                <th mat-header-cell *matHeaderCellDef> Search status</th>
+                                <td mat-cell *matCellDef="let element">{{ element.status | titlecase }}</td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="exists">
+                                <th mat-header-cell *matHeaderCellDef> Parcel exists </th>
+                                <td mat-cell *matCellDef="let element">
+                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ? 'Pending' :'Yes'}}
+                                </td>
+                            </ng-container>
+
+                            <!-- Note: Verication done by the owner after otp is sent: To edit -->
+                            <ng-container matColumnDef="verified">
+                                <th mat-header-cell *matHeaderCellDef> Verification Status </th>
+                                <td mat-cell *matCellDef="let element">
+                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ? 'Not verified' :'Verified'}}
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                                <td mat-cell *matCellDef="let element" class="action-cell">
+                                    <button mat-button class="view-button" [disabled]="isActionDisabled(element.status)">
+                                        View
+                                    </button>
+                                    <button mat-button class="download-button" (click)="downloadCertificate()" [disabled]="isActionDisabled(element.status)">
+                                        Download
+                                    </button>
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns1"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns1;"></tr>
+                        </table>
+                    </div>
                 </div>
             </mat-tab>
 
             <mat-tab label="Documents">
                 <div class="tab-content">
-                    <p>Documents content goes here...</p>
+                    <div class="section_header">
+                        <h4 class="title">Attached Documents</h4>
+                    </div>
+
+                    <div class="documents-section">
+                        <div class="table-responsive">
+                            <table class="table_borders">
+                                <tr *ngFor="let doc of documents">
+                                    <td class="header"><strong>Document {{ doc.id }}:</strong></td>
+                                    <td> {{ doc.name }} </td>
+                                </tr>
+                                <tr *ngIf="documents.length === 0">
+                                    <td colspan="2">No application documents</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </mat-tab>
 
             <mat-tab label="Invoices">
                 <div class="tab-content">
+                    <div class="section_header">
+                        <h4 class="title">Application Invoices</h4>
+                    </div>
+
                     <div class="invoice-section">
-                        <div class="section-header">
-                            <h4 class="title">Application Invoices</h4>
-                        </div>
+                        <table mat-table [dataSource]="dataSource" class="invoices-table">
+                            <ng-container matColumnDef="id">
+                                <th mat-header-cell *matHeaderCellDef> No. </th>
+                                <td mat-cell *matCellDef="let invoice; let i = index">
+                                    {{ i + 1 }}
+                                </td>
+                            </ng-container>
 
-                        <mat-card class="invoice-card">
-                            <mat-card-content>
-                                <div class="">
-                                    <table mat-table [dataSource]="invoices" class="invoice-table">
-                                        <ng-container matColumnDef="id">
-                                            <th mat-header-cell *matHeaderCellDef> No. </th>
-                                            <!-- <td mat-cell *matCellDef="let invoice"> {{ invoice.id }} </td> -->
-                                            <td mat-cell *matCellDef="let invoice; let i = index">
-                                                {{ i + 1 }}
-                                            </td>
-                                        </ng-container>
+                            <ng-container matColumnDef="date">
+                                <th mat-header-cell *matHeaderCellDef> Date </th>
+                                <td mat-cell *matCellDef="let invoice"> {{ invoice.date }} </td>
+                            </ng-container>
 
-                                        <ng-container matColumnDef="date">
-                                            <th mat-header-cell *matHeaderCellDef> Date </th>
-                                            <td mat-cell *matCellDef="let invoice"> {{ invoice.date }} </td>
-                                        </ng-container>
+                            <ng-container matColumnDef="paymentFor">
+                                <th mat-header-cell *matHeaderCellDef> Payment </th>
+                                <td mat-cell *matCellDef="let invoice"> {{ invoice.paymentFor }} </td>
+                            </ng-container>
 
-                                        <ng-container matColumnDef="paymentFor">
-                                            <th mat-header-cell *matHeaderCellDef> Payment </th>
-                                            <td mat-cell *matCellDef="let invoice"> {{ invoice.paymentFor }} </td>
-                                        </ng-container>
+                            <ng-container matColumnDef="amount">
+                                <th mat-header-cell *matHeaderCellDef> Total Amount </th>
+                                <td mat-cell *matCellDef="let invoice"> {{ invoice.amount }} </td>
+                            </ng-container>
 
-                                        <ng-container matColumnDef="amount">
-                                            <th mat-header-cell *matHeaderCellDef> Total Amount </th>
-                                            <td mat-cell *matCellDef="let invoice"> {{ invoice.amount }} </td>
-                                        </ng-container>
+                            <ng-container matColumnDef="balance">
+                                <th mat-header-cell *matHeaderCellDef> Balance </th>
+                                <td mat-cell *matCellDef="let invoice">
+                                    {{ ['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase()) ? 'Not Available' : invoice.balance}}
+                                </td>
+                            </ng-container>
 
-                                        <ng-container matColumnDef="balance">
-                                            <th mat-header-cell *matHeaderCellDef> Balance </th>
-                                            <td mat-cell *matCellDef="let invoice"> {{ invoice.balance }} </td>
-                                        </ng-container>
+                            <ng-container matColumnDef="status">
+                                <th mat-header-cell *matHeaderCellDef> Status </th>
+                                <td mat-cell *matCellDef="let invoice">
+                                    <span class="status">
+                                        {{ invoice.status }}
+                                    </span>
+                                </td>
+                            </ng-container>
 
-                                        <ng-container matColumnDef="status">
-                                            <th mat-header-cell *matHeaderCellDef> Status </th>
-                                            <td mat-cell *matCellDef="let invoice">
-                                                <!-- <span class="status" [class]="getStatusClass(invoice.status)">
-                                                    {{ invoice.status }}
-                                                </span> -->
-                                                <span class="status">
-                                                    {{ invoice.status }}
-                                                </span>
-                                            </td>
-                                        </ng-container>
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                                <td mat-cell *matCellDef="let invoice" class="action-cell">
+                                    <button mat-button class="pay-button" (click)="payNow(invoice)" [disabled]="['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase())">
+                                        {{ selectedInvoice?.id === invoice.id ? 'Close' : 'Pay' }}
+                                    </button>
+                                    <button mat-button class="view-button" (click)="viewInvoice(invoice)">
+                                        <mat-icon>expand_more</mat-icon>
+                                        View
+                                    </button>
+                                </td>
+                            </ng-container>
 
-                                        <ng-container matColumnDef="actions">
-                                            <th mat-header-cell *matHeaderCellDef> Actions </th>
-                                            <td mat-cell *matCellDef="let invoice" class="action-cell">
-                                                <button mat-button class="pay-button" (click)="payNow(invoice)" [disabled]="invoice.status === 'Paid'">Pay </button>
-                                                <button mat-button class="view-button" (click)="viewInvoice(invoice)">
-                                                    <mat-icon>expand_more</mat-icon>
-                                                    View
-                                                </button>
-                                            </td>
-                                        </ng-container>
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                        </table>
 
-                                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                                    </table>
-                                </div>
+                        <div class="payment-details-section" *ngIf="selectedInvoice && dataSource.data.length > 0">
+                            <div class="payment-details">
+                                <h3>Mode of Payment *</h3>
+                                <button mat-raised-button class="mock-payment-btn" (click)="onMockPayment()">
+                                    Mock Payments
+                                </button>
+                                <div class="applicant-info">
+                                    <h3>Payment Details</h3>
+                                    <div class="applicant-details">
+                                        <p><strong>Applicant Name:</strong> {{ applicationData.applicant || applicationData.name }}</p>
+                                        <!-- <p><strong>Phone Number:</strong> {{applicationData.phone|| '+254710253526' }} </p>-->
+                                        <p><strong>Total Bill:</strong> {{ selectedInvoice.amount | currency:'KES ' }}
+                                        </p>
+                                        <p><strong>Invoice #:</strong> {{ selectedInvoice.id }}</p>
 
-
-                                <div class="payment-details-section" *ngIf="dataSource.data.length > 0">
-                                    <div class="payment-details">
-                                        <h3>Mode of Payment *</h3>
-                                        <button mat-raised-button class="mock-payment-btn" (click)="onMockPayment()">
-                                            Mock Payments
-                                        </button>
-                                        <div class="payment-options">
-                                            <p>Select your preferred payment method:</p>
-                                            <div class="payment-methods">
-                                                <button mat-button class="payment-method">
-                                                    <mat-icon>credit_card</mat-icon>
-                                                    Credit Card
-                                                </button>
-                                                <button mat-button class="payment-method">
-                                                    <mat-icon>phone_iphone</mat-icon>
-                                                    Mobile Money
-                                                </button>
-                                                <button mat-button class="payment-method">
-                                                    <mat-icon>account_balance</mat-icon>
-                                                    Bank Transfer
-                                                </button>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <mat-paginator [pageSize]="pageSize" [length]="totalItems" [pageIndex]="currentPage" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" class="invoice-paginator">
-                                </mat-paginator>
-                            </mat-card-content>
-                        </mat-card>
+                        <mat-paginator [pageSize]="pageSize" [length]="totalItems" [pageIndex]="currentPage" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" class="invoice-paginator">
+                        </mat-paginator>
                     </div>
                 </div>
             </mat-tab>

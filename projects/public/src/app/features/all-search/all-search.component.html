@@ -36,8 +36,8 @@
                     <div class="table-section">
                         <table mat-table [dataSource]="getDataSource(status)" matSort>
                             <ng-container matColumnDef="id">
-                                <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-                                <td mat-cell *matCellDef="let element "> {{element.id}} </td>
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header> No. </th>
+                                <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
                             </ng-container>
 
                             <ng-container matColumnDef="reference_number">
@@ -67,7 +67,7 @@
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                                 <td mat-cell *matCellDef="let element ">
-                                    <button mat-icon-button matTooltip="view" (click)="viewApplication(element.id, element.status)"> View</button>
+                                    <button mat-icon-button matTooltip="view" (click)="viewApplication(element)"> View</button>
                                 </td>
                             </ng-container>
 

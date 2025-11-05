@@ -34,10 +34,13 @@
                             "projects/public/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/public/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/public/src/styles.scss"
                         ],
-                        "scripts": []
+                        "scripts": [],
+
+                        "baseHref": "/my-search-app/",
+                        "deployUrl": "/my-search-app/"
                     },
                     "configurations": {
                         "production": {
@@ -97,8 +100,8 @@
                             "projects/public/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/public/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/public/src/styles.scss"
                         ],
                         "scripts": []
                     }
@@ -132,10 +135,12 @@
                             "projects/staff/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/staff/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/staff/src/styles.scss"
                         ],
-                        "scripts": []
+                        "scripts": [],
+                        "baseHref": "/my-search-app/staff/",
+                        "deployUrl": "/my-search-app/staff/"
                     },
                     "configurations": {
                         "production": {
@@ -195,8 +200,8 @@
                             "projects/staff/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/staff/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/staff/src/styles.scss"
                         ],
                         "scripts": []
                     }

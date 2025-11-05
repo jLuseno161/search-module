@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { AllSearchComponent } from '../../../public/src/app/features/all-search/all-search.component';
-import { LoginComponent } from '../../../public/src/app/features/auth/login/login.component';
-import { NewApplicationComponent } from '../../../public/src/app/features/new-application/new-application.component';
-import { SearchApplicationComponent } from '../../../public/src/app/features/search-application/search-application.component';
-import { authGuard } from './guard/auth.guard';
-import { guestGuard } from './guard/guest.guard';
+import { AllSearchComponent } from './features/all-search/all-search.component';
+import { LoginComponent } from './features/auth/login/login.component';
+import { NewApplicationComponent } from './features/new-application/new-application.component';
+import { SearchApplicationComponent } from './features/search-application/search-application.component';
+import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
     {
@@ -27,7 +27,6 @@ export const routes: Routes = [
         component: SearchApplicationComponent,
         data: { status: 'pending' },
         canActivate: [authGuard]
-
     },
     {
         path: 'search-application/completed/:id',
@@ -51,9 +50,7 @@ export const routes: Routes = [
         path: 'new-application',
         component: NewApplicationComponent,
         canActivate: [authGuard]
-
     },
-
     // Wildcard route (handle 404)
     {
         path: '**',

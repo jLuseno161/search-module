@@ -40,7 +40,12 @@
                         "scripts": [],
 
                         "baseHref": "/my-search-app/",
-                        "deployUrl": "/my-search-app/"
+                        "deployUrl": "/my-search-app/",
+                        "allowedCommonJsDependencies": [
+                            "sweetalert2",
+                            "rxjs",
+                            "rxjs/operators"
+                        ]
                     },
                     "configurations": {
                         "production": {
@@ -140,7 +145,12 @@
                         ],
                         "scripts": [],
                         "baseHref": "/my-search-app/staff/",
-                        "deployUrl": "/my-search-app/staff/"
+                        "deployUrl": "/my-search-app/staff/",
+                        "allowedCommonJsDependencies": [
+                            "sweetalert2",
+                            "rxjs",
+                            "rxjs/operators"
+                        ]
                     },
                     "configurations": {
                         "production": {

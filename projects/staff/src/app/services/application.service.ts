@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap, expand, reduce } from 'rxjs/operators';
 import { AuthService } from "../auth/auth.service";
 
 export interface ApiApplication {
@@ -88,14 +88,14 @@ export class ApplicationService {
 
   assignApplication(applicationId: number, registrarId: number): Observable<any> {
     console.log('📤 Assigning application:', { applicationId, registrarId });
-    
+
     return this.http.post(
       `${this.apiUrl}/registrar-in-charge/assign/${applicationId}`,
-      { 
+      {
         registrar_id: registrarId
       },
-      { 
-        headers: this.authService.getAuthHeaders() 
+      {
+        headers: this.authService.getAuthHeaders()
       }
     ).pipe(
       tap(response => {
@@ -121,63 +121,173 @@ export class ApplicationService {
     });
   }
 
-  getAvailableRegistrars(currentUserRegistry: string): Observable<Registrar[]> {
-    return this.http.get<UserResponse>(`${this.apiUrl}/users`).pipe(
-      map(users => {
-        console.log('🔄 getAvailableRegistrars - Detailed Debug:');
-        
-        const allRegistrars = users.results.filter(user => user.role === 'is_registrar');
-        console.log('👥 ALL is_registrar users (any registry):', allRegistrars);
-        
-        console.log('🎯 Filter Criteria:', {
-          requiredRole: 'is_registrar',
-          requiredRegistry: currentUserRegistry,
-          currentUserRegistry: currentUserRegistry
+  // getAvailableRegistrars(currentUserRegistry: string): Observable<Registrar[]> {
+  //   return this.http.get<UserResponse>(`${this.apiUrl}/users`).pipe(
+  //     map(users => {
+  //       console.log('🔄 getAvailableRegistrars - Detailed Debug:');
+
+  //       const allRegistrars = users.results.filter(user => user.role === 'is_registrar');
+  //       console.log('👥 ALL is_registrar users (any registry):', allRegistrars);
+
+  //       console.log('🎯 Filter Criteria:', {
+  //         requiredRole: 'is_registrar',
+  //         requiredRegistry: currentUserRegistry,
+  //         currentUserRegistry: currentUserRegistry
+  //       });
+
+  //       const registrars = users.results.filter(user =>
+  //         user.role === 'is_registrar' &&
+  //         user.registry === currentUserRegistry
+  //       );
+
+  //       console.log('✅ Filtered registrars:', registrars);
+
+  //       if (registrars.length === 0) {
+  //         console.log('❌ No registrars found. Possible reasons:');
+  //         console.log('   - No users with role "is_registrar"');
+  //         console.log('   - Registry mismatch (looking for:', currentUserRegistry, ')');
+  //         console.log('   - Users have different registry values');
+
+  //         const registrarRegistries = allRegistrars.map(r => r.registry);
+  //         console.log('   - Actual registrar registries:', [...new Set(registrarRegistries)]);
+  //       }
+
+  //       const mappedReg = registrars.map(user => ({
+  //         id: user.id,
+  //         name: this.formatUserName(user),
+  //         username: user.username,
+  //         email: user.email,
+  //         county: user.county,
+  //         registry: user.registry,
+  //         role: user.role,
+  //         first_name: user.first_name,
+  //         last_name: user.last_name
+  //       }));
+
+  //       return mappedReg;
+  //     }),
+  //     catchError(error => {
+  //       console.error('❌ Error loading users from /users endpoint:', error);
+  //       return of([]);
+  //     })
+  //   );
+  // }
+  private getAllUsersRecursive(url?: string, allUsers: any[] = []): Observable<any[]> {
+  const requestUrl = url || `${this.apiUrl}/users`;
+
+  return this.http.get<UserResponse>(requestUrl).pipe(
+    switchMap(response => {
+      const accumulatedUsers = [...allUsers, ...(response.results || [])];
+
+      if (response.next) {
+        // If there's a next page, recursively call this method
+        return this.getAllUsersRecursive(response.next, accumulatedUsers);
+      } else {
+        // No more pages, return all accumulated users
+        console.log('📄 Pagination complete - Total users:', accumulatedUsers.length);
+        return of(accumulatedUsers);
+      }
+    }),
+    catchError(error => {
+      console.error('❌ Error in recursive pagination:', error);
+      return of(allUsers); // Return whatever we've collected so far
+    })
+  );
+}
+
+getAvailableRegistrars(currentUserRegistry: string): Observable<Registrar[]> {
+  console.log('🔄 getAvailableRegistrars - ENHANCED DEBUG VERSION:');
+  console.log('Requested registry:', currentUserRegistry);
+
+  return this.http.get<UserResponse>(`${this.apiUrl}/users`).pipe(
+    map(users => {
+      console.log('👥 RAW API RESPONSE - ALL USERS:', users);
+      console.log('📊 Total users in response:', users.results?.length || 0);
+
+      // Log all users for debugging
+      if (users.results && users.results.length > 0) {
+        console.log('🔍 DETAILED USER ANALYSIS:');
+        users.results.forEach((user: any, index: number) => {
+          console.log(`User ${index + 1}:`, {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            roleType: typeof user.role,
+            registry: user.registry,
+            county: user.county,
+            first_name: user.first_name,
+            last_name: user.last_name
+          });
         });
+      } else {
+        console.log('❌ No users returned from API');
+        return [];
+      }
 
-        const registrars = users.results.filter(user =>
-          user.role === 'is_registrar' &&
-          user.registry === currentUserRegistry
-        );
+      // Filter for registrar role
+      const allRegistrars = users.results.filter(user => {
+        const isRegistrar = user.role === 'is_registrar';
+        console.log(`Checking user ${user.username}: role=${user.role}, isRegistrar=${isRegistrar}`);
+        return isRegistrar;
+      });
 
-        console.log('✅ Filtered registrars:', registrars);
-        
-        if (registrars.length === 0) {
-          console.log('❌ No registrars found. Possible reasons:');
-          console.log('   - No users with role "is_registrar"');
-          console.log('   - Registry mismatch (looking for:', currentUserRegistry, ')');
-          console.log('   - Users have different registry values');
-          
-          const registrarRegistries = allRegistrars.map(r => r.registry);
-          console.log('   - Actual registrar registries:', [...new Set(registrarRegistries)]);
-        }
-        
-        const mappedReg = registrars.map(user => ({
-          id: user.id,
-          name: this.formatUserName(user),
-          username: user.username,
-          email: user.email,
-          county: user.county,
-          registry: user.registry,
-          role: user.role,
-          first_name: user.first_name,
-          last_name: user.last_name
-        }));
-        
-        return mappedReg;
-      }),
-      catchError(error => {
-        console.error('❌ Error loading users from /users endpoint:', error);
-        return of([]);
-      })
-    );
-  }
+      console.log('👥 ALL REGISTRARS FOUND (any registry):', allRegistrars);
+      console.log('📊 Total registrars found:', allRegistrars.length);
 
+      if (allRegistrars.length === 0) {
+        console.log('❌ No users with role "is_registrar" found');
+        console.log('Available roles:', [...new Set(users.results.map((user: any) => user.role))]);
+        return [];
+      }
+
+      console.log('🎯 Applying registry filter:', {
+        requiredRegistry: currentUserRegistry,
+        availableRegistries: [...new Set(allRegistrars.map(r => r.registry))]
+      });
+
+      // Filter by registry
+      const filteredRegistrars = allRegistrars.filter(user => {
+        const registryMatch = user.registry === currentUserRegistry;
+        console.log(`Checking registrar ${user.username}: registry=${user.registry}, matches=${registryMatch}`);
+        return registryMatch;
+      });
+
+      console.log('✅ FINAL FILTERED REGISTRARS:', filteredRegistrars);
+      console.log('📊 Final count:', filteredRegistrars.length);
+
+      if (filteredRegistrars.length === 0) {
+        console.log('❌ No registrars found for registry:', currentUserRegistry);
+        console.log('Available registrars with their registries:');
+        allRegistrars.forEach(registrar => {
+          console.log(`  - ${registrar.username}: ${registrar.registry}`);
+        });
+      }
+
+      const mappedReg = filteredRegistrars.map(user => ({
+        id: user.id,
+        name: this.formatUserName(user),
+        username: user.username,
+        email: user.email,
+        county: user.county,
+        registry: user.registry,
+        role: user.role,
+        first_name: user.first_name,
+        last_name: user.last_name
+      }));
+
+      return mappedReg;
+    }),
+    catchError(error => {
+      console.error('❌ Error loading users from /users endpoint:', error);
+      return of([]);
+    })
+  );
+}
   debugAllRoles(): Observable<void> {
     return this.http.get<UserResponse>(`${this.apiUrl}/users`).pipe(
       map(users => {
         console.log('🎭 ===== COMPLETE ROLE DEBUG =====');
-        
+
         users.results.forEach((user: any, index: number) => {
           console.log(`👤 User ${index + 1}:`, {
             id: user.id,
@@ -213,11 +323,11 @@ export class ApplicationService {
 
   approveApplication(applicationId: number, formData: FormData): Observable<any> {
     console.log('📤 Approving application with certificate:', applicationId);
-    
+
     return this.http.post(
       `${this.apiUrl}/registrar/approve/${applicationId}/`,
       formData,
-      { 
+      {
         headers: this.authService.getAuthHeaders().delete('Content-Type')
       }
     ).pipe(
@@ -233,12 +343,12 @@ export class ApplicationService {
 
   rejectApplication(applicationId: number, rejectData: {comment: string}): Observable<any> {
     console.log('📤 Rejecting application:', applicationId);
-    
+
     return this.http.post(
       `${this.apiUrl}/registrar/reject/${applicationId}/`,
       rejectData,
-      { 
-        headers: this.authService.getAuthHeaders() 
+      {
+        headers: this.authService.getAuthHeaders()
       }
     ).pipe(
       tap(response => {
@@ -285,7 +395,7 @@ export class ApplicationService {
     });
 
     return this.http.post(
-      `${this.apiUrl}/registrar/approve/${applicationId}`, 
+      `${this.apiUrl}/registrar/approve/${applicationId}`,
       formData,
       { headers }
     ).pipe(
@@ -306,4 +416,5 @@ export class ApplicationService {
       return user.username;
     }
   }
+
 }

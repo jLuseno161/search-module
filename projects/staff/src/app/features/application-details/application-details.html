@@ -206,9 +206,13 @@
                                         </div>
                                         <div class="col-md-3 text-center">
                                             <hr class="d-md-none">
-                                            <button class="btn btn-outline-success" *ngIf="canAssignOfficers()" (click)="assignOfficer()">
-                                            <i class="bi bi-arrow-repeat"></i> Re assign Officer
-                                        </button>
+                                            <button class="btn btn-outline-success btn-sm"
+                                                    *ngIf="canAssignOfficers()"
+                                                    (click)="assignOfficer()"
+                                                    [disabled]="isRegistrarsLoading">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                                {{ isApplicationAssigned() ? 'Re-assign Officer' : 'Assign Officer' }}
+                                            </button>
                                             <div *ngIf="!canAssignOfficers()" class="text-muted">
                                                 <small>Assignment controls disabled</small>
                                                 <br>

@@ -215,20 +215,25 @@ export class SearchApplicationComponent implements OnInit {
   }
 
   downloadCertificate() {
-    this.searchService.downloadSearchResult(this.applicationData.id).subscribe({
-      next: (response: any) => {
-        const fileUrl = response.signed_file;
+    if (this.applicationData.certificate && this.applicationData.certificate.id) {
+      const certificateId = this.applicationData.certificate.id;
+      // console.log('Using certificate ID:', certificateId);
 
-        if (fileUrl) {
-          window.open(fileUrl, '_blank') //opens file in new tab
-        } else {
-          console.error('No file URL found in response');
+      this.searchService.downloadSearchResult(certificateId).subscribe({
+        next: (response: any) => {
+          const fileUrl = response.signed_file;
+          // console.log('File URL:', fileUrl);
+          if (fileUrl) {
+            window.open(fileUrl, '_blank');
+          } else {
+            console.error('No file URL found in response');
+          }
+        },
+        error: (error) => {
+          console.log('Download failed:', error);
         }
-      },
-      error: (error) => {
-        console.log('Download failed:', error);
-      }
-    });
+      });
+    } 
   }
 
   onPageChange(event: any): void {

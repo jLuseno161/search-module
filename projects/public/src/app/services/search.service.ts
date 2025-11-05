@@ -129,8 +129,21 @@ export class SearchService {
     return this.http.post<any>(`${this.apiUrl}/applications/create`, applicationData);
   }
 
-  getApplications(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/applications`);
+  getPendingApplications(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/applications?status=pending`);
+  }
+
+  // getApplications(): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/applications`);
+  // }
+
+  getApplications(filteredStatus?: string): Observable<any> {
+    const params: any = {};
+    if (filteredStatus) {
+      params.status = filteredStatus;
+    }
+
+    return this.http.get(`${this.apiUrl}/applications`, { params });
   }
 
   makePayment(applicationId: number, paymentData?: any): Observable<any> {

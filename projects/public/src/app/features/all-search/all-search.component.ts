@@ -12,6 +12,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { SearchService } from '../../services/search.service';
 import { MatDivider } from "@angular/material/divider";
 import { Router } from '@angular/router';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-all-search',
@@ -27,7 +28,8 @@ import { Router } from '@angular/router';
     CommonModule,
     MatInput,
     MatBadgeModule,
-    MatDivider
+    MatDivider,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './all-search.component.html',
   styleUrl: './all-search.component.scss'
@@ -42,48 +44,52 @@ export class AllSearchComponent {
   ];
 
   displayedColumns: string[] = ['id', 'reference_number', 'date_created', 'elapsed', 'status', 'actions'];
-
-  allApplications: SearchApplication[] = [];
   dataSources: { [key: string]: MatTableDataSource<SearchApplication> } = {};
+  loadingStates: { [status: string]: boolean } = {};
 
   constructor(private searchService: SearchService, private router: Router) { }
-
   ngOnInit() {
     this.tabs.forEach(tab => {
       this.dataSources[tab.status] = new MatTableDataSource<SearchApplication>([]);
-    })
+      this.loadingStates[tab.status] = false; // Initialize loading states
+    });
 
-    this.searchService.getApplications().subscribe(
-      {
-        next: (response: any) => {
-          this.allApplications = response.results;
-          this.loadTabData('pending');
-        },
-        error: (error: any) => {
-          console.log(error);
-        }
-      });
+    this.tabs.forEach(tab => {
+      this.loadTabData(tab.status);
+    });
   }
 
-  onTabChange(event: any) {
+  onTabChange(event: { index: number }) {
     const selectedTab = this.tabs[event.index];
     this.loadTabData(selectedTab.status);
   }
 
   loadTabData(status: string) {
-    const filteredData = this.allApplications.filter(app => app.status === status);
-    this.dataSources[status].data = filteredData;
+    this.loadingStates[status] = true;
+
+    this.searchService.getApplications(status).subscribe({
+      next: (response: any) => {
+        this.dataSources[status].data = response.results;
+        this.loadingStates[status] = false;
+      },
+      error: (error: any) => {
+        console.log(error);
+        this.loadingStates[status] = false;
+      }
+    });
   }
 
-  getDataSource(status: string): MatTableDataSource<SearchApplication> {
-    if (!this.dataSources[status]) {
-      this.dataSources[status] = new MatTableDataSource<SearchApplication>([]);
-    }
+  // Checks loading state
+  isLoading(status: string): boolean {
+    return this.loadingStates[status];
+  }
+
+  getDataSource(status: string) {
     return this.dataSources[status];
   }
 
   getBadgeCount(status: string): number {
-    return this.allApplications?.filter(app => app.status === status).length;
+    return this.dataSources[status]?.data?.length || 0;
   }
 
   timeElapsed(date: string): string {
@@ -106,7 +112,6 @@ export class AllSearchComponent {
     this.router.navigate(['/new-application']);
   }
 
-  // When clicking to view application details
   viewApplication(application: any) {
     this.router.navigate(['search-application', application.status, application.id], {
       state: { applicationData: application },

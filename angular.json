@@ -38,9 +38,8 @@
                             "projects/public/src/styles.scss"
                         ],
                         "scripts": [],
-
-                        "baseHref": "/my-search-app/",
-                        "deployUrl": "/my-search-app/",
+                        "baseHref": "/search-module/",
+                        "deployUrl": "/search-module/",
                         "allowedCommonJsDependencies": [
                             "sweetalert2",
                             "rxjs",
@@ -144,8 +143,8 @@
                             "projects/staff/src/styles.scss"
                         ],
                         "scripts": [],
-                        "baseHref": "/my-search-app/staff/",
-                        "deployUrl": "/my-search-app/staff/",
+                        "baseHref": "/search-module/staff/",
+                        "deployUrl": "/search-module/staff/",
                         "allowedCommonJsDependencies": [
                             "sweetalert2",
                             "rxjs",

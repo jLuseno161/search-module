@@ -3,8 +3,8 @@ import { AllSearchComponent } from './features/all-search/all-search.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { NewApplicationComponent } from './features/new-application/new-application.component';
 import { SearchApplicationComponent } from './features/search-application/search-application.component';
-import { authGuard } from './guards/auth.guard';
-import { guestGuard } from './guards/guest.guard';
+import { guestGuard } from './guard/guest.guard';
+import { authGuard } from './guard/auth.guard';
 
 export const routes: Routes = [
     {

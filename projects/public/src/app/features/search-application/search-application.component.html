@@ -33,7 +33,8 @@
                         <table class="table_borders table-responsive application-details-table">
                             <tr>
                                 <td class="header"><strong>Applicant:</strong></td>
-                                <td>{{ currentUser.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{ currentUser.id }}</td>
+                                <td>{{ currentUser.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{ currentUser.id }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="header"><strong>County:</strong></td>
@@ -95,10 +96,10 @@
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                                 <td mat-cell *matCellDef="let element" class="action-cell">
-                                    <button mat-button class="view-button" [disabled]="isActionDisabled(element.status)">
+                                    <button mat-raised-button color="primary" class="view-button" [disabled]="isActionDisabled(element.status)">
                                         View
                                     </button>
-                                    <button mat-button class="download-button" (click)="downloadCertificate()" [disabled]="isActionDisabled(element.status)">
+                                    <button mat-raised-button color="primary" class="download-button" (click)="downloadCertificate()" [disabled]="isActionDisabled(element.status)">
                                         Download
                                     </button>
                                 </td>
@@ -182,13 +183,28 @@
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                                 <td mat-cell *matCellDef="let invoice" class="action-cell">
-                                    <button mat-button class="pay-button" (click)="payNow(invoice)" [disabled]="['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase())">
+                                    <button mat-raised-button color="primary" class="pay-button" (click)="payNow(invoice)" [disabled]="['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase())">
                                         {{ selectedInvoice?.id === invoice.id ? 'Close' : 'Pay' }}
                                     </button>
-                                    <button mat-button class="view-button" (click)="viewInvoice(invoice)">
+                                    <!-- <button mat-stroked-button class="view-button" (click)="viewInvoice(invoice)">
+                                        <mat-icon>expand_more</mat-icon>
+                                        View
+                                    </button> -->
+
+                                    <button mat-stroked-button class="view-button" [matMenuTriggerFor]="invoiceMenu">
                                         <mat-icon>expand_more</mat-icon>
                                         View
                                     </button>
+
+                                    <mat-menu #invoiceMenu="matMenu" class="invoice-menu">
+                                        <button mat-menu-item (click)="viewInvoice(invoice)">
+                                            <span>Invoice</span>
+                                        </button>
+                                        <mat-divider></mat-divider>
+                                        <button mat-menu-item (click)="viewReceipt(invoice)" [disabled]="applicationData.status !== 'completed'">
+                                            <span>Receipt</span>
+                                        </button>
+                                    </mat-menu>
                                 </td>
                             </ng-container>
 
@@ -199,20 +215,19 @@
                         <div class="payment-details-section" *ngIf="selectedInvoice && dataSource.data.length > 0">
                             <div class="payment-details">
                                 <h3>Mode of Payment *</h3>
-                                <button mat-raised-button class="mock-payment-btn" (click)="onMockPayment()">
-                                    Mock Payments
+                                <button mat-raised-button color="primary" class="mock-payment-btn" (click)="onMockPayment()">
+                                    Mock Payment
                                 </button>
-                                <div class="applicant-info">
-                                    <h3>Payment Details</h3>
+                                <!-- <div class="applicant-payment-info">
+                                    <h3 style="color: #8B4513; font-weight: bold;">Payment Details</h3>
                                     <div class="applicant-details">
                                         <p><strong>Applicant Name:</strong> {{ applicationData.applicant || applicationData.name }}</p>
-                                        <!-- <p><strong>Phone Number:</strong> {{applicationData.phone|| '+254710253526' }} </p>-->
                                         <p><strong>Total Bill:</strong> {{ selectedInvoice.amount | currency:'KES ' }}
                                         </p>
                                         <p><strong>Invoice #:</strong> {{ selectedInvoice.id }}</p>
 
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
 

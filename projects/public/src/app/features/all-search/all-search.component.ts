@@ -13,6 +13,7 @@ import { SearchService } from '../../services/search.service';
 import { MatDivider } from "@angular/material/divider";
 import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-all-search',
@@ -30,6 +31,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatBadgeModule,
     MatDivider,
     MatProgressSpinnerModule,
+    MatButtonModule
   ],
   templateUrl: './all-search.component.html',
   styleUrl: './all-search.component.scss'

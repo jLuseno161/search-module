@@ -4,13 +4,19 @@ import { MatPaginator } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { MatDivider } from '@angular/material/divider';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Invoice, Document } from '../../interfaces/search';
 import { SearchService } from '../../services/search.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
+import { MatButtonModule } from '@angular/material/button';
+import { CdkOverlayOrigin } from "@angular/cdk/overlay";
+import { InvoiceModalComponent } from '../modals/invoice.component';
+import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
+import { ReceiptModalComponent } from '../modals/receipt.component';
 
 @Component({
   selector: 'app-search-application',
@@ -26,7 +32,11 @@ import Swal from 'sweetalert2';
     MatCardTitle,
     MatDivider,
     MatIcon,
-  ],
+    MatButtonModule,
+     MatMenuModule,    
+    MatButtonModule,  
+    MatIconModule  
+],
   templateUrl: './search-application.component.html',
   styleUrl: './search-application.component.scss'
 })
@@ -55,7 +65,7 @@ export class SearchApplicationComponent implements OnInit {
   //on pay
   selectedInvoice: any = null;
 
-  constructor(private searchService: SearchService, private router: Router, private authService: AuthService) {
+  constructor(private searchService: SearchService, private router: Router, private authService: AuthService, private dialog: MatDialog) {
     // Initialize with empty invoice, to populate on ngOnInit
     this.invoice = {} as Invoice;
 
@@ -103,8 +113,23 @@ export class SearchApplicationComponent implements OnInit {
 
   viewInvoice(invoice: Invoice): void {
     console.log('View invoice details:', invoice);
+    
+    this.dialog.open(InvoiceModalComponent, {
+      width: '500px',
+      data: invoice
+    });
   }
 
+viewReceipt(invoice: Invoice): void {
+    console.log('Viewing receipt for invoice:', invoice);
+    
+    // Open the receipt modal
+    this.dialog.open(ReceiptModalComponent, {
+      width: '550px',
+      maxWidth: '90vw',
+      data: invoice
+    });
+  }
   async onMockPayment() {
     if (!this.selectedInvoice) return;
 

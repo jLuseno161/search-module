@@ -30,3 +30,18 @@ body {
     line-height: 1.6;
     padding: 20px;
 }
+
+//Disable buttons text color
+:root {
+    --disabled-primary: #8B4513;
+}
+
+.mat-mdc-raised-button[disabled][color="primary"] .mdc-button__label {
+    color: var(--disabled-primary) !important;
+    opacity: 0.6;
+}
+
+//stroked buttons
+button[mat-stroked-button] {
+    color: #8B4513 !important;
+}

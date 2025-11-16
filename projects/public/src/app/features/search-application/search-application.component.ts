@@ -12,11 +12,9 @@ import { SearchService } from '../../services/search.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
-import { CdkOverlayOrigin } from "@angular/cdk/overlay";
-import { InvoiceModalComponent } from '../modals/invoice.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
-import { ReceiptModalComponent } from '../modals/receipt.component';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-search-application',
@@ -33,10 +31,10 @@ import { ReceiptModalComponent } from '../modals/receipt.component';
     MatDivider,
     MatIcon,
     MatButtonModule,
-     MatMenuModule,    
-    MatButtonModule,  
-    MatIconModule  
-],
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule
+  ],
   templateUrl: './search-application.component.html',
   styleUrl: './search-application.component.scss'
 })
@@ -65,7 +63,7 @@ export class SearchApplicationComponent implements OnInit {
   //on pay
   selectedInvoice: any = null;
 
-  constructor(private searchService: SearchService, private router: Router, private authService: AuthService, private dialog: MatDialog) {
+  constructor(private searchService: SearchService, private http: HttpClient, private router: Router, private authService: AuthService) {
     // Initialize with empty invoice, to populate on ngOnInit
     this.invoice = {} as Invoice;
 
@@ -111,24 +109,72 @@ export class SearchApplicationComponent implements OnInit {
     }
   }
 
-  viewInvoice(invoice: Invoice): void {
+  async viewInvoice(invoice: any): Promise<void> {
     console.log('View invoice details:', invoice);
-    
-    this.dialog.open(InvoiceModalComponent, {
-      width: '500px',
-      data: invoice
-    });
+
+    const htmlContent = await this.generateInvoiceHTML(invoice);
+    this.openInNewTab(htmlContent, `Invoice-${invoice.id}`);
   }
 
-viewReceipt(invoice: Invoice): void {
-    console.log('Viewing receipt for invoice:', invoice);
-    
-    // Open the receipt modal
-    this.dialog.open(ReceiptModalComponent, {
-      width: '550px',
-      maxWidth: '90vw',
-      data: invoice
-    });
+  async viewReceipt(paymentData: any): Promise<void> {
+    console.log('Viewing receipt for invoice:', paymentData);
+
+    const htmlContent = await this.generateReceiptHTML(paymentData.payment);
+    this.openInNewTab(htmlContent, `Receipt-${paymentData.payment.id}`);
+  }
+
+  private async generateInvoiceHTML(invoice: any): Promise<string> {
+    const template = await this.http.get('/assets/templates/invoice.html', {
+      responseType: 'text'
+    }).toPromise();
+
+    const paymentStatus = invoice.status === 'completed' || invoice.balance === '0' ? 'completed' :
+      invoice.status === 'submitted' ? 'submitted' : 'pending';
+
+    const statusIcon = paymentStatus === 'completed' ? '✓' :
+      paymentStatus === 'submitted' ? '⏳' : '⏰';
+
+    const statusText = paymentStatus === 'completed' ? 'Payment Completed' :
+      paymentStatus === 'submitted' ? 'Payment Submitted' : 'Pending Payment';
+
+    return template!
+      .replace(/{{INVOICE_NUMBER}}/g, `INV-${invoice.id}-${new Date().getFullYear()}`)
+      .replace(/{{DATE}}/g, invoice.date)
+      .replace(/{{SERVICE}}/g, invoice.paymentFor)
+      .replace(/{{AMOUNT}}/g, invoice.amount)
+      .replace(/{{BALANCE}}/g, invoice.balance)
+      .replace(/{{STATUS_CLASS}}/g, paymentStatus)
+      .replace(/{{STATUS_ICON}}/g, statusIcon)
+      .replace(/{{STATUS_TEXT}}/g, statusText);
+  }
+
+  private async generateReceiptHTML(paymentData: any): Promise<string> {
+    const template = await this.http.get('/assets/templates/receipt.html', {
+      responseType: 'text'
+    }).toPromise();
+
+    const currentDate = paymentData.paid_at ?
+      new Date(paymentData.paid_at).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      }) : 'Not Available';;
+
+    return template!
+      .replace(/{{RECEIPT_NUMBER}}/g, `RCP-${paymentData.payment_reference}`)
+      .replace(/{{RECEIPT_DATE}}/g, currentDate)
+      .replace(/{{INVOICE_ID}}/g, `INV-${paymentData.invoice_number}`)
+      .replace(/{{INVOICE_DATE}}/g, this.invoice.date)
+      .replace(/{{SERVICE}}/g, this.invoice.paymentFor)
+      .replace(/{{AMOUNT}}/g, paymentData.amount)
+      .replace(/{{TRANSACTION_ID}}/g, paymentData.mpesa_receipt_number);
+  }
+
+  private openInNewTab(htmlContent: string, title: string): void {
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(htmlContent);
+      newWindow.document.title = title;
+      newWindow.document.close();
+    }
   }
   async onMockPayment() {
     if (!this.selectedInvoice) return;
@@ -239,6 +285,87 @@ viewReceipt(invoice: Invoice): void {
     return ['pending', 'submitted', 'rejected'].includes(status?.toLowerCase());
   }
 
+  async viewSearchReport(): Promise<void> {
+    console.log('Viewing search report for application:', this.applicationData);
+
+    try {
+      const htmlContent = await this.generateSearchReportHTML(this.applicationData);
+      this.openInNewTab(htmlContent, `Land-Search-Report-${this.applicationData.reference_number}`);
+    } catch (error) {
+      console.error('Error generating search report:', error);
+      // You can add a fallback modal here if needed
+    }
+  }
+
+  private async generateSearchReportHTML(applicationData: any): Promise<string> {
+    const template = await this.http.get('/assets/templates/land-search-report.html', {
+      responseType: 'text'
+    }).toPromise();
+
+    // Use available data from applicationData, leave empty if not available
+    const titleNumber = applicationData.parcel_number || 'Not Available';
+    const referenceNumber = applicationData.reference_number || 'N/A';
+    const searchDate = applicationData.submitted_at ?
+      new Date(applicationData.submitted_at).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      }) : 'Not Available';;
+    const location = applicationData.county || 'Not Specified';
+    const parcelSize = applicationData.size || 'Not Specified';
+    const landTenure = applicationData.tenure_type || 'Not Specified';
+    const ownerName = applicationData.owner_name || 'Not Available';
+    const ownerId = applicationData.id || 'Not Available';
+    const registrationDate = applicationData.registration_date || 'Not Available';
+
+    // Mock encumbrances data - to replace with actual data
+    const hasEncumbrances = applicationData.has_encumbrances || false;
+    const encumbrances = applicationData.encumbrances || [];
+
+    let encumbrancesSection = '';
+    if (hasEncumbrances && encumbrances.length > 0) {
+      const encumbrancesHTML = encumbrances.map((enc: any) => `
+      <div style="margin-bottom: 8px;">
+        <strong>${enc.type || 'Encumbrance'}:</strong> ${enc.description || 'No description available'}<br>
+        <small>Registered: ${enc.date || 'Date not specified'}</small>
+      </div>
+    `).join('');
+
+      encumbrancesSection = `
+      <div class="warning">
+        <strong>WARNING: ENCUMBRANCES REGISTERED</strong>
+        <div style="margin-top: 10px;">
+          ${encumbrancesHTML}
+        </div>
+      </div>
+    `;
+    } else {
+      encumbrancesSection = `
+      <div class="clear">
+        <strong>✓ NO REGISTERED ENCUMBRANCES</strong>
+        <p style="margin: 5px 0 0 0;">This property is free from any registered caveats, charges, or restrictions.</p>
+      </div>
+    `;
+    }
+
+    return template!
+      .replace(/{{TITLE_NUMBER}}/g, titleNumber)
+      .replace(/{{REFERENCE_NUMBER}}/g, referenceNumber)
+      .replace(/{{SEARCH_DATE}}/g, searchDate)
+      .replace(/{{LOCATION}}/g, location)
+      .replace(/{{PARCEL_SIZE}}/g, parcelSize)
+      .replace(/{{LAND_TENURE}}/g, landTenure)
+      .replace(/{{OWNER_NAME}}/g, ownerName)
+      .replace(/{{OWNER_ID}}/g, ownerId)
+      .replace(/{{REGISTRATION_DATE}}/g, registrationDate)
+      .replace(/{{HAS_ENCUMBRANCES}}/g, hasEncumbrances.toString())
+      .replace(/{{GENERATED_DATE}}/g, new Date().toLocaleDateString())
+      .replace('{{#if HAS_ENCUMBRANCES}}', '')
+      .replace('{{else}}', '')
+      .replace('{{/if}}', '')
+      .replace('{{#each ENCUMBRANCES}}', '')
+      .replace('{{/each}}', '')
+      .replace('{{ENCUMBRANCES_SECTION}}', encumbrancesSection);
+  }
+  
   downloadCertificate() {
     if (this.applicationData.certificate && this.applicationData.certificate.id) {
       const certificateId = this.applicationData.certificate.id;
@@ -258,7 +385,7 @@ viewReceipt(invoice: Invoice): void {
           console.log('Download failed:', error);
         }
       });
-    } 
+    }
   }
 
   onPageChange(event: any): void {

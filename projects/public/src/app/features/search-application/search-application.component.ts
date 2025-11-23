@@ -51,9 +51,6 @@ export class SearchApplicationComponent implements OnInit {
   currentPage = 0;
   totalItems = 1;
 
-  //user
-  currentUser: any;
-
   //fetch application data
   applicationData: any = {};
   documents: Document[] = [];
@@ -61,15 +58,10 @@ export class SearchApplicationComponent implements OnInit {
   //on pay
   selectedInvoice: any = null;
 
-  constructor(private searchService: SearchService, private http: HttpClient, private router: Router, private authService: AuthService) {
+  constructor(private searchService: SearchService, private http: HttpClient, private router: Router) {
     this.invoice = {} as Invoice;
     this.dataSource = new MatTableDataSource([this.invoice]);
     this.appDataSource = new MatTableDataSource<any>([]);
-
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.currentUser = user || 'User';
-    }
   }
 
   ngOnInit() {
@@ -297,32 +289,41 @@ export class SearchApplicationComponent implements OnInit {
     }
   }
 
-  getRemarks() {
+getRemarks() {
+    // console.log(this.applicationData)
+
+    // Get the most recent or last made remark
+    const reviews = this.applicationData.reviews || [];
+    const review = reviews.length > 0 ? reviews.reduce((latest: any, current: any) => {
+        return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+    }) : null; // Provide fallback when array is empty
+
     const isRejected = this.applicationData.status?.toLowerCase() === 'rejected';
     const isCompleted = this.applicationData.status?.toLowerCase() === 'completed';
+    // const hasReview = !!review;
+    // const isParcelNotFound = isCompleted && !hasReview;
     const hasCertificate = !!(this.applicationData.certificate && this.applicationData.certificate.id);
     const isParcelNotFound = isCompleted && !hasCertificate;
 
     return {
-      // Status checks
-      isRejected,
-      isParcelNotFound,
-      showRemarks: isRejected || isParcelNotFound,
+        // Status checks
+        isRejected,
+        isParcelNotFound,
+        showRemarks: isRejected || isParcelNotFound,
 
-      // Rejection
-      rejectionRemark: isRejected ? {
-        comment: this.applicationData.rejection_reason || 'Attach correct documents necessary for application processing.',
-        date: this.applicationData.updated_at || new Date().toISOString()
-      } : null,
+        // Rejection
+        rejectionRemark: isRejected ? {
+            comment: review?.comment || 'Attach correct documents necessary for application processing.',
+            date: review?.created_at || new Date().toISOString()
+        } : null,
 
-      // Parcel not found
-      parcelNotFoundRemark: isParcelNotFound ? {
-        comment: 'The requested parcel number was not found in the registry records. Please verify the parcel number and resubmit the search request.',
-        date: this.applicationData.updated_at || new Date().toISOString()
-      } : null
+        // Parcel not found
+        parcelNotFoundRemark: isParcelNotFound ? {
+            comment: review?.comment || 'The requested parcel number was not found in the registry records. Please verify the parcel number and resubmit the search request.',
+            date: review?.created_at || new Date().toISOString()
+        } : null
     };
-  }
-
+}
   private async generateSearchReportHTML(applicationData: any): Promise<string> {
     const template = await this.http.get('/assets/templates/land-search-report.html', {
       responseType: 'text'

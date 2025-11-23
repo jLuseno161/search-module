@@ -24,13 +24,18 @@
         <ng-template #tabContent let-status="status" let-label="label">
             <div class="tab-content">
                 <div class="table-container">
-                    <div class="search-section">
+                    <!-- <div class="search-section">
                         <mat-form-field appearance="outline" class="search-field">
                             <mat-icon matPrefix>search</mat-icon>
                             <input matInput placeholder="Search">
                         </mat-form-field>
+                    </div> -->
+                    <div class="search-section">
+                        <mat-form-field appearance="outline" class="search-field">
+                            <mat-icon matPrefix>search</mat-icon>
+                            <input matInput placeholder="Search by Reference Number" (keyup)="applyFilter($event, status)">
+                        </mat-form-field>
                     </div>
-
                     <!-- Spinner -->
                     <div *ngIf="isLoading(status)" class="loading-container">
                         <mat-spinner></mat-spinner>

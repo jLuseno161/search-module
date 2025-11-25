@@ -247,3 +247,9 @@
             margin: 1rem 0;
         }
 
+.badge.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+.badge.bg-primary { background-color: #0d6efd !important; }
+.badge.bg-success { background-color: #198754 !important; }
+.badge.bg-danger { background-color: #dc3545 !important; }
+.badge.bg-secondary { background-color: #6c757d !important; }
+.badge.bg-info { background-color: #0dcaf0 !important; color: #000 !important; }

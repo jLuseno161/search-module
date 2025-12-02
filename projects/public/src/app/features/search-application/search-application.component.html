@@ -33,7 +33,8 @@
                         <table class="table_borders table-responsive application-details-table">
                             <tr>
                                 <td class="header"><strong>Applicant:</strong></td>
-                                <td>{{ currentUser.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{ currentUser.id }}</td>
+                                <td>{{ applicationData.applicant.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{ applicationData.applicant.id }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="header"><strong>County:</strong></td>
@@ -80,7 +81,7 @@
                             <ng-container matColumnDef="exists">
                                 <th mat-header-cell *matHeaderCellDef> Parcel exists </th>
                                 <td mat-cell *matCellDef="let element">
-                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ? 'Pending' :'Yes'}}
+                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ? 'Pending' : (element.exists === false ? 'No' : 'Yes') }}
                                 </td>
                             </ng-container>
 
@@ -88,17 +89,17 @@
                             <ng-container matColumnDef="verified">
                                 <th mat-header-cell *matHeaderCellDef> Verification Status </th>
                                 <td mat-cell *matCellDef="let element">
-                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ? 'Not verified' :'Verified'}}
+                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ? 'Not verified' : (element.exists === false ? 'Not applicable' : 'Verified') }}
                                 </td>
                             </ng-container>
 
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                                 <td mat-cell *matCellDef="let element" class="action-cell">
-                                    <button mat-button class="view-button" [disabled]="isActionDisabled(element.status)">
+                                    <button mat-raised-button color="primary" class="view-button" (click)="viewSearchReport()" [disabled]="isActionDisabled(element)">
                                         View
                                     </button>
-                                    <button mat-button class="download-button" (click)="downloadCertificate()" [disabled]="isActionDisabled(element.status)">
+                                    <button mat-raised-button color="primary" class="download-button" (click)="downloadCertificate()" [disabled]="isActionDisabled(element)">
                                         Download
                                     </button>
                                 </td>
@@ -182,42 +183,93 @@
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                                 <td mat-cell *matCellDef="let invoice" class="action-cell">
-                                    <button mat-button class="pay-button" (click)="payNow(invoice)" [disabled]="['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase())">
+                                    <button mat-raised-button color="primary" class="pay-button" (click)="payNow(invoice)" [disabled]="['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase())">
                                         {{ selectedInvoice?.id === invoice.id ? 'Close' : 'Pay' }}
                                     </button>
-                                    <button mat-button class="view-button" (click)="viewInvoice(invoice)">
+
+                                    <button mat-stroked-button class="view-button" [matMenuTriggerFor]="invoiceMenu">
                                         <mat-icon>expand_more</mat-icon>
                                         View
                                     </button>
+
+                                    <mat-menu #invoiceMenu="matMenu" class="invoice-menu">
+                                        <button mat-menu-item (click)="viewInvoice(invoice)">
+                                            <span>Invoice</span>
+                                        </button>
+                                        <mat-divider></mat-divider>
+                                        <button mat-menu-item (click)="viewReceipt(applicationData)" [disabled]="applicationData.status !== 'completed' && applicationData.status !== 'submitted'">
+                                            <span>Receipt</span>
+                                        </button>
+                                    </mat-menu>
                                 </td>
                             </ng-container>
 
-                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns "></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns; "></tr>
                         </table>
 
-                        <div class="payment-details-section" *ngIf="selectedInvoice && dataSource.data.length > 0">
+                        <div class="payment-details-section " *ngIf="selectedInvoice && dataSource.data.length> 0">
                             <div class="payment-details">
                                 <h3>Mode of Payment *</h3>
-                                <button mat-raised-button class="mock-payment-btn" (click)="onMockPayment()">
-                                    Mock Payments
+                                <button mat-raised-button color="primary" class="mock-payment-btn" (click)="onMockPayment()">
+                                    Mock Payment
                                 </button>
-                                <div class="applicant-info">
-                                    <h3>Payment Details</h3>
-                                    <div class="applicant-details">
-                                        <p><strong>Applicant Name:</strong> {{ applicationData.applicant || applicationData.name }}</p>
-                                        <!-- <p><strong>Phone Number:</strong> {{applicationData.phone|| '+254710253526' }} </p>-->
-                                        <p><strong>Total Bill:</strong> {{ selectedInvoice.amount | currency:'KES ' }}
-                                        </p>
-                                        <p><strong>Invoice #:</strong> {{ selectedInvoice.id }}</p>
-
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
                         <mat-paginator [pageSize]="pageSize" [length]="totalItems" [pageIndex]="currentPage" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" class="invoice-paginator">
                         </mat-paginator>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <mat-tab label="Remarks" *ngIf="getRemarks().showRemarks">
+                <div class="tab-content">
+                    <div class="section_header">
+                        <h4 class="title">Remarks</h4>
+                    </div>
+                    <div class="remarks">
+                        <!-- Remark for rejected-->
+                        <div class="comments-section" *ngIf="getRemarks().isRejected && getRemarks().rejectionRemark as rejection">
+                            <div class="remark">
+                                <strong>COMMENT:</strong>
+                                <p>{{rejection.comment}}</p>
+                                <div class="remark-date">
+                                    Date {{rejection.date | date:'mediumDate'}}
+                                </div>
+                            </div>
+
+                            <div class="recommendations">
+                                <strong>RECOMMENDED NEXT STEPS:</strong>
+                                <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+                                    <li>Review the rejection reason above</li>
+                                    <li>Correct any issues with your application</li>
+                                    <li>Resubmit the application with corrected information</li>
+                                    <li>Contact registry support if you need clarification</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Remark for parcel not found -->
+                        <div class="comments-section" *ngIf="getRemarks().isParcelNotFound && getRemarks().parcelNotFoundRemark as parcelRemark">
+                            <div class="remark">
+                                <strong>COMMENT:</strong>
+                                <p>{{parcelRemark.comment}}</p>
+                                <div class="remark-date">
+                                    Date {{parcelRemark.date | date:'mediumDate'}}
+                                </div>
+                            </div>
+
+                            <div class="recommendations">
+                                <strong>RECOMMENDED NEXT STEPS:</strong>
+                                <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+                                    <li>Verify the parcel number with the property owner</li>
+                                    <li>Check with the local lands office for alternative references</li>
+                                    <li>Submit a new search request with corrected information</li>
+                                    <li>Contact registry support for assistance</li>
+                                </ol>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </mat-tab>

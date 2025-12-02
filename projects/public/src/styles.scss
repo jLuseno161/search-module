@@ -20,13 +20,42 @@ $search-module-theme: mat.define-light-theme(( color: ( primary: $search-module-
 html,
 body {
     height: 100%;
-}
-
-body {
     margin: 0;
     font-family: "Roboto", "Helvetica Neue", sans-serif;
     background-color: #f5f5f5;
     color: #333;
     line-height: 1.6;
-    padding: 20px;
+    // padding: 20px;
 }
+
+//Disable buttons text color
+:root {
+    --disabled-primary: #8B4513;
+}
+
+.mat-mdc-raised-button[disabled][color="primary"] .mdc-button__label {
+    color: var(--disabled-primary) !important;
+    opacity: 0.6;
+}
+
+//stroked buttons
+button[mat-stroked-button] {
+    color: #8B4513 !important;
+}
+
+
+/* Reset default margins and padding */
+
+// * {
+//     margin: 0;
+//     padding: 0;
+//     box-sizing: border-box;
+// }
+// html,
+// body {
+//     margin: 0;
+//     padding: 0;
+//     height: 100%;
+//     overflow: hidden;
+//     /* Prevent body scrolling */
+// }

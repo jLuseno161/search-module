@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -13,6 +13,7 @@ import { SearchService } from '../../services/search.service';
 import { MatDivider } from "@angular/material/divider";
 import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-all-search',
@@ -30,11 +31,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatBadgeModule,
     MatDivider,
     MatProgressSpinnerModule,
+    MatButtonModule
   ],
   templateUrl: './all-search.component.html',
   styleUrl: './all-search.component.scss'
 })
 export class AllSearchComponent {
+
+  // @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   tabs = [
     { label: 'Pending', status: 'pending' },
@@ -48,16 +52,26 @@ export class AllSearchComponent {
   loadingStates: { [status: string]: boolean } = {};
 
   constructor(private searchService: SearchService, private router: Router) { }
+
   ngOnInit() {
     this.tabs.forEach(tab => {
       this.dataSources[tab.status] = new MatTableDataSource<SearchApplication>([]);
-      this.loadingStates[tab.status] = false; // Initialize loading states
+      this.loadingStates[tab.status] = false;
     });
 
     this.tabs.forEach(tab => {
       this.loadTabData(tab.status);
     });
   }
+
+  // ngAfterViewInit() {
+  //   // Connect paginators after view initialization
+  //   this.tabs.forEach(tab => {
+  //     if (this.dataSources[tab.status] && this.paginator) {
+  //       this.dataSources[tab.status].paginator = this.paginator;
+  //     }
+  //   });
+  // }
 
   onTabChange(event: { index: number }) {
     const selectedTab = this.tabs[event.index];
@@ -70,6 +84,15 @@ export class AllSearchComponent {
     this.searchService.getApplications(status).subscribe({
       next: (response: any) => {
         this.dataSources[status].data = response.results;
+        
+        // Set up filtering for reference number only
+        this.dataSources[status].filterPredicate = this.createFilter();
+        
+        // // Connect paginator
+        // if (this.paginator) {
+        //   this.dataSources[status].paginator = this.paginator;
+        // }
+        
         this.loadingStates[status] = false;
       },
       error: (error: any) => {
@@ -77,6 +100,30 @@ export class AllSearchComponent {
         this.loadingStates[status] = false;
       }
     });
+  }
+
+  // Create custom filter predicate for reference number only
+  createFilter(): (data: SearchApplication, filter: string) => boolean {
+    return (data: SearchApplication, filter: string): boolean => {
+      const searchStr = filter.toLowerCase();
+      
+      // Search only in reference_number field
+      return data.reference_number?.toLowerCase().includes(searchStr) || false;
+    };
+  }
+
+  // Apply filter to the data source
+  applyFilter(event: Event, status: string) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    const dataSource = this.dataSources[status];
+    
+    if (dataSource) {
+      dataSource.filter = filterValue.trim().toLowerCase();
+      
+      // if (dataSource.paginator) {
+      //   dataSource.paginator.firstPage();
+      // }
+    }
   }
 
   // Checks loading state

@@ -53,68 +53,32 @@ export class SearchService {
       county: 'Nairobi',
       registries: [
         'Nairobi',
-        'Nairobi West Registry',
-        'Nairobi South Registry'
+        'Central',
       ]
     },
     {
       county: 'Mombasa',
       registries: [
-        'Mombasa Main Registry',
-        'Mombasa Island Registry'
+        'Mombasa Main',
+        'Mombasa Island'
       ]
     },
     {
       county: 'Kisumu',
       registries: [
-        'Kisumu Central Registry',
-        'Kisumu Lake Registry'
+        'Kisumu Central',
+        'Kisumu Lake'
       ]
     },
     {
       county: 'Nakuru',
       registries: [
-        'Nakuru Town Registry',
-        'Naivasha Registry',
-        'Molo Registry'
+        'Nakuru Town',
+        'Naivasha',
+        'Molo'
       ]
     },
-    {
-      county: 'Eldoret',
-      registries: [
-        'Eldoret Main Registry'
-      ]
-    },
-    {
-      county: 'Thika',
-      registries: [
-        'Thika Registry'
-      ]
-    },
-    {
-      county: 'Kitale',
-      registries: [
-        'Kitale Registry'
-      ]
-    },
-    {
-      county: 'Malindi',
-      registries: [
-        'Malindi Registry'
-      ]
-    },
-    {
-      county: 'Garissa',
-      registries: [
-        'Garissa Registry'
-      ]
-    },
-    {
-      county: 'Kisii',
-      registries: [
-        'Kisii Registry'
-      ]
-    }
+    
   ]
 
   getFaqs(): Faqs[] {

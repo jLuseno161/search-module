@@ -5,8 +5,8 @@
         "build:public": "ng build public --configuration production",
         "build:staff": "ng build staff --configuration production",
         "build:all": "npm run build:public && npm run build:staff",
-        "deploy:public": "ng deploy public --base-href=/my-search-app/",
-        "deploy:staff": "ng deploy staff --base-href=/my-search-app/staff/",
+        "deploy:public": "ng deploy public --base-href=/search/",
+        "deploy:staff": "ng deploy staff --base-href=/search/staff/",
         "deploy:all": "npm run build:all && npx angular-cli-ghpages --dir=dist/public && npx angular-cli-ghpages --dir=dist/staff",
         "deploy": "npm run deploy:all"
     },

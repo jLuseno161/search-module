@@ -202,18 +202,18 @@ export class AuthService {
   getCurrentUserRole(): string {
     const user = this.currentUserValue;
     if (user) {
-      console.log('🔐 Current user role from service:', user.role);
+      // console.log('🔐 Current user role from service:', user.role);
       return user.role;
     }
 
     // Fallback to stored user or default
     const storedUser = this.getStoredUser();
     if (storedUser) {
-      console.log('🔐 Current user role from storage:', storedUser.role);
+      // console.log('🔐 Current user role from storage:', storedUser.role);
       return storedUser.role;
     }
 
-    console.log('🔐 No user found, returning default role');
+    // console.log('🔐 No user found, returning default role');
     return 'is_registrar_in_charge'; // Default for testing
   }
 
@@ -238,17 +238,17 @@ export class AuthService {
   getCurrentUserRegistry(): string {
     const user = this.currentUserValue;
     if (user && user.registry) {
-      console.log('🔐 Current user registry from service:', user.registry);
+      // console.log('🔐 Current user registry from service:', user.registry);
       return user.registry;
     }
 
     const storedUser = this.getStoredUser();
     if (storedUser && storedUser.registry) {
-      console.log('🔐 Current user registry from storage:', storedUser.registry);
+      // console.log('🔐 Current user registry from storage:', storedUser.registry);
       return storedUser.registry;
     }
 
-    console.log('🔐 No registry found, returning default');
+    // console.log('🔐 No registry found, returning default');
     return 'Nairobi Central'; // Default for testing
   }
 

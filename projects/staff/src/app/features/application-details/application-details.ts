@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Application } from '../../shared/interfaces/application';
 import { AuthService } from '../../auth/auth.service';
 import { ApplicationService } from '../../services/application.service';
-// import { TitleCasePipe, DatePipe } from '@angular/common';
+
 @Component({
   selector: 'app-application-details',
   standalone: true,
@@ -24,7 +24,6 @@ import { ApplicationService } from '../../services/application.service';
     MatListModule,
     MatTableModule,
     FormsModule,
-    // DatePipe
   ],
   templateUrl: './application-details.html',
   styleUrls: ['./application-details.css'],
@@ -40,7 +39,7 @@ export class ApplicationDetails implements OnInit {
   error: string | null = null;
   isLoading: boolean = true;
 
-  //adding registrar data
+  // Adding registrar data
   registrars: any[] = [];
   isRegistrarsLoading: boolean = false;
 
@@ -69,9 +68,10 @@ export class ApplicationDetails implements OnInit {
       name: this.currentUserName,
       id: this.currentUserId
     });
- // Load registrars first
+
+    // Load registrars first
     this.loadRegistrars();
-    
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       console.log('Route parameter id:', id);
@@ -87,6 +87,7 @@ export class ApplicationDetails implements OnInit {
       }
     });
   }
+
   // Add method to load registrars
   private loadRegistrars(): void {
     this.isRegistrarsLoading = true;
@@ -105,6 +106,7 @@ export class ApplicationDetails implements OnInit {
       }
     });
   }
+
   private loadApplicationDetails(id: number): void {
     this.isLoading = true;
     this.error = null;
@@ -140,48 +142,6 @@ export class ApplicationDetails implements OnInit {
     });
   }
 
-  private fetchApplicantDetails(applicantId: number): void {
-    if (!applicantId) return;
-
-    this.applicationService.getUserDetails(applicantId).subscribe({
-      next: (user) => {
-        if (this.application) {
-          this.application.applicant = user;
-          this.application.applicantName = this.getApplicantDisplayName(user);
-          this.application.applicantId = user.id;
-          console.log('✅ Applicant details loaded:', user);
-        }
-      },
-      error: (error) => {
-        console.error('❌ Error loading applicant details:', error);
-        if (this.application) {
-          this.application.applicantName = `Applicant #${applicantId}`;
-        }
-      }
-    });
-  }
-
-  private fetchAssignedRegistrarDetails(registrarId: number): void {
-    if (!registrarId) return;
-
-    this.applicationService.getUserDetails(registrarId).subscribe({
-      next: (user) => {
-        if (this.application) {
-          this.application.assigned_to_username = user.username || `${user.first_name} ${user.last_name}`.trim();
-          console.log('✅ Registrar details loaded:', user);
-        }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('❌ Error loading registrar details:', error);
-        if (this.application) {
-          this.application.assigned_to_username = `Registrar #${registrarId}`;
-        }
-        this.isLoading = false;
-      }
-    });
-  }
-
   private loadRegistrarInChargeApplication(id: number): void {
     this.applicationService.getRegistrarInChargeApplications().subscribe({
       next: (response) => {
@@ -212,6 +172,20 @@ export class ApplicationDetails implements OnInit {
 
     console.log('🔍 APPLICATION DATA FOR MAPPING:', apiApp);
 
+    // FIX: Look up registrar name from local registrars array
+    let assignedRegistrarName = 'Not assigned';
+
+    if (apiApp.assigned_to) {
+      const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
+      if (assignedRegistrar) {
+        assignedRegistrarName = assignedRegistrar.username;
+        console.log('✅ Found assigned registrar in application details:', assignedRegistrarName);
+      } else {
+        console.log('❌ Registrar not found in local array, ID:', apiApp.assigned_to);
+        assignedRegistrarName = `Registrar #${apiApp.assigned_to}`;
+      }
+    }
+
     return {
       id: apiApp.id,
       reference_number: apiApp.reference_number,
@@ -222,7 +196,7 @@ export class ApplicationDetails implements OnInit {
       status: apiApp.status as any,
       submitted_at: apiApp.submitted_at,
       assigned_to: apiApp.assigned_to,
-      assigned_to_username: 'Loading...',
+      assigned_to_username: assignedRegistrarName, // Use the looked-up name
       applicant: apiApp.applicant,
       dateSubmitted: submittedDate.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -235,6 +209,128 @@ export class ApplicationDetails implements OnInit {
       applicantName: 'Loading applicant...',
       applicantId: apiApp.applicant
     };
+  }
+
+  // ========== OFFICER ASSIGNMENT METHODS ==========
+
+  canAssignOfficers(): boolean {
+    return this.currentUserRole === 'is_registrar_in_charge' &&
+           this.application?.registry === this.authService.getCurrentUserRegistry();
+  }
+
+  assignOfficer(): void {
+    if (!this.canAssignOfficers()) {
+      alert('Only Registrar In Charge can assign officers within their registry');
+      return;
+    }
+
+    if (this.registrars.length === 0) {
+      alert('No registrars available for assignment');
+      return;
+    }
+
+    // Show available registrars for selection
+    const availableRegistrars = this.getAvailableRegistrarsForAssignment();
+
+    if (availableRegistrars.length === 0) {
+      alert('No registrars available in your registry');
+      return;
+    }
+
+    // Create a more user-friendly selection dialog
+    this.showRegistrarSelectionDialog(availableRegistrars);
+  }
+
+  private showRegistrarSelectionDialog(availableRegistrars: any[]): void {
+    // Create a modal-like dialog using prompt
+    const registrarOptions = availableRegistrars.map((registrar, index) =>
+      `${index + 1}. ${registrar.username}${registrar.id === this.application?.assigned_to ? ' (Currently Assigned)' : ''}`
+    ).join('\n');
+
+    const message = `Select a registrar to assign this application to:\n\n${registrarOptions}\n\nEnter the number (1-${availableRegistrars.length}):`;
+
+    const selectedIndex = prompt(message);
+
+    if (selectedIndex !== null && selectedIndex.trim() !== '') {
+      const index = parseInt(selectedIndex) - 1;
+
+      if (index >= 0 && index < availableRegistrars.length) {
+        const selectedRegistrar = availableRegistrars[index];
+
+        // Don't reassign to the same registrar
+        if (selectedRegistrar.id === this.application?.assigned_to) {
+          alert('This registrar is already assigned to this application.');
+          return;
+        }
+
+        this.confirmAssignment(selectedRegistrar);
+      } else {
+        alert('Invalid selection. Please enter a number between 1 and ' + availableRegistrars.length);
+      }
+    }
+  }
+
+  private confirmAssignment(registrar: any): void {
+    const currentRegistrar = this.application?.assigned_to_username || 'Not assigned';
+    const confirmation = confirm(
+      `Assign this application to ${registrar.username}?\n\n` +
+      `Current assignee: ${currentRegistrar}\n` +
+      `New assignee: ${registrar.username}\n\n` +
+      `This will change the application status to "assigned".`
+    );
+
+    if (confirmation && this.applicationId) {
+      this.executeAssignment(this.applicationId, registrar.id);
+    }
+  }
+
+  private executeAssignment(applicationId: number, registrarId: number): void {
+    console.log('🔄 Assigning application:', applicationId, 'to registrar:', registrarId);
+
+    this.applicationService.assignApplication(applicationId, registrarId).subscribe({
+      next: (response: any) => {
+        console.log('✅ Assignment successful:', response);
+
+        const newRegistrarName = this.registrars.find(r => r.id === registrarId)?.username || 'Assigned';
+        alert(`✅ Application successfully assigned to ${newRegistrarName}!`);
+
+        // Update local state immediately
+        if (this.application) {
+          this.application.assigned_to = registrarId;
+          this.application.assigned_to_username = newRegistrarName;
+          this.application.status = 'assigned';
+
+          console.log('✅ Local state updated:', {
+            assigned_to: this.application.assigned_to,
+            assigned_to_username: this.application.assigned_to_username,
+            status: this.application.status
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ Error assigning application:', error);
+
+        let errorMessage = 'Failed to assign application. ';
+        if (error.error) {
+          errorMessage += error.error.detail || error.error.message || 'Please try again.';
+        } else {
+          errorMessage += 'Please try again.';
+        }
+        alert(errorMessage);
+      }
+    });
+  }
+
+  getAvailableRegistrarsForAssignment(): any[] {
+    return this.registrars.filter(registrar =>
+      registrar.registry === this.authService.getCurrentUserRegistry() &&
+      registrar.role === 'is_registrar'
+    );
+  }
+
+  // Helper method to check if application is currently assigned
+  isApplicationAssigned(): boolean {
+    return !!this.application?.assigned_to;
   }
 
   // ========== CERTIFICATE UPLOAD METHODS ==========
@@ -447,19 +543,5 @@ export class ApplicationDetails implements OnInit {
     if (days < 30) return `${days} days`;
     if (days < 365) return `${Math.floor(days / 30)} months`;
     return `${Math.floor(days / 365)} years`;
-  }
-
-  canAssignOfficers(): boolean {
-    const canAssign = this.currentUserRole === 'is_registrar_in_charge';
-    return canAssign;
-  }
-
-  assignOfficer(): void {
-    if (this.canAssignOfficers()) {
-      console.log('Assigning officer...');
-      alert('Officer assignment functionality would go here');
-    } else {
-      alert('You do not have permission to assign officers.');
-    }
   }
 }

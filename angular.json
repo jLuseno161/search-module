@@ -34,22 +34,30 @@
                             "projects/public/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/public/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/public/src/styles.scss"
                         ],
-                        "scripts": []
+                        "scripts": [],
+
+                        "baseHref": "/my-search-app/",
+                        "deployUrl": "/my-search-app/",
+                        "allowedCommonJsDependencies": [
+                            "sweetalert2",
+                            "rxjs",
+                            "rxjs/operators"
+                        ]
                     },
                     "configurations": {
                         "production": {
                             "budgets": [{
                                     "type": "initial",
-                                    "maximumWarning": "500kb",
-                                    "maximumError": "1mb"
+                                    "maximumWarning": "2mb",
+                                    "maximumError": "3mb"
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "2kb",
-                                    "maximumError": "4kb"
+                                    "maximumWarning": "6kb",
+                                    "maximumError": "10kb"
                                 }
                             ],
                             "outputHashing": "all"
@@ -97,8 +105,8 @@
                             "projects/public/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/public/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/public/src/styles.scss"
                         ],
                         "scripts": []
                     }
@@ -132,22 +140,29 @@
                             "projects/staff/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/staff/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/staff/src/styles.scss"
                         ],
-                        "scripts": []
+                        "scripts": [],
+                        "baseHref": "/my-search-app/staff/",
+                        "deployUrl": "/my-search-app/staff/",
+                        "allowedCommonJsDependencies": [
+                            "sweetalert2",
+                            "rxjs",
+                            "rxjs/operators"
+                        ]
                     },
                     "configurations": {
                         "production": {
                             "budgets": [{
                                     "type": "initial",
-                                    "maximumWarning": "500kb",
-                                    "maximumError": "1mb"
+                                    "maximumWarning": "2mb",
+                                    "maximumError": "3mb"
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "2kb",
-                                    "maximumError": "4kb"
+                                    "maximumWarning": "6kb",
+                                    "maximumError": "10kb"
                                 }
                             ],
                             "outputHashing": "all"
@@ -195,8 +210,8 @@
                             "projects/staff/src/assets"
                         ],
                         "styles": [
-                          "@angular/material/prebuilt-themes/indigo-pink.css",
-                          "projects/staff/src/styles.scss"
+                            "@angular/material/prebuilt-themes/indigo-pink.css",
+                            "projects/staff/src/styles.scss"
                         ],
                         "scripts": []
                     }

@@ -1,11 +1,13 @@
 .login-card {
-    max-width: 600px;
-    margin: 2rem auto;
+    max-width: 800px;
+    margin: auto;
     border-radius: 12px;
     box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);
     border: 1px solid #e0e0e0;
     overflow: hidden;
-    // align-items: center;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
     .login-header {
         display: block !important;
         text-align: center;

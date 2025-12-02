@@ -1,0 +1,209 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<div class="sidebar-container">
+    <div class="sidebar-content">
+        <a href="/" class="logo-container">
+            <!-- Replace with your actual logo path -->
+            <img src="./assets/svgs/nlims_logo.svg" class="logo-img" alt="NLIMS Logo">
+        </a>
+        <ul class="list-unstyled ps-0">
+            <li class="mb-1">
+                <a href="#" class="nav-item active">
+                    <i class="material-icons">tv</i> Dashboard
+                </a>
+            </li>
+            <li class="mb-1">
+                <a href="#" class="nav-item">
+                    <i class="material-icons">note_add</i> Applications
+                </a>
+            </li>
+            <li class="mb-1">
+                <a href="#" class="nav-item">
+                    <i class="material-icons">flag</i> Flag Parcel
+                </a>
+            </li>
+
+            <li class="mb-1">
+                <button class="btn-toggle" data-target="resources-collapse">
+                        <i class="material-icons">assessment</i>
+                        Resources
+                    </button>
+                <div class="collapse" id="resources-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">layers</i> User Guide
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">fingerprint</i> Finger Print
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">archive</i> Land Forms
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">view_agenda</i> Approved Survey Plans
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">list</i> PDP Approved Plan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">folder</i> Verify Converted Parcel Numbers
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">search</i> Search Application
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="mb-1">
+                <button class="btn-toggle" data-target="staff-collapse">
+                        <i class="material-icons">format_list_bulleted</i>
+                        Staff Management
+                    </button>
+                <div class="collapse" id="staff-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">group</i> Officers
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">group</i> Teams
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="mb-1">
+                <button class="btn-toggle" data-target="communications-collapse">
+                        <i class="material-icons">forum</i>
+                        Communications
+                    </button>
+                <div class="collapse" id="communications-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">event_note</i> Notices
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">mail</i> Staff Memo
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">notifications</i> Notifications
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="mb-1">
+                <button class="btn-toggle" data-target="land-processes-collapse">
+                        <i class="material-icons">receipt</i>
+                        Land Processes
+                    </button>
+                <div class="collapse" id="land-processes-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">payment</i> Tickets
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="rounded">
+                                <i class="material-icons">payment</i> Analytics
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="border-top my-3"></li>
+
+            <li class="mb-1">
+                <a href="#" class="nav-item">
+                    <i class="material-icons">build</i> Configurations
+                </a>
+            </li>
+
+            <li class="mb-1">
+                <a href="#" class="nav-item">
+                    <i class="material-icons">account_circle</i> Account
+                </a>
+            </li>
+
+            <li class="mb-1">
+                <a href="#" class="nav-item" id="logout-btn" (click)="logout()">
+                    <i class="material-icons">logout</i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+
+<script>
+    // Simple and reliable toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButtons = document.querySelectorAll('.btn-toggle');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+
+                if (targetElement) {
+                    // Toggle the show class
+                    targetElement.classList.toggle('show');
+
+                    // Toggle the expanded class on the button
+                    this.classList.toggle('expanded');
+
+                    console.log('Toggled:', targetId, 'Show class:', targetElement.classList.contains('show'));
+                } else {
+                    console.error('Target element not found:', targetId);
+                }
+            });
+        });
+
+        // Logout button functionality
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                alert('Logging out...');
+                // In a real application, you would redirect to logout endpoint
+                // window.location.href = '/logout';
+            }
+        });
+
+        // Set active nav item
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (!this.id) { // Don't apply to logout button
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+    });
+</script>

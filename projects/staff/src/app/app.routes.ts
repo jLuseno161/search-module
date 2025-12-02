@@ -8,6 +8,7 @@ import { Registrar } from './features/registrar/registrar';
 import { ChiefRegistryRegistrar } from './features/chiefregistry-registrar/chiefregistry-registrar';
 // import { Dashboard } from './features/dashboard/dashboard';
 import { ApplicationDetails } from './features/application-details/application-details';
+// In app.routes.ts
 
 import { AuthGuard } from './auth/auth.guard';
 

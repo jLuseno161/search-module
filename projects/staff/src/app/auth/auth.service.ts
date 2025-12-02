@@ -26,7 +26,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_BASE_URL = 'https://odipojames.pythonanywhere.com/api/v1/';
+  private readonly API_BASE_URL = 'https://odipojames.pythonanywhere.com/api/v1';
 
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
@@ -53,7 +53,10 @@ export class AuthService {
       username: username,
       password: password
     };
-
+ const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  });
     return this.http.post<any>(`${this.API_BASE_URL}/login`, loginPayload)
       .pipe(
         tap(response => {

@@ -7,12 +7,12 @@
         <div class="card-body">
           <div class="row align-items-center">
             <div class="col-md-8">
-              <h1 class="h3 mb-1">{{ currentUserRole === 'is_registrar_in_charge' ? 'Registrar In Charge' : currentUserRole }} Dashboard</h1>
+              <h1 class="h3 mb-1">Chief Registrar Dashboard</h1>
               <p class="mb-0">Welcome, {{ currentUserName }} - {{ currentUserRegistry }} Registry</p>
             </div>
             <div class="col-md-4 text-end">
               <div class="badge bg-light text-dark fs-6 p-2">
-                Role: {{ currentUserRole === 'is_registrar_in_charge' ? 'Registrar In Charge' : currentUserRole }}
+                Role: Chief Registrar
               </div>
             </div>
           </div>
@@ -21,85 +21,77 @@
     </div>
   </div>
 
-  <!-- Role Testing Switcher (Development Only) -->
- <div class="card mb-3" *ngIf="currentUserRole === 'is_registrar_in_charge' || currentUserRole === 'is_registrar'"><!-- Show for registrar in charge -->
-    <div class="card-header">
-      <h6 class="mb-0">Role</h6>
-    </div>
-    <div class="card-body">
-      <div class="btn-group">
-        <button class="btn btn-sm btn-outline-primary" (click)="setUserRole('is_registrar_in_charge', 'Registry Registrar In Charge')">
-          Switch to Registrar In Charge
-        </button>
-        <button class="btn btn-sm btn-outline-success" (click)="setUserRole('is_registrar', 'Individual Registrar')">
-         Switch to Individual Registrar
-        </button>
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-2">
+      <div class="card bg-warning text-dark">
+        <div class="card-body text-center">
+          <h4 class="mb-0">{{ getStatusCount('unassigned') }}</h4>
+          <p class="mb-0">Unassigned</p>
+        </div>
       </div>
-        <small class="text-muted mt-2 d-block">
-      Current Role: <strong>{{ currentUserRole === 'is_registrar_in_charge' ? 'Registrar In Charge' : 'Individual Registrar' }}</strong> | User: <strong>{{ currentUserName }}</strong>
-    </small>
+    </div>
+    <div class="col-md-2">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h4 class="mb-0">{{ getStatusCount('ongoing') }}</h4>
+          <p class="mb-0">In Progress</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h4 class="mb-0">{{ getStatusCount('completed') }}</h4>
+          <p class="mb-0">Completed</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h4 class="mb-0">{{ getStatusCount('verified') }}</h4>
+          <p class="mb-0">Verified</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card bg-secondary text-white">
+        <div class="card-body text-center">
+          <h4 class="mb-0">{{ getStatusCount('registry') }}</h4>
+          <p class="mb-0">Total</p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Quick Stats -->
-  <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="card bg-warning text-dark">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ getStatusCount('unassigned') }}</h4>
-              <p class="mb-0">Unassigned</p>
-            </div>
-            <div class="align-self-center">
-              <i class="bi bi-clock-history fs-1"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- Auto-Assignment Controls -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Assignment Management</h5>
     </div>
-    <div class="col-md-3">
-      <div class="card bg-danger text-white">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ getStatusCount('ongoing') }}</h4>
-              <p class="mb-0">Ongoing</p>
-            </div>
-            <div class="align-self-center">
-              <i class="bi bi-gear fs-1"></i>
-            </div>
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="autoAssignSwitch"
+                   [(ngModel)]="autoAssignEnabled" (change)="toggleAutoAssignment()">
+            <label class="form-check-label fw-semibold" for="autoAssignSwitch">
+              Auto-Assignment System
+            </label>
           </div>
+          <small class="text-muted">
+            {{ autoAssignEnabled ? 'Auto-assignment is enabled' : 'Auto-assignment is disabled' }}
+          </small>
         </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-success text-white">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ getStatusCount('completed') }}</h4>
-              <p class="mb-0">Completed</p>
-            </div>
-            <div class="align-self-center">
-              <i class="bi bi-check-circle fs-1"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-info text-white">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h4 class="mb-0">{{ getStatusCount('registry') }}</h4>
-              <p class="mb-0">Total in Registry</p>
-            </div>
-            <div class="align-self-center">
-              <i class="bi bi-folder fs-1"></i>
-            </div>
-          </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Assignment Strategy</label>
+          <select class="form-select" [(ngModel)]="assignmentStrategy"
+                  [disabled]="!autoAssignEnabled">
+            <option value="round-robin">Round Robin</option>
+            <option value="load-balancing">Load Balancing</option>
+            <option value="random">Random</option>
+          </select>
         </div>
       </div>
     </div>
@@ -177,8 +169,8 @@
                 [class.active]="currentTab === 'ongoing'"
                 (click)="setTab('ongoing')"
                 type="button">
-          Ongoing
-          <span class="badge bg-danger ms-1">{{ getStatusCount('ongoing') }}</span>
+          In Progress
+          <span class="badge bg-primary ms-1">{{ getStatusCount('ongoing') }}</span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -192,19 +184,42 @@
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link"
+                [class.active]="currentTab === 'verified'"
+                (click)="setTab('verified')"
+                type="button">
+          Verified
+          <span class="badge bg-info ms-1">{{ getStatusCount('verified') }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
                 [class.active]="currentTab === 'registry'"
                 (click)="setTab('registry')"
                 type="button">
           All Applications
-          <span class="badge bg-primary ms-1">{{ getStatusCount('registry') }}</span>
+          <span class="badge bg-secondary ms-1">{{ getStatusCount('registry') }}</span>
         </button>
       </li>
     </ul>
 
     <!-- Tab Content -->
     <div class="card-body">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading applications...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !isLoading" class="alert alert-danger text-center">
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="retryLoadApplications()">Retry</button>
+      </div>
+
       <!-- Search within table -->
-      <div class="row mb-3">
+      <div *ngIf="!isLoading && !error" class="row mb-3">
         <div class="col-md-6">
           <div class="text-muted">
             Showing {{ filteredApplications.length }} applications
@@ -234,7 +249,7 @@
       </div>
 
       <!-- Applications Table -->
-      <div class="table-responsive" *ngIf="filteredApplications.length > 0">
+      <div *ngIf="!isLoading && !error && filteredApplications.length > 0" class="table-responsive">
         <table class="table table-striped table-hover">
           <thead class="table-light">
             <tr>
@@ -245,7 +260,6 @@
               <th scope="col">Date Submitted</th>
               <th scope="col">Time Elapsed</th>
               <th scope="col">Status</th>
-              <th scope="col" *ngIf="currentTab === 'unassigned'">Assign To Registrar</th>
               <th scope="col" *ngIf="currentTab === 'ongoing'">Assigned Registrar</th>
               <th scope="col">Actions</th>
             </tr>
@@ -268,37 +282,31 @@
               <td>
                 <span class="badge"
                       [class.bg-warning]="app.status === 'unassigned'"
-                      [class.bg-danger]="app.status === 'ongoing'"
-                      [class.bg-success]="app.status === 'completed'">
+                      [class.bg-primary]="app.status === 'ongoing'"
+                      [class.bg-success]="app.status === 'completed'"
+                      [class.bg-info]="app.status === 'verified'">
                   {{ app.status | titlecase }}
                 </span>
               </td>
 
-              <!-- Assignment Column for Unassigned Tab -->
-               <td *ngIf="currentTab === 'unassigned'">
-                <div *ngIf="canAssignRegistrar(app)" class="dropdown">
-                  <select class="form-select form-select-sm"
-                          (change)="assignToRegistrar(app.id, $any($event.target).value)"
-                          [disabled]="!canAssignRegistrar(app)">
-                    <option value="">Select Registrar</option>
-                    <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
-                            [value]="registrar.id">  <!-- Pass ID instead of object -->
-                      {{ registrar.username }}
-                    </option>
-                  </select>
-                </div>
-                <span *ngIf="!canAssignRegistrar(app)" class="text-muted small">
-                  Cannot assign
-                </span>
-              </td>
-              <!-- Assigned Registrar for Ongoing Tab -->
+              <!-- Assigned Registrar Column -->
               <td *ngIf="currentTab === 'ongoing'">
-                <span *ngIf="app.assignedRegistrar" class="text-success">
-                  {{ app.assignedRegistrar }} 
-                </span>
-                <span *ngIf="!app.assignedRegistrar" class="text-muted">
-                  Not assigned
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                  <span>{{ app.assignedRegistrar || 'Not assigned' }}</span>
+                  <!-- Reassign Dropdown -->
+                  <div *ngIf="canReassign(app)" class="dropdown">
+                    <select class="form-select form-select-sm"
+                            (change)="manualReassign(app.id, $any($event.target).value)"
+                            title="Reassign to another registrar">
+                      <option value="">Reassign...</option>
+                      <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
+                              [value]="registrar.id"
+                              [selected]="registrar.id === app.assignedRegistrarId">
+                        {{ registrar.username }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
               </td>
 
               <!-- Actions Column -->
@@ -317,6 +325,14 @@
                           title="Mark as Completed">
                     <i class="bi bi-check-lg"></i> Complete
                   </button>
+
+                  <!-- Mark as Verified Button -->
+                  <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
+                          class="btn btn-outline-info"
+                          (click)="markAsVerified(app.id)"
+                          title="Mark as Verified">
+                    <i class="bi bi-shield-check"></i> Verify
+                  </button>
                 </div>
               </td>
             </tr>
@@ -325,7 +341,7 @@
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+      <div *ngIf="!isLoading && !error && filteredApplications.length === 0" class="text-center py-5">
         <div class="mb-3">
           <i class="bi bi-inbox fs-1 text-muted"></i>
         </div>
@@ -334,6 +350,7 @@
           {{ currentTab === 'unassigned' ? 'No unassigned applications' :
              currentTab === 'ongoing' ? 'No ongoing applications' :
              currentTab === 'completed' ? 'No completed applications' :
+             currentTab === 'verified' ? 'No verified applications' :
              'No applications in registry' }}
         </p>
         <button class="btn btn-outline-primary" (click)="clearSearch()">
@@ -367,9 +384,11 @@
 .badge {
   font-size: 0.75em;
 }
+.form-select-sm {
+  max-width: 150px;
+}
 </style>
 
 <!-- External Dependencies -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-

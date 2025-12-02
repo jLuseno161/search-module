@@ -4,21 +4,40 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafafa; /* Using your theme background */
+  background: #fafafa;
   padding: 20px;
 }
 
-/* Login Card - Using your Material card styles */
+/* Login Card - White card styling */
 .login_card {
-  max-width: 400px;
-  width: 100%;
+  max-width: 800px !important;
+  width: 800px !important;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+/* Card Header */
+.mat-mdc-card-header {
+  padding: 24px 24px 0 24px;
+}
+
+.mat-mdc-card-header-text {
+  text-align: center;
+}
+
+.mat-mdc-card-title {
+  font-size: 24px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  margin: 0;
 }
 
 /* Logo Styles */
 .logo-container {
   display: flex;
   justify-content: center;
-  padding: 0 16px;
+  padding: 16px 24px 0 24px;
 }
 
 .logo-img {
@@ -26,39 +45,44 @@
   height: auto;
 }
 
+/* Card Content */
+.mat-mdc-card-content {
+  padding: 16px 24px 24px 24px;
+}
+
 /* Form Styles */
 .form {
   width: 100%;
-  padding: 16px;
 }
 
 .font-weight-bold {
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.87); /* Using your theme text color */
+  color: rgba(0, 0, 0, 0.87);
   display: block;
   margin-bottom: 8px;
   font-size: 14px;
 }
 
-/* Form Fields - Enhanced with your theme */
+/* Form Fields */
 .form_field {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .form_input {
   width: 100%;
-  padding: 12px;
+  padding: 12px 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 16px;
   transition: border-color 0.3s, box-shadow 0.3s;
   background: white;
+  box-sizing: border-box;
 }
 
 .form_input:focus {
   outline: none;
-  border-color: #27422e; /* Your primary color */
+  border-color: #27422e;
   box-shadow: 0 0 0 2px rgba(39, 66, 46, 0.2);
 }
 
@@ -74,32 +98,38 @@
   transform: translateY(-50%);
   color: rgba(0, 0, 0, 0.54);
   cursor: pointer;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .show_password {
   font-size: 20px;
 }
 
-/* Button - Using your theme */
+/* Button */
 .button-container {
-  margin: 16px 0;
+  margin: 24px 0 16px 0;
 }
 
 .form_button {
   width: 100%;
   padding: 12px 24px;
-  background-color: #27422e; /* Your primary color */
+  background-color: #27422e;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s;
+  box-sizing: border-box;
 }
 
 .form_button:hover {
-  background-color: #1f3525; /* Darker shade */
+  background-color: #1f3525;
 }
 
 /* Other Details */
@@ -118,7 +148,7 @@
 }
 
 .forgot-password a {
-  color: #27422e; /* Your primary color */
+  color: #27422e;
   text-decoration: none;
   font-size: 14px;
 }
@@ -134,8 +164,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  margin: 20px 0;
-  padding: 0 16px;
+  margin: 24px 0;
 }
 
 .fingerprint-container {
@@ -159,22 +188,15 @@
 }
 
 /* Custom Divider */
+.custom-divider-container {
+  margin: 24px 0 16px 0;
+}
+
 .custom-divider-container hr {
   border: none;
   height: 1px;
-  background-color: rgba(0, 0, 0, 0.12); /* Your divider color */
+  background-color: rgba(0, 0, 0, 0.12);
   margin: 0;
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-  .main_wrapper {
-    padding: 10px;
-  }
-
-  .login_card {
-    max-width: 100%;
-  }
 }
 
 /* Error Message Styling */
@@ -187,14 +209,62 @@
   margin-bottom: 16px;
   text-align: center;
   font-size: 14px;
+  display: none;
+  box-sizing: border-box;
+}
+
+.error-message.show {
+  display: block;
 }
 
 /* Quick Login Styling */
 .quick-login {
   border-top: 1px solid #eee;
   padding-top: 16px;
+  margin-top: 20px;
 }
 
-.quick-login button:hover {
-  background: #e0e0e0 !important;
+.quick-login p {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.quick-login-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.quick-login-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.quick-login-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .main_wrapper {
+    padding: 10px;
+  }
+
+  .login_card {
+    max-width: 100%;
+  }
+
+  .mat-mdc-card-header,
+  .mat-mdc-card-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }

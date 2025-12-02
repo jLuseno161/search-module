@@ -1,12 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms';
 import { Application } from '../../shared/interfaces/application';
 import { AuthService } from '../../auth/auth.service';
@@ -17,38 +11,35 @@ import { ApplicationService } from '../../services/application.service';
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatIconModule,
-    MatListModule,
-    MatTableModule,
-    FormsModule,
+    FormsModule
   ],
   templateUrl: './application-details.html',
   styleUrls: ['./application-details.css'],
 })
 export class ApplicationDetails implements OnInit {
+  // User information
   currentUserRole: string = '';
   currentUserName: string = '';
   currentUserId: number = 0;
+  currentUserRegistry: string = '';
 
+  // Application data
   application: Application | null = null;
   applicationId: number | null = null;
   activeTab: string = 'details';
   error: string | null = null;
   isLoading: boolean = true;
 
-  // Adding registrar data
+  // Registrar data
   registrars: any[] = [];
   isRegistrarsLoading: boolean = false;
 
-  // Certificate upload properties
+  // Certificate upload
   selectedFile: File | null = null;
   isUploadingCertificate: boolean = false;
-  showCertificateUpload: boolean = false;
   rejectReason: string = '';
   isRejecting: boolean = false;
+  certificateComment: string = '';
 
   constructor(
     private router: Router,
@@ -58,56 +49,55 @@ export class ApplicationDetails implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('ApplicationDetails component initialized');
+    // Get current user info
     this.currentUserRole = this.authService.getCurrentUserRole();
     this.currentUserName = this.authService.getCurrentUserName();
     this.currentUserId = this.authService.getCurrentUserId();
+    this.currentUserRegistry = this.authService.getCurrentUserRegistry();
 
-    console.log('🔐 Current User:', {
+    console.log('👤 Current User:', {
+      id: this.currentUserId,
       role: this.currentUserRole,
       name: this.currentUserName,
-      id: this.currentUserId
+      registry: this.currentUserRegistry
     });
 
     // Load registrars first
     this.loadRegistrars();
 
+    // Get application ID from route
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
-      console.log('Route parameter id:', id);
-
       if (id) {
         this.applicationId = +id;
-        console.log('Loading application with ID:', this.applicationId);
+        console.log('📋 Loading application ID:', this.applicationId);
         this.loadApplicationDetails(this.applicationId);
       } else {
-        console.error('No ID parameter found in route');
         this.error = 'No application ID provided';
         this.isLoading = false;
       }
     });
   }
 
-  // Add method to load registrars
+  // ========== DATA LOADING METHODS ==========
+
   private loadRegistrars(): void {
     this.isRegistrarsLoading = true;
-    const currentUserRegistry = this.authService.getCurrentUserRegistry();
-
-    this.applicationService.getAvailableRegistrars(currentUserRegistry).subscribe({
+    this.applicationService.getAvailableRegistrars(this.currentUserRegistry).subscribe({
       next: (registrars: any[]) => {
         this.registrars = registrars;
         this.isRegistrarsLoading = false;
-        console.log('✅ Registrars loaded for application details:', this.registrars);
+        console.log('✅ Registrars loaded:', this.registrars.length);
       },
       error: (error: any) => {
-        this.isRegistrarsLoading = false;
         console.error('❌ Error loading registrars:', error);
+        this.isRegistrarsLoading = false;
         this.registrars = [];
       }
     });
   }
 
-  private loadApplicationDetails(id: number): void {
+  public loadApplicationDetails(id: number): void {
     this.isLoading = true;
     this.error = null;
 
@@ -127,10 +117,9 @@ export class ApplicationDetails implements OnInit {
         const apiApplication = response.results.find(app => app.id === id);
         if (apiApplication) {
           this.application = this.mapApiToApplication(apiApplication);
-          console.log('✅ Application loaded from API:', this.application);
+          console.log('✅ Application loaded:', this.application);
         } else {
           this.error = 'Application not found or not assigned to you';
-          console.error('Application not found in assigned applications');
         }
         this.isLoading = false;
       },
@@ -146,13 +135,11 @@ export class ApplicationDetails implements OnInit {
     this.applicationService.getRegistrarInChargeApplications().subscribe({
       next: (response) => {
         const apiApplication = response.results.find(app => app.id === id);
-
         if (apiApplication) {
           this.application = this.mapApiToApplication(apiApplication);
-          console.log('✅ Application loaded from API:', this.application);
+          console.log('✅ Application loaded:', this.application);
         } else {
           this.error = 'Application not found in your registry';
-          console.error('Application not found in registry applications');
         }
         this.isLoading = false;
       },
@@ -164,40 +151,77 @@ export class ApplicationDetails implements OnInit {
     });
   }
 
+  // ========== DATA MAPPING METHOD ==========
+
   private mapApiToApplication(apiApp: any): Application {
+    console.log('🔍 Mapping API data:', apiApp);
+
     const submittedDate = new Date(apiApp.submitted_at);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - submittedDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    console.log('🔍 APPLICATION DATA FOR MAPPING:', apiApp);
-
-    // FIX: Look up registrar name from local registrars array
+    // Extract assigned registrar info
     let assignedRegistrarName = 'Not assigned';
+    let assignedRegistrarId: number | null = null;
 
-    if (apiApp.assigned_to) {
-      const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
-      if (assignedRegistrar) {
-        assignedRegistrarName = assignedRegistrar.username;
-        console.log('✅ Found assigned registrar in application details:', assignedRegistrarName);
-      } else {
-        console.log('❌ Registrar not found in local array, ID:', apiApp.assigned_to);
-        assignedRegistrarName = `Registrar #${apiApp.assigned_to}`;
-      }
+    if (apiApp.assigned_to && typeof apiApp.assigned_to === 'object') {
+      const assignedRegistrar = apiApp.assigned_to;
+      assignedRegistrarName = assignedRegistrar.username ||
+                             `${assignedRegistrar.first_name || ''} ${assignedRegistrar.last_name || ''}`.trim() ||
+                             `Registrar #${assignedRegistrar.id}`;
+      assignedRegistrarId = assignedRegistrar.id;
+    } else if (apiApp.assigned_to && typeof apiApp.assigned_to === 'number') {
+      assignedRegistrarId = apiApp.assigned_to;
+      const foundRegistrar = this.registrars.find(r => r.id === assignedRegistrarId);
+      assignedRegistrarName = foundRegistrar?.username || `Registrar #${assignedRegistrarId}`;
     }
 
-    return {
+    // Extract applicant info
+    let applicantName = 'Unknown Applicant';
+    let applicantId = 0;
+
+    if (apiApp.applicant && typeof apiApp.applicant === 'object') {
+      const applicant = apiApp.applicant;
+      applicantName = applicant.username ||
+                     `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() ||
+                     `Applicant #${applicant.id}`;
+      applicantId = applicant.id;
+    } else if (apiApp.applicant && typeof apiApp.applicant === 'number') {
+      applicantId = apiApp.applicant;
+      applicantName = `Applicant #${applicantId}`;
+    }
+
+    // Create certificate info if exists
+    let certificateInfo = undefined;
+    if (apiApp.certificate && apiApp.certificate.signed_file) {
+      certificateInfo = {
+        signed_file: apiApp.certificate.signed_file,
+        uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
+      };
+    }
+
+    // Create the Application object
+    const application: Application = {
       id: apiApp.id,
       reference_number: apiApp.reference_number,
       parcel_number: apiApp.parcel_number,
       purpose: apiApp.purpose,
       county: apiApp.county,
       registry: apiApp.registry,
-      status: apiApp.status as any,
+      status: apiApp.status,
       submitted_at: apiApp.submitted_at,
-      assigned_to: apiApp.assigned_to,
-      assigned_to_username: assignedRegistrarName, // Use the looked-up name
-      applicant: apiApp.applicant,
+
+      // Store IDs for permission checks
+      assigned_to: assignedRegistrarId,
+      applicant: applicantId,
+
+      // Store names for display
+      assigned_to_username: assignedRegistrarName,
+      applicantName: applicantName,
+      applicantId: applicantId,
+
+      // Frontend properties
       dateSubmitted: submittedDate.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -206,17 +230,66 @@ export class ApplicationDetails implements OnInit {
       timeElapsed: this.calculateTimeElapsed(diffDays),
       referenceNo: apiApp.reference_number,
       parcelNo: apiApp.parcel_number,
-      applicantName: 'Loading applicant...',
-      applicantId: apiApp.applicant
+
+      // Certificate info
+      certificate: certificateInfo,
+
+      // Store full objects for debugging
+      applicantObject: apiApp.applicant,
+      assignedToObject: apiApp.assigned_to
     };
+
+    console.log('✅ Mapped application:', {
+      id: application.id,
+      applicantName: application.applicantName,
+      assigned_to: application.assigned_to,
+      assigned_to_username: application.assigned_to_username,
+      status: application.status
+    });
+
+    return application;
   }
 
-  // ========== OFFICER ASSIGNMENT METHODS ==========
+  // ========== PERMISSION METHODS ==========
+
+  canUploadCertificate(): boolean {
+    if (!this.application || !this.currentUserId) return false;
+
+    const canUpload = this.currentUserRole === 'is_registrar' &&
+           this.application.status === 'assigned' &&
+           this.application.assigned_to === this.currentUserId;
+
+    console.log('🔐 Upload check:', {
+      canUpload,
+      userRole: this.currentUserRole,
+      appStatus: this.application.status,
+      assignedTo: this.application.assigned_to,
+      currentUserId: this.currentUserId,
+      matches: this.application.assigned_to === this.currentUserId
+    });
+
+    return canUpload;
+  }
+
+  canRejectApplication(): boolean {
+    if (!this.application || !this.currentUserId) return false;
+
+    const canReject = this.currentUserRole === 'is_registrar' &&
+           this.application.status === 'assigned' &&
+           this.application.assigned_to === this.currentUserId;
+
+    return canReject;
+  }
 
   canAssignOfficers(): boolean {
     return this.currentUserRole === 'is_registrar_in_charge' &&
-           this.application?.registry === this.authService.getCurrentUserRegistry();
+           this.application?.registry === this.currentUserRegistry &&
+           (this.application?.status === 'pending' ||
+            this.application?.status === 'submitted' ||
+            this.application?.status === 'assigned');
   }
+
+  // ========== ACTION METHODS ==========
 
   assignOfficer(): void {
     if (!this.canAssignOfficers()) {
@@ -224,25 +297,12 @@ export class ApplicationDetails implements OnInit {
       return;
     }
 
-    if (this.registrars.length === 0) {
-      alert('No registrars available for assignment');
-      return;
-    }
-
-    // Show available registrars for selection
     const availableRegistrars = this.getAvailableRegistrarsForAssignment();
-
     if (availableRegistrars.length === 0) {
       alert('No registrars available in your registry');
       return;
     }
 
-    // Create a more user-friendly selection dialog
-    this.showRegistrarSelectionDialog(availableRegistrars);
-  }
-
-  private showRegistrarSelectionDialog(availableRegistrars: any[]): void {
-    // Create a modal-like dialog using prompt
     const registrarOptions = availableRegistrars.map((registrar, index) =>
       `${index + 1}. ${registrar.username}${registrar.id === this.application?.assigned_to ? ' (Currently Assigned)' : ''}`
     ).join('\n');
@@ -250,87 +310,44 @@ export class ApplicationDetails implements OnInit {
     const message = `Select a registrar to assign this application to:\n\n${registrarOptions}\n\nEnter the number (1-${availableRegistrars.length}):`;
 
     const selectedIndex = prompt(message);
-
     if (selectedIndex !== null && selectedIndex.trim() !== '') {
       const index = parseInt(selectedIndex) - 1;
-
       if (index >= 0 && index < availableRegistrars.length) {
         const selectedRegistrar = availableRegistrars[index];
 
-        // Don't reassign to the same registrar
         if (selectedRegistrar.id === this.application?.assigned_to) {
           alert('This registrar is already assigned to this application.');
           return;
         }
 
-        this.confirmAssignment(selectedRegistrar);
-      } else {
-        alert('Invalid selection. Please enter a number between 1 and ' + availableRegistrars.length);
+        if (confirm(`Assign application to ${selectedRegistrar.username}?`)) {
+          this.executeAssignment(this.applicationId!, selectedRegistrar.id);
+        }
       }
-    }
-  }
-
-  private confirmAssignment(registrar: any): void {
-    const currentRegistrar = this.application?.assigned_to_username || 'Not assigned';
-    const confirmation = confirm(
-      `Assign this application to ${registrar.username}?\n\n` +
-      `Current assignee: ${currentRegistrar}\n` +
-      `New assignee: ${registrar.username}\n\n` +
-      `This will change the application status to "assigned".`
-    );
-
-    if (confirmation && this.applicationId) {
-      this.executeAssignment(this.applicationId, registrar.id);
     }
   }
 
   private executeAssignment(applicationId: number, registrarId: number): void {
-    console.log('🔄 Assigning application:', applicationId, 'to registrar:', registrarId);
-
     this.applicationService.assignApplication(applicationId, registrarId).subscribe({
       next: (response: any) => {
-        console.log('✅ Assignment successful:', response);
-
         const newRegistrarName = this.registrars.find(r => r.id === registrarId)?.username || 'Assigned';
         alert(`✅ Application successfully assigned to ${newRegistrarName}!`);
 
-        // Update local state immediately
+        // Update local state
         if (this.application) {
           this.application.assigned_to = registrarId;
           this.application.assigned_to_username = newRegistrarName;
           this.application.status = 'assigned';
-
-          console.log('✅ Local state updated:', {
-            assigned_to: this.application.assigned_to,
-            assigned_to_username: this.application.assigned_to_username,
-            status: this.application.status
-          });
         }
+
+        // Reload application
+        this.loadApplicationDetails(this.applicationId!);
       },
       error: (error: any) => {
         console.error('❌ Error assigning application:', error);
-
-        let errorMessage = 'Failed to assign application. ';
-        if (error.error) {
-          errorMessage += error.error.detail || error.error.message || 'Please try again.';
-        } else {
-          errorMessage += 'Please try again.';
-        }
-        alert(errorMessage);
+        alert('Failed to assign application. Please try again.');
       }
     });
-  }
-
-  getAvailableRegistrarsForAssignment(): any[] {
-    return this.registrars.filter(registrar =>
-      registrar.registry === this.authService.getCurrentUserRegistry() &&
-      registrar.role === 'is_registrar'
-    );
-  }
-
-  // Helper method to check if application is currently assigned
-  isApplicationAssigned(): boolean {
-    return !!this.application?.assigned_to;
   }
 
   // ========== CERTIFICATE UPLOAD METHODS ==========
@@ -338,28 +355,37 @@ export class ApplicationDetails implements OnInit {
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      // Only allow PDF for certificates
-      if (file.type !== 'application/pdf') {
-        alert('Certificate must be a PDF file');
+      const validationResult = this.validateFileBeforeSelection(file);
+      if (!validationResult.isValid) {
+        alert(validationResult.errorMessage);
         this.clearSelectedFile();
         return;
       }
-
-      if (file.size > 10 * 1024 * 1024) {
-        alert('Certificate must be less than 10MB');
-        this.clearSelectedFile();
-        return;
-      }
-
       this.selectedFile = file;
-      console.log('Certificate file selected:', file.name);
     }
   }
 
-  clearSelectedFile(): void {
-    this.selectedFile = null;
-    const fileInput = document.getElementById('certificateUpload') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
+  validateFileBeforeSelection(file: File): { isValid: boolean; errorMessage: string } {
+    if (file.type !== 'application/pdf') {
+      return { isValid: false, errorMessage: 'Certificate must be a PDF file.' };
+    }
+
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (fileExtension !== 'pdf') {
+      return { isValid: false, errorMessage: 'File must have .pdf extension.' };
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      return { isValid: false, errorMessage: `File size (${fileSizeMB}MB) exceeds maximum limit of 10MB.` };
+    }
+
+    if (file.size === 0) {
+      return { isValid: false, errorMessage: 'Selected file is empty.' };
+    }
+
+    return { isValid: true, errorMessage: '' };
   }
 
   uploadCertificate(): void {
@@ -368,40 +394,36 @@ export class ApplicationDetails implements OnInit {
       return;
     }
 
-    // Check if application can be approved
     if (this.application?.status !== 'assigned') {
       alert('This application cannot be approved. Status must be "assigned".');
       return;
     }
 
+    if (!this.certificateComment.trim()) {
+      alert('Please provide approval comments');
+      return;
+    }
+
     this.isUploadingCertificate = true;
 
-    console.log('📤 Uploading certificate for application:', this.applicationId);
-
-    this.applicationService.uploadCertificate(this.applicationId, this.selectedFile).subscribe({
+    this.applicationService.uploadCertificate(
+      this.applicationId,
+      this.selectedFile,
+      this.certificateComment
+    ).subscribe({
       next: (response) => {
         this.isUploadingCertificate = false;
-
         this.selectedFile = null;
+        this.certificateComment = '';
         this.clearSelectedFile();
 
-        console.log('✅ Certificate uploaded successfully:', response);
         alert('Application approved and certificate uploaded successfully!');
-
-        // Refresh application data to show new status
         this.loadApplicationDetails(this.applicationId!);
       },
       error: (error) => {
         this.isUploadingCertificate = false;
         console.error('❌ Error uploading certificate:', error);
-
-        let errorMessage = 'Error uploading certificate. Please try again.';
-        if (error.error && error.error.error) {
-          errorMessage = error.error.error;
-        } else if (error.error && error.error.detail) {
-          errorMessage = error.error.detail;
-        }
-        alert(errorMessage);
+        alert(error.message || 'Error uploading certificate. Please try again.');
       }
     });
   }
@@ -413,88 +435,49 @@ export class ApplicationDetails implements OnInit {
     }
 
     this.isRejecting = true;
-
-    const rejectData = {
-      comment: this.rejectReason.trim()
-    };
-
-    console.log('📤 Rejecting application:', this.applicationId);
+    const rejectData = { comment: this.rejectReason.trim() };
 
     this.applicationService.rejectApplication(this.applicationId, rejectData).subscribe({
       next: (response) => {
         this.isRejecting = false;
         this.rejectReason = '';
-
-        console.log('✅ Application rejected successfully:', response);
         alert('Application rejected successfully!');
-
         this.loadApplicationDetails(this.applicationId!);
       },
       error: (error) => {
         this.isRejecting = false;
         console.error('❌ Error rejecting application:', error);
-
-        let errorMessage = 'Error rejecting application. Please try again.';
-        if (error.error && error.error.error) {
-          errorMessage = error.error.error;
-        } else if (error.error && error.error.detail) {
-          errorMessage = error.error.detail;
-        }
-        alert(errorMessage);
+        alert('Error rejecting application. Please try again.');
       }
     });
   }
 
-  canUploadCertificate(): boolean {
-    const canUpload = this.currentUserRole === 'is_registrar' &&
-           this.application?.status === 'assigned';
+  // ========== HELPER METHODS ==========
 
-    console.log('🔍 Certificate upload check:', {
-      userRole: this.currentUserRole,
-      appStatus: this.application?.status,
-      canUpload: canUpload
-    });
-
-    return canUpload;
+  getAvailableRegistrarsForAssignment(): any[] {
+    return this.registrars.filter(registrar =>
+      registrar.registry === this.currentUserRegistry &&
+      registrar.role === 'is_registrar'
+    );
   }
 
-  canRejectApplication(): boolean {
-    return this.currentUserRole === 'is_registrar' &&
-           this.application?.status === 'assigned';
+  clearSelectedFile(): void {
+    this.selectedFile = null;
+    this.certificateComment = '';
+    const fileInput = document.getElementById('certificateUpload') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   }
 
-  toggleCertificateUpload(): void {
-    this.showCertificateUpload = !this.showCertificateUpload;
-    if (this.showCertificateUpload) {
-      this.clearSelectedFile();
-    }
-  }
-
-  // ========== UTILITY METHODS ==========
-
-  setActiveTab(tabName: string): void {
-    this.activeTab = tabName;
-  }
-
-  getApplicantDisplayName(applicant?: any): string {
-    if (!applicant) {
-      return 'Unknown Applicant';
-    }
-
-    return `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
-  }
-
-  getApplicantEmail(): string {
-    const applicant = this.application?.applicant;
-    if (!applicant) {
-      return 'No email provided';
-    }
-
-    return applicant.email || 'No email provided';
+  isApplicationAssigned(): boolean {
+    return !!this.application?.assigned_to;
   }
 
   getAssignedRegistrarName(): string {
     return this.application?.assigned_to_username || 'Not assigned';
+  }
+
+  getApplicantDisplayName(): string {
+    return this.application?.applicantName || 'Unknown Applicant';
   }
 
   getStatusBadgeClass(status: string): string {
@@ -503,15 +486,26 @@ export class ApplicationDetails implements OnInit {
       case 'pending':
         return 'badge bg-warning text-dark';
       case 'assigned':
-        return 'badge bg-primary';
+        return 'badge bg-primary text-white';
       case 'completed':
       case 'verified':
-        return 'badge bg-success';
+        return 'badge bg-success text-white';
       case 'rejected':
-        return 'badge bg-danger';
+        return 'badge bg-danger text-white';
       default:
-        return 'badge bg-secondary';
+        return 'badge bg-secondary text-white';
     }
+  }
+
+  getFileValidationMessage(file: File | null): string {
+    if (!file) return 'No file selected';
+
+    const validation = this.validateFileBeforeSelection(file);
+    if (!validation.isValid) {
+      return `${validation.errorMessage}`;
+    }
+
+    return `${file.name} (${this.getFileSize(file.size)}) - Ready to upload`;
   }
 
   getFileSize(bytes: number): string {
@@ -523,18 +517,16 @@ export class ApplicationDetails implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  hasApplication(): boolean {
-    return this.application !== null;
-  }
-
-  goBack(): void {
-    console.log('Navigating back from application details. Role:', this.currentUserRole);
-    if (this.currentUserRole === 'is_registrar_in_charge') {
-      this.router.navigate(['/registrarInCharge']);
-    } else if (this.currentUserRole === 'is_registrar') {
-      this.router.navigate(['/registrar-dashboard']);
-    } else {
-      this.router.navigate(['/dashboard']);
+  private formatDate(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
     }
   }
 
@@ -544,4 +536,36 @@ export class ApplicationDetails implements OnInit {
     if (days < 365) return `${Math.floor(days / 30)} months`;
     return `${Math.floor(days / 365)} years`;
   }
+
+  setActiveTab(tabName: string): void {
+    this.activeTab = tabName;
+  }
+
+  goBack(): void {
+    if (this.currentUserRole === 'is_registrar_in_charge') {
+      this.router.navigate(['/registrarInCharge']);
+    } else if (this.currentUserRole === 'is_registrar') {
+      this.router.navigate(['/registrar-dashboard']);
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
+  // debugApplication(): void {
+  //   console.log('🔍 ===== DEBUG =====');
+  //   console.log('APPLICATION:', this.application);
+  //   console.log('USER:', {
+  //     id: this.currentUserId,
+  //     role: this.currentUserRole,
+  //     name: this.currentUserName,
+  //     registry: this.currentUserRegistry
+  //   });
+  //   console.log('PERMISSIONS:', {
+  //     canUpload: this.canUploadCertificate(),
+  //     canReject: this.canRejectApplication(),
+  //     canAssign: this.canAssignOfficers()
+  //   });
+  //   console.log('REGISTRARS:', this.registrars);
+  //   console.log('===== END DEBUG =====');
+  // }
 }

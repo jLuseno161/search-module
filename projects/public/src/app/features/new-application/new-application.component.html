@@ -109,7 +109,7 @@
                                         <ng-container matColumnDef="action">
                                             <th mat-header-cell *matHeaderCellDef> Action </th>
                                             <td mat-cell *matCellDef="let element">
-                                                <button mat-button (click)="removeParcel(element.id)">
+                                                <button mat-stroked-button (click)="removeParcel(element.id)">
                                                     Remove
                                                 </button>
                                             </td>
@@ -210,21 +210,24 @@
                                     <div class="file_upload_form">
                                         <label>Enter additional document name and upload (if any):</label>
                                         <br>
-                                        <div>
-                                            <div fxLayout="row" fxLayoutAlign="start start">
-                                                <div fxFlex="75" fxFlex.xs="65">
-                                                    <input id="file_input" class="file_input" type="text" placeholder="document name" formControlName="document_name">
-                                                </div>
-                                                <div fxFlex>
-                                                    <button mat-button id="upload_other_doc" class="custom_upload_btn" (click)="documentUpload.click()">
+                                        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+                                            <div fxFlex="75" fxFlex.xs="65">
+                                                <mat-form-field appearance="outline" class="file-input-field full-width">
+                                                    <mat-label>Document name</mat-label>
+                                                    <input matInput id="file_input" type="text" placeholder="document name" formControlName="document_name">
+                                                </mat-form-field>
+                                            </div>
+                                            <div fxFlex>
+                                                <button mat-raised-button color="primary" id="upload_other_doc" class="upload-button" (click)="documentUpload.click()">
+                                                        <mat-icon>attach_file</mat-icon>
                                                         Choose file
                                                     </button>
-                                                    <input #documentUpload hidden id="otherFiles" type="file" (change)="onFileSelected($event)">
-                                                </div>
+                                                <input #documentUpload hidden id="otherFiles" type="file" (change)="onFileSelected($event)">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
 
                                 <div fxFlex>
                                     <table mat-table [dataSource]="documentsDataSource" class="mat-sort">
@@ -244,7 +247,7 @@
                                         <ng-container matColumnDef="action">
                                             <th mat-header-cell *matHeaderCellDef> Action </th>
                                             <td mat-cell *matCellDef="let element">
-                                                <button mat-button (click)="removeDocument(element.id)">
+                                                <button mat-stroked-button (click)="removeDocument(element.id)">
                                                     Remove
                                                 </button>
                                             </td>

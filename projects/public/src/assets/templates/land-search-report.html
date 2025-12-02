@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Land Search Report - {{TITLE_NUMBER}}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #8B4513;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #8B4513;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header h2 {
+            color: #666;
+            margin: 5px 0 0 0;
+            font-size: 16px;
+            font-weight: normal;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            background: #8B4513;
+            color: white;
+            padding: 8px 15px;
+            margin: 0 -15px 15px -15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+        }
+        
+        .label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        .value {
+            color: #333;
+        }
+        
+        .encumbrances {
+            background: #fff3e0;
+            padding: 15px;
+            border-left: 4px solid #ef6c00;
+            margin: 15px 0;
+        }
+        
+        .clear {
+            background: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #2e7d32;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background: #ffebee;
+            padding: 15px;
+            border-left: 4px solid #d32f2f;
+            margin: 15px 0;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .stamp {
+            text-align: right;
+            margin-top: 30px;
+            font-style: italic;
+            color: #8B4513;
+        }
+        
+        .official-seal {
+            text-align: center;
+            margin: 20px 0;
+            color: #8B4513;
+            font-weight: bold;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>REPUBLIC OF KENYA</h1>
+            <h2>MINISTRY OF LANDS AND PHYSICAL PLANNING</h2>
+            <h2>LAND SEARCH CERTIFICATE</h2>
+        </div>
+
+        <!-- Official Seal -->
+        <div class="official-seal">
+            OFFICIAL SEAL - ARDHISASA PLATFORM
+        </div>
+
+        <!-- Property Details -->
+        <div class="section">
+            <div class="section-title">PROPERTY INFORMATION</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="label">Title Number:</span>
+                    <span class="value">{{TITLE_NUMBER}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Search Reference:</span>
+                    <span class="value">REG/SRCH/{{REFERENCE_NUMBER}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Date of Search:</span>
+                    <span class="value">{{SEARCH_DATE}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Location:</span>
+                    <span class="value">{{LOCATION}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Parcel Size:</span>
+                    <span class="value">{{PARCEL_SIZE}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Land Tenure:</span>
+                    <span class="value">{{LAND_TENURE}}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registered Owner -->
+        <div class="section">
+            <div class="section-title">REGISTERED PROPRIETOR</div>
+            <div class="info-item">
+                <span class="label">Owner Name:</span>
+                <span class="value">{{OWNER_NAME}}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">ID Number:</span>
+                <span class="value">{{OWNER_ID}}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Date of Registration:</span>
+                <span class="value">{{REGISTRATION_DATE}}</span>
+            </div>
+        </div>
+
+        <!-- Encumbrances Section -->
+        <div class="section">
+            <div class="section-title">ENCUMBRANCES AND RESTRICTIONS</div>
+
+            {{#if HAS_ENCUMBRANCES}}
+            <div class="warning">
+                <strong>WARNING: ENCUMBRANCES REGISTERED</strong>
+                <div style="margin-top: 10px;">
+                    {{#each ENCUMBRANCES}}
+                    <div style="margin-bottom: 8px;">
+                        <strong>{{type}}:</strong> {{description}}<br>
+                        <small>Registered: {{date}}</small>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+            {{else}}
+            <div class="clear">
+                <strong>✓ NO REGISTERED ENCUMBRANCES</strong>
+                <p style="margin: 5px 0 0 0;">This property is free from any registered caveats, charges, or restrictions.
+                </p>
+            </div>
+            {{/if}}
+        </div>
+
+        <!-- Legal Notices -->
+        <div class="section">
+            <div class="section-title">IMPORTANT NOTICES</div>
+            <div style="font-size: 12px; line-height: 1.5;">
+                <p>1. This search certificate is valid only for the date of issue.</p>
+                <p>2. The information contained herein is based on official records as at the date of search.</p>
+                <p>3. Any transactions occurring after the search date may not be reflected.</p>
+                <p>4. For legal purposes, this document should be verified against original registry records.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="stamp">
+            <div>Digitally Signed by Ardhisasa Platform</div>
+            <div>Date Generated: {{GENERATED_DATE}}</div>
+        </div>
+
+        <div class="footer">
+            <p>Ministry of Lands and Physical Planning | Ardhi House, 1st Ngong Avenue</p>
+            <p>P.O. Box 30450-00100, Nairobi, Kenya | Email: info@lands.go.ke | Phone: +254 700 000 000</p>
+            <p>This is an official land search certificate generated through the Ardhisasa platform.</p>
+        </div>
+    </div>
+</body>
+
+</html>

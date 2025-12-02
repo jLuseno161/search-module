@@ -4,13 +4,16 @@ import { MatPaginator } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { MatDivider } from '@angular/material/divider';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Invoice, Document } from '../../interfaces/search';
 import { SearchService } from '../../services/search.service';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-search-application',
@@ -26,6 +29,10 @@ import Swal from 'sweetalert2';
     MatCardTitle,
     MatDivider,
     MatIcon,
+    MatButtonModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './search-application.component.html',
   styleUrl: './search-application.component.scss'
@@ -44,35 +51,30 @@ export class SearchApplicationComponent implements OnInit {
   currentPage = 0;
   totalItems = 1;
 
-  //user
-  currentUser: any;
-
   //fetch application data
   applicationData: any = {};
   documents: Document[] = [];
 
-
   //on pay
   selectedInvoice: any = null;
 
-  constructor(private searchService: SearchService, private router: Router, private authService: AuthService) {
-    // Initialize with empty invoice, to populate on ngOnInit
+  constructor(private searchService: SearchService, private http: HttpClient, private router: Router) {
     this.invoice = {} as Invoice;
-
     this.dataSource = new MatTableDataSource([this.invoice]);
     this.appDataSource = new MatTableDataSource<any>([]);
-
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.currentUser = user || 'User';
-    }
   }
 
   ngOnInit() {
     this.applicationData = history.state?.applicationData || {};
     this.createInvoice();
 
-    this.appDataSource.data = [this.applicationData];
+    // Add exists property to the application data for the table
+    const tableData = {
+      ...this.applicationData,
+      exists: !!(this.applicationData.certificate && this.applicationData.certificate.id)
+    };
+
+    this.appDataSource.data = [tableData];
   }
 
   private createInvoice() {
@@ -101,8 +103,70 @@ export class SearchApplicationComponent implements OnInit {
     }
   }
 
-  viewInvoice(invoice: Invoice): void {
+  async viewInvoice(invoice: any): Promise<void> {
     console.log('View invoice details:', invoice);
+    const htmlContent = await this.generateInvoiceHTML(invoice);
+    this.openInNewTab(htmlContent, `Invoice-${invoice.id}`);
+  }
+
+  async viewReceipt(paymentData: any): Promise<void> {
+    console.log('Viewing receipt for invoice:', paymentData);
+    const htmlContent = await this.generateReceiptHTML(paymentData.payment);
+    this.openInNewTab(htmlContent, `Receipt-${paymentData.payment.id}`);
+  }
+
+  private async generateInvoiceHTML(invoice: any): Promise<string> {
+    const template = await this.http.get('/assets/templates/invoice.html', {
+      responseType: 'text'
+    }).toPromise();
+
+    const paymentStatus = invoice.status === 'completed' || invoice.balance === '0' ? 'completed' :
+      invoice.status === 'submitted' ? 'submitted' : 'pending';
+
+    const statusIcon = paymentStatus === 'completed' ? '✓' :
+      paymentStatus === 'submitted' ? '⏳' : '⏰';
+
+    const statusText = paymentStatus === 'completed' ? 'Payment Completed' :
+      paymentStatus === 'submitted' ? 'Payment Submitted' : 'Pending Payment';
+
+    return template!
+      .replace(/{{INVOICE_NUMBER}}/g, `INV-${invoice.id}-${new Date().getFullYear()}`)
+      .replace(/{{DATE}}/g, invoice.date)
+      .replace(/{{SERVICE}}/g, invoice.paymentFor)
+      .replace(/{{AMOUNT}}/g, invoice.amount)
+      .replace(/{{BALANCE}}/g, invoice.balance)
+      .replace(/{{STATUS_CLASS}}/g, paymentStatus)
+      .replace(/{{STATUS_ICON}}/g, statusIcon)
+      .replace(/{{STATUS_TEXT}}/g, statusText);
+  }
+
+  private async generateReceiptHTML(paymentData: any): Promise<string> {
+    const template = await this.http.get('/assets/templates/receipt.html', {
+      responseType: 'text'
+    }).toPromise();
+
+    const currentDate = paymentData.paid_at ?
+      new Date(paymentData.paid_at).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      }) : 'Not Available';
+
+    return template!
+      .replace(/{{RECEIPT_NUMBER}}/g, `RCP-${paymentData.payment_reference}`)
+      .replace(/{{RECEIPT_DATE}}/g, currentDate)
+      .replace(/{{INVOICE_ID}}/g, `INV-${paymentData.invoice_number}`)
+      .replace(/{{INVOICE_DATE}}/g, this.invoice.date)
+      .replace(/{{SERVICE}}/g, this.invoice.paymentFor)
+      .replace(/{{AMOUNT}}/g, paymentData.amount)
+      .replace(/{{TRANSACTION_ID}}/g, paymentData.mpesa_receipt_number);
+  }
+
+  private openInNewTab(htmlContent: string, title: string): void {
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(htmlContent);
+      newWindow.document.title = title;
+      newWindow.document.close();
+    }
   }
 
   async onMockPayment() {
@@ -128,7 +192,6 @@ export class SearchApplicationComponent implements OnInit {
     const confirmed = await Swal.fire({
       title: 'Confirm Payment',
       text: `Are you sure you want to proceed with payment for application REG/SRCH/${this.applicationData.reference_number}?`,
-      // text: `Pay for application REG/SRCH/${this.applicationData.reference_number}?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#8B4513',
@@ -209,9 +272,125 @@ export class SearchApplicationComponent implements OnInit {
     }
   }
 
-  //Disable action buttons in search status table(Application details)
-  isActionDisabled(status: string): boolean {
-    return ['pending', 'submitted', 'rejected'].includes(status?.toLowerCase());
+  //application details buttons
+  isActionDisabled(element: any): boolean {
+    const isPending = ['pending', 'submitted', 'rejected'].includes(element?.status?.toLowerCase());
+    const parcelNotFound = element?.exists === false;
+
+    return isPending || parcelNotFound;
+  }
+
+  async viewSearchReport(): Promise<void> {
+    try {
+      const htmlContent = await this.generateSearchReportHTML(this.applicationData);
+      this.openInNewTab(htmlContent, `Land-Search-Report-${this.applicationData.reference_number}`);
+    } catch (error) {
+      console.error('Error generating search report:', error);
+    }
+  }
+
+getRemarks() {
+    // console.log(this.applicationData)
+
+    // Get the most recent or last made remark
+    const reviews = this.applicationData.reviews || [];
+    const review = reviews.length > 0 ? reviews.reduce((latest: any, current: any) => {
+        return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+    }) : null; // Provide fallback when array is empty
+
+    const isRejected = this.applicationData.status?.toLowerCase() === 'rejected';
+    const isCompleted = this.applicationData.status?.toLowerCase() === 'completed';
+    // const hasReview = !!review;
+    // const isParcelNotFound = isCompleted && !hasReview;
+    const hasCertificate = !!(this.applicationData.certificate && this.applicationData.certificate.id);
+    const isParcelNotFound = isCompleted && !hasCertificate;
+
+    return {
+        // Status checks
+        isRejected,
+        isParcelNotFound,
+        showRemarks: isRejected || isParcelNotFound,
+
+        // Rejection
+        rejectionRemark: isRejected ? {
+            comment: review?.comment || 'Attach correct documents necessary for application processing.',
+            date: review?.created_at || new Date().toISOString()
+        } : null,
+
+        // Parcel not found
+        parcelNotFoundRemark: isParcelNotFound ? {
+            comment: review?.comment || 'The requested parcel number was not found in the registry records. Please verify the parcel number and resubmit the search request.',
+            date: review?.created_at || new Date().toISOString()
+        } : null
+    };
+}
+  private async generateSearchReportHTML(applicationData: any): Promise<string> {
+    const template = await this.http.get('/assets/templates/land-search-report.html', {
+      responseType: 'text'
+    }).toPromise();
+
+    // Use available data from applicationData, leave empty if not available
+    const titleNumber = applicationData.parcel_number || 'Not Available';
+    const referenceNumber = applicationData.reference_number || 'N/A';
+    const searchDate = applicationData.submitted_at ?
+      new Date(applicationData.submitted_at).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      }) : 'Not Available';;
+    const location = applicationData.county || 'Not Specified';
+    const parcelSize = applicationData.size || 'Not Specified';
+    const landTenure = applicationData.tenure_type || 'Not Specified';
+    const ownerName = applicationData.owner_name || 'Not Available';
+    const ownerId = applicationData.id || 'Not Available';
+    const registrationDate = applicationData.registration_date || 'Not Available';
+
+    // Mock encumbrances data - to replace with actual data
+    const hasEncumbrances = applicationData.has_encumbrances || false;
+    const encumbrances = applicationData.encumbrances || [];
+
+    let encumbrancesSection = '';
+    if (hasEncumbrances && encumbrances.length > 0) {
+      const encumbrancesHTML = encumbrances.map((enc: any) => `
+      <div style="margin-bottom: 8px;">
+        <strong>${enc.type || 'Encumbrance'}:</strong> ${enc.description || 'No description available'}<br>
+        <small>Registered: ${enc.date || 'Date not specified'}</small>
+      </div>
+    `).join('');
+
+      encumbrancesSection = `
+      <div class="warning">
+        <strong>WARNING: ENCUMBRANCES REGISTERED</strong>
+        <div style="margin-top: 10px;">
+          ${encumbrancesHTML}
+        </div>
+      </div>
+    `;
+    } else {
+      encumbrancesSection = `
+      <div class="clear">
+        <strong>✓ NO REGISTERED ENCUMBRANCES</strong>
+        <p style="margin: 5px 0 0 0;">This property is free from any registered caveats, charges, or restrictions.</p>
+      </div>
+    `;
+    }
+
+    return template!
+      .replace(/{{TITLE_NUMBER}}/g, titleNumber)
+      .replace(/{{REFERENCE_NUMBER}}/g, referenceNumber)
+      .replace(/{{SEARCH_DATE}}/g, searchDate)
+      .replace(/{{LOCATION}}/g, location)
+      .replace(/{{PARCEL_SIZE}}/g, parcelSize)
+      .replace(/{{LAND_TENURE}}/g, landTenure)
+      .replace(/{{OWNER_NAME}}/g, ownerName)
+      .replace(/{{OWNER_ID}}/g, ownerId)
+      .replace(/{{REGISTRATION_DATE}}/g, registrationDate)
+      .replace(/{{HAS_ENCUMBRANCES}}/g, hasEncumbrances.toString())
+      .replace(/{{GENERATED_DATE}}/g, new Date().toLocaleDateString())
+      .replace('{{#if HAS_ENCUMBRANCES}}', '')
+      .replace('{{else}}', '')
+      .replace('{{/if}}', '')
+      .replace('{{#each ENCUMBRANCES}}', '')
+      .replace('{{/each}}', '')
+      .replace('{{ENCUMBRANCES_SECTION}}', encumbrancesSection);
   }
 
   downloadCertificate() {
@@ -233,7 +412,7 @@ export class SearchApplicationComponent implements OnInit {
           console.log('Download failed:', error);
         }
       });
-    } 
+    }
   }
 
   onPageChange(event: any): void {

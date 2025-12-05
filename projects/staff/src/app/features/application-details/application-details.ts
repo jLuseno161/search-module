@@ -256,7 +256,7 @@ export class ApplicationDetails implements OnInit {
     if (!this.application || !this.currentUserId) return false;
 
     const canUpload = this.currentUserRole === 'is_registrar' &&
-           this.application.status === 'assigned' &&
+           this.application.status === 'submitted' &&
            this.application.assigned_to === this.currentUserId;
 
     console.log('🔐 Upload check:', {
@@ -275,7 +275,7 @@ export class ApplicationDetails implements OnInit {
     if (!this.application || !this.currentUserId) return false;
 
     const canReject = this.currentUserRole === 'is_registrar' &&
-           this.application.status === 'assigned' &&
+           this.application.status === 'submitted' &&
            this.application.assigned_to === this.currentUserId;
 
     return canReject;
@@ -285,8 +285,8 @@ export class ApplicationDetails implements OnInit {
     return this.currentUserRole === 'is_registrar_in_charge' &&
            this.application?.registry === this.currentUserRegistry &&
            (this.application?.status === 'pending' ||
-            this.application?.status === 'submitted' ||
-            this.application?.status === 'assigned');
+            // this.application?.status === 'submitted' ||
+            this.application?.status === 'submitted');
   }
 
   // ========== ACTION METHODS ==========
@@ -330,14 +330,14 @@ export class ApplicationDetails implements OnInit {
   private executeAssignment(applicationId: number, registrarId: number): void {
     this.applicationService.assignApplication(applicationId, registrarId).subscribe({
       next: (response: any) => {
-        const newRegistrarName = this.registrars.find(r => r.id === registrarId)?.username || 'Assigned';
+        const newRegistrarName = this.registrars.find(r => r.id === registrarId)?.username || 'submitted';
         alert(`✅ Application successfully assigned to ${newRegistrarName}!`);
 
         // Update local state
         if (this.application) {
           this.application.assigned_to = registrarId;
           this.application.assigned_to_username = newRegistrarName;
-          this.application.status = 'assigned';
+          this.application.status = 'submitted';
         }
 
         // Reload application
@@ -394,7 +394,7 @@ export class ApplicationDetails implements OnInit {
       return;
     }
 
-    if (this.application?.status !== 'assigned') {
+    if (this.application?.status !== 'submitted') {
       alert('This application cannot be approved. Status must be "assigned".');
       return;
     }
@@ -485,7 +485,7 @@ export class ApplicationDetails implements OnInit {
       case 'submitted':
       case 'pending':
         return 'badge bg-warning text-dark';
-      case 'assigned':
+      case 'submitted':
         return 'badge bg-primary text-white';
       case 'completed':
       case 'verified':

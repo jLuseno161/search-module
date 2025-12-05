@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,72 +14,72 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-
+        
         .nav-tabs-custom .nav-link {
             color: #495057;
             font-weight: 500;
         }
-
+        
         .nav-tabs-custom .nav-link.active {
             background-color: #f8f9fa;
             border-bottom-color: #f8f9fa;
             color: #495057;
             font-weight: 600;
         }
-
+        
         .section-header {
             color: #495057;
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 0.5rem;
             margin-bottom: 1rem;
         }
-
+        
         .bordered-table {
             width: 100%;
         }
-
+        
         .bordered-table td {
             padding: 0.5rem;
             border-bottom: 1px solid #dee2e6;
         }
-
+        
         .bordered-table td:first-child {
             width: 40%;
             font-weight: 600;
             color: #495057;
         }
-
+        
         .table-responsive-custom {
             overflow-x: auto;
         }
-
+        
         .data-table {
             font-size: 0.875rem;
         }
-
+        
         .data-table th {
             background-color: #f8f9fa;
             font-weight: 600;
         }
-
+        
         .officer-card {
             background-color: #f8f9fa;
             border-radius: 0.375rem;
             padding: 1rem;
         }
-
+        
         .profile-img {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
         }
-
+        
         .badge {
             font-size: 0.75rem;
             padding: 0.375rem 0.75rem;
         }
-
+        
         .debug-section {
             background: #f0f8ff;
             padding: 10px;
@@ -88,6 +89,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid mt-4">
         <!-- Loading State -->
@@ -134,8 +136,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="flex-grow-1 me-3">
                         <h5 class="mb-1">
-                            <i class="bi bi-file-text me-2"></i>
-                            Application: {{ application.reference_number }}
+                            <i class="bi bi-file-text me-2"></i> Application: {{ application.reference_number }}
                         </h5>
                         <small class="text-light">
                             Logged in as: {{ currentUserName }}
@@ -155,19 +156,13 @@
                 <!-- Tabs Navigation -->
                 <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link"
-                                [class.active]="activeTab === 'details'"
-                                (click)="setActiveTab('details')"
-                                type="button">
+                        <button class="nav-link" [class.active]="activeTab === 'details'" (click)="setActiveTab('details')" type="button">
                             <i class="bi bi-info-circle me-1"></i>
                             Application Details
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link"
-                                [class.active]="activeTab === 'documents'"
-                                (click)="setActiveTab('documents')"
-                                type="button">
+                        <button class="nav-link" [class.active]="activeTab === 'documents'" (click)="setActiveTab('documents')" type="button">
                             <i class="bi bi-file-earmark-pdf me-1"></i>
                             Certificate Upload
                         </button>
@@ -324,10 +319,7 @@
                                         </div>
                                         <div class="col-md-3 text-center">
                                             <hr class="d-md-none">
-                                            <button class="btn btn-outline-success btn-sm"
-                                                    *ngIf="canAssignOfficers()"
-                                                    (click)="assignOfficer()"
-                                                    [disabled]="isRegistrarsLoading">
+                                            <button class="btn btn-outline-success btn-sm" *ngIf="canAssignOfficers()" (click)="assignOfficer()" [disabled]="isRegistrarsLoading">
                                                 <i class="bi bi-arrow-repeat"></i>
                                                 {{ isApplicationAssigned() ? 'Re-assign Officer' : 'Assign Officer' }}
                                             </button>
@@ -366,13 +358,7 @@
 
                                         <div class="mb-3">
                                             <label for="certificateUpload" class="form-label">Certificate File (PDF only)</label>
-                                            <input type="file"
-                                                   class="form-control"
-                                                   id="certificateUpload"
-                                                   (change)="onFileSelected($event)"
-                                                   accept=".pdf"
-                                                   #fileInput
-                                                   [disabled]="isUploadingCertificate">
+                                            <input type="file" class="form-control" id="certificateUpload" (change)="onFileSelected($event)" accept=".pdf" #fileInput [disabled]="isUploadingCertificate">
                                             <div class="form-text">
                                                 Only PDF files are accepted for certificates (Maximum 10MB)
                                             </div>
@@ -389,29 +375,19 @@
 
                                         <div class="mb-3">
                                             <label for="certificateComment" class="form-label">Approval Comments *</label>
-                                            <textarea class="form-control"
-                                                      id="certificateComment"
-                                                      rows="2"
-                                                      [(ngModel)]="certificateComment"
-                                                      placeholder="Enter comments for this approval..."
-                                                      [disabled]="isUploadingCertificate"
-                                                      required></textarea>
+                                            <textarea class="form-control" id="certificateComment" rows="2" [(ngModel)]="certificateComment" placeholder="Enter comments for this approval..." [disabled]="isUploadingCertificate" required></textarea>
                                             <div class="form-text">Comments are required for approval.</div>
                                         </div>
 
                                         <!-- Upload Button -->
-                                        <button class="btn btn-success"
-                                                [disabled]="!selectedFile || isUploadingCertificate || !validateFileBeforeSelection(selectedFile).isValid || !certificateComment.trim()"
-                                                (click)="uploadCertificate()">
+                                        <button class="btn btn-success" [disabled]="!selectedFile || isUploadingCertificate || !validateFileBeforeSelection(selectedFile).isValid || !certificateComment.trim()" (click)="uploadCertificate()">
                                             <span *ngIf="isUploadingCertificate" class="spinner-border spinner-border-sm me-2"></span>
                                             <i class="bi bi-check-circle me-2"></i>
                                             {{ isUploadingCertificate ? 'Uploading...' : 'Approve & Upload Certificate' }}
                                         </button>
 
                                         <!-- Clear File Button -->
-                                        <button class="btn btn-outline-secondary ms-2"
-                                                (click)="clearSelectedFile()"
-                                                [disabled]="!selectedFile">
+                                        <button class="btn btn-outline-secondary ms-2" (click)="clearSelectedFile()" [disabled]="!selectedFile">
                                             <i class="bi bi-x-circle me-1"></i>Clear File
                                         </button>
                                     </div>
@@ -432,18 +408,10 @@
 
                                         <div class="mb-3">
                                             <label for="rejectReason" class="form-label">Rejection Reason *</label>
-                                            <textarea class="form-control"
-                                                      id="rejectReason"
-                                                      rows="3"
-                                                      [(ngModel)]="rejectReason"
-                                                      placeholder="Please provide a reason for rejecting this application..."
-                                                      [disabled]="isRejecting"
-                                                      required></textarea>
+                                            <textarea class="form-control" id="rejectReason" rows="3" [(ngModel)]="rejectReason" placeholder="Please provide a reason for rejecting this application..." [disabled]="isRejecting" required></textarea>
                                         </div>
 
-                                        <button class="btn btn-danger"
-                                                [disabled]="!rejectReason.trim() || isRejecting"
-                                                (click)="rejectApplication()">
+                                        <button class="btn btn-danger" [disabled]="!rejectReason.trim() || isRejecting" (click)="rejectApplication()">
                                             <span *ngIf="isRejecting" class="spinner-border spinner-border-sm me-2"></span>
                                             <i class="bi bi-x-circle me-2"></i>
                                             {{ isRejecting ? 'Rejecting...' : 'Reject Application' }}
@@ -452,7 +420,7 @@
                                 </div>
 
                                 <!-- Information for non-registrars -->
-                                <div *ngIf="!canUploadCertificate() && !canRejectApplication()" class="card">
+                                <!-- <div *ngIf="!canUploadCertificate() && !canRejectApplication()" class="card">
                                     <div class="card-body text-center">
                                         <i class="bi bi-info-circle display-4 text-muted"></i>
                                         <h5 class="text-muted mt-3">Certificate Management</h5>
@@ -474,6 +442,50 @@
                                             <span class="ms-2">{{ currentUserId }}</span>
                                         </div>
                                     </div>
+                                </div> -->
+                                <div *ngIf="!canUploadCertificate() && !canRejectApplication()" class="card">
+                                    <div class="card-body text-center">
+                                        <!-- Status-specific icons -->
+                                        <i *ngIf="application.status === 'approved'" class="bi bi-check-circle display-4 text-success"></i>
+                                        <i *ngIf="application.status === 'rejected'" class="bi bi-x-circle display-4 text-danger"></i>
+                                        <i *ngIf="!['approved', 'rejected'].includes(application.status)" class="bi bi-info-circle display-4 text-muted"></i>
+
+                                        <h5 class="text-muted mt-3">Certificate Management</h5>
+
+                                        <!-- Status-specific message -->
+                                        <div *ngIf="application.status === 'approved'" class="text-muted">
+                                            This application has been approved and certificate has been issued.
+                                        </div>
+                                        <div *ngIf="application.status === 'rejected'" class="text-muted">
+                                            This application has been rejected.
+                                        </div>
+                                        <div *ngIf="application.status === 'submitted'" class="text-muted">
+                                            Only the assigned registrar can upload certificates or reject this application.
+                                        </div>
+                                        <div *ngIf="!['approved', 'rejected', 'submitted'].includes(application.status)" class="text-muted">
+                                            This application has already been processed.
+                                        </div>
+
+                                        <!-- Status badge -->
+                                        <div class="mt-3">
+                                            <strong>Current Status:</strong>
+                                            <span [class]="getStatusBadgeClass(application.status)" class="ms-2"> {{ application.status | titlecase }} </span>
+                                        </div>
+
+                                        <!-- Officers details for each status -->
+                                        <div *ngIf="application.status === 'submitted'" class="mt-2">
+                                            <strong>Assigned To:</strong>
+                                            <span class="ms-2">{{ getAssignedRegistrarName() }}</span>
+                                        </div>
+                                        <div *ngIf="application.status === 'completed'" class="mt-2">
+                                            <strong>Approved by:</strong>
+                                            <span class="ms-2">{{ getAssignedRegistrarName() }}</span>
+                                        </div>
+                                        <div *ngIf="application.status === 'rejected'" class="mt-2">
+                                            <strong>Rejected by:</strong>
+                                            <span class="ms-2">{{ getAssignedRegistrarName() }}</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Existing Certificate Info -->
@@ -487,9 +499,7 @@
                                         <div class="alert alert-success">
                                             <i class="bi bi-check-circle me-2"></i>
                                             <strong>Certificate already uploaded:</strong>
-                                            <a [href]="application.certificate.signed_file"
-                                               target="_blank"
-                                               class="alert-link ms-2">
+                                            <a [href]="application.certificate.signed_file" target="_blank" class="alert-link ms-2">
                                                 View Certificate
                                             </a>
                                             <br>
@@ -510,4 +520,5 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

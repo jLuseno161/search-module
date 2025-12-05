@@ -21,7 +21,7 @@ import { Application, Registrar } from '../../shared/interfaces/application';
 
 // Type for search configuration
 type SearchType = 'invoice' | 'parcel' | 'document' | 'receipt';
-type ApplicationStatus = 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'registry';
+type ApplicationStatus = 'unassigned' | 'submitted' | 'completed' | 'verified' | 'registry';
 type UserRole = 'is_registrar' | 'is_registrar_in_charge';
 type AssignmentStrategy = 'round-robin' | 'load-balancing' | 'random';
 
@@ -185,7 +185,7 @@ export class ChiefRegistryRegistrar implements OnInit {
       workloads[registrar.id] = 0;
     });
     this.applications.forEach(app => {
-      if (app.status === 'ongoing' && app.assignedRegistrarId) {
+      if (app.status === 'submitted' && app.assignedRegistrarId) {
         workloads[app.assignedRegistrarId] = (workloads[app.assignedRegistrarId] || 0) + 1;
       }
     });
@@ -245,10 +245,10 @@ export class ChiefRegistryRegistrar implements OnInit {
   //   }
 
   //   this.applications = this.apiApplications.map(apiApp => {
-  //     const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
+  //     const statusMap: Record<string, 'unassigned' | 'submitted' | 'completed' | 'verified' | 'rejected'> = {
   //       'pending': 'unassigned',
   //       'submitted': 'unassigned',
-  //       'assigned': 'ongoing',
+  //       'assigned': 'submitted',
   //       'verified': 'verified',
   //       'completed': 'completed',
   //       'rejected': 'rejected'
@@ -318,10 +318,10 @@ private mapApiToLocalApplications(): void {
   }
 
   this.applications = this.apiApplications.map(apiApp => {
-    const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
+    const statusMap: Record<string, 'unassigned' | 'submitted' | 'completed' | 'verified' | 'rejected'> = {
       'pending': 'unassigned',
       'submitted': 'unassigned',
-      'assigned': 'ongoing',
+      'assigned': 'submitted',
       'verified': 'verified',
       'completed': 'completed',
       'rejected': 'rejected'
@@ -613,8 +613,8 @@ onTableSearch(): void {
 
     if (status === 'unassigned') {
       filtered = filtered.filter(app => app.status === 'unassigned');
-    } else if (status === 'ongoing') {
-      filtered = filtered.filter(app => app.status === 'ongoing');
+    } else if (status === 'submitted') {
+      filtered = filtered.filter(app => app.status === 'submitted');
     } else if (status === 'completed') {
       filtered = filtered.filter(app => app.status === 'completed');
     } else if (status === 'verified') {
@@ -632,8 +632,8 @@ onTableSearch(): void {
     switch (status) {
       case 'unassigned':
         return registryApplications.filter(app => app.status === 'unassigned').length;
-      case 'ongoing':
-        return registryApplications.filter(app => app.status === 'ongoing').length;
+      case 'submitted':
+        return registryApplications.filter(app => app.status === 'submitted').length;
       case 'completed':
         return registryApplications.filter(app => app.status === 'completed').length;
       case 'verified':
@@ -649,14 +649,14 @@ onTableSearch(): void {
   canReassign(application: Application): boolean {
     return this.currentUserRole === 'is_registrar_in_charge' &&
            application.registry === this.currentUserRegistry &&
-           application.status === 'ongoing' &&
+           application.status === 'submitted' &&
            !!application.assignedRegistrarId;
   }
 
   canMarkCompleted(application: Application): boolean {
     return this.currentUserRole === 'is_registrar_in_charge' &&
            application.registry === this.currentUserRegistry &&
-           application.status === 'ongoing';
+           application.status === 'submitted';
   }
 
   canMarkVerified(application: Application): boolean {

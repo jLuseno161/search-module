@@ -116,7 +116,7 @@ export class SearchApplicationComponent implements OnInit {
   }
 
   private async generateInvoiceHTML(invoice: any): Promise<string> {
-    const template = await this.http.get('/assets/templates/invoice.html', {
+    const template = await this.http.get('assets/templates/invoice.html', {
       responseType: 'text'
     }).toPromise();
 
@@ -141,7 +141,7 @@ export class SearchApplicationComponent implements OnInit {
   }
 
   private async generateReceiptHTML(paymentData: any): Promise<string> {
-    const template = await this.http.get('/assets/templates/receipt.html', {
+    const template = await this.http.get('assets/templates/receipt.html', {
       responseType: 'text'
     }).toPromise();
 

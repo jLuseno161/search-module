@@ -18,9 +18,10 @@
 
 .sidebar {
     width: 250px;
-    background: linear-gradient(180deg, #be8d73 0%, #563526 100%);
+    // background: linear-gradient(180deg, #be8d73 0%, #563526 100%);
     // background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
-    color: white;
+    background-color: white;
+    // color: white;
     padding: 20px 0;
     transition: transform 0.3s ease;
 }
@@ -53,6 +54,7 @@
     cursor: pointer;
     padding: 10px;
     display: none;
+    color: white;
 }
 
 
@@ -65,15 +67,17 @@
     cursor: pointer;
     transition: all 0.3s ease;
     border-left: 4px solid transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* Light separator */
+
 }
 
 .menu-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(98, 23, 23, 0.1);
 }
 
 .menu-item.active {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-left-color: #e74c3c;
+    background-color: rgba(98, 23, 23, 0.1);
+    border-left-color: #74441c;
 }
 
 .menu-icon {
@@ -98,7 +102,9 @@
 }
 
 .top-nav {
-    background: white;
+    // background: white;
+    background: #74441c;
+    color: white;
     padding: 20px 30px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -116,19 +122,19 @@
 .welcome-section h1 {
     margin: 0 0 5px 0;
     font-size: 1.5rem;
-    color: #2c3e50;
+    // color: #2c3e50;
 }
 
 .date-time {
     margin: 0;
-    color: #7f8c8d;
+    // color: #7f8c8d;
     font-size: 0.9rem;
 }
 
 .tagline {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #a13913;
+    // color: #a13913;
     text-align: center;
 }
 
@@ -201,7 +207,7 @@
 
 .user-role {
     font-weight: 500;
-    color: #2c3e50;
+    // color: #2c3e50;
 }
 
 

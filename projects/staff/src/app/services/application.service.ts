@@ -49,7 +49,7 @@ export interface UserResponse {
   providedIn: 'root'
 })
 export class ApplicationService {
-  private apiUrl = 'https://odipojames.pythonanywhere.com/api/v1';
+  private apiUrl = 'https://onayajames.pythonanywhere.com/api/v1';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

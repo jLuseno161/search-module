@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-success text-white">
+            <div class="card text-white" style="background-color: #27422e;">
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -23,50 +23,42 @@
 
     <!-- Quick Stats -->
     <div class="row mb-4">
-        <div class="col-md-2">
-            <div class="card bg-warning text-dark">
+        <div class="col-md-3">
+            <div class="card" style="background-color: #f0f3ed;">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">{{ getStatusCount('unassigned') }}</h4>
-                    <p class="mb-0">Unassigned</p>
+                    <h4 class="mb-0" style="color: #29180a;">{{ getStatusCount('submitted') }}</h4>
+                    <p class="mb-0" style="color: #29180a;">In Progress</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-primary text-white">
+        <div class="col-md-3">
+            <div class="card" style="background-color: #f0f3ed;">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">{{ getStatusCount('submitted') }}</h4>
-                    <p class="mb-0">In Progress</p>
+                    <h4 class="mb-0" style="color: #29180a;">{{ getStatusCount('completed') }}</h4>
+                    <p class="mb-0" style="color: #29180a;">Completed</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-success text-white">
+        <div class="col-md-3">
+            <div class="card" style="background-color: #f0f3ed;">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">{{ getStatusCount('completed') }}</h4>
-                    <p class="mb-0">Completed</p>
+                    <h4 class="mb-0" style="color: #29180a;">{{ getStatusCount('verified') }}</h4>
+                    <p class="mb-0" style="color: #29180a;">Verified</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-info text-white">
+        <div class="col-md-3">
+            <div class="card" style="background-color: #f0f3ed;">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">{{ getStatusCount('verified') }}</h4>
-                    <p class="mb-0">Verified</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card bg-secondary text-white">
-                <div class="card-body text-center">
-                    <h4 class="mb-0">{{ getStatusCount('registry') }}</h4>
-                    <p class="mb-0">Total</p>
+                    <h4 class="mb-0" style="color: #29180a;">{{ getStatusCount('registry') }}</h4>
+                    <p class="mb-0" style="color: #29180a;">Total</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Auto-Assignment Controls -->
-    <div class="card mb-4">
+    <!-- <div class="card mb-4">
         <div class="card-header">
             <h5 class="card-title mb-0">Assignment Management</h5>
         </div>
@@ -93,7 +85,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Search Card -->
     <div class="card mb-4">
@@ -118,7 +110,7 @@
                     </div>
                     <div class="col-md-3">
                         <div class="d-grid gap-2 d-md-flex">
-                            <button type="submit" class="btn btn-success flex-fill">
+                            <button type="submit" class="btn flex-fill" style="background-color: #27422e; color: white;">
                 <i class="bi bi-search me-2"></i>Search
               </button>
                             <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
@@ -144,12 +136,12 @@
 
         <!-- Tabs Navigation -->
         <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item" role="presentation">
+            <!-- <li class="nav-item" role="presentation">
                 <button class="nav-link" [class.active]="currentTab === 'unassigned'" (click)="setTab('unassigned')" type="button">
           Unassigned
           <span class="badge bg-warning ms-1">{{ getStatusCount('unassigned') }}</span>
         </button>
-            </li>
+            </li> -->
             <li class="nav-item" role="presentation">
                 <button class="nav-link" [class.active]="currentTab === 'submitted'" (click)="setTab('submitted')" type="button">
           In Progress
@@ -223,7 +215,7 @@
                             <th scope="col">#</th>
                             <th scope="col">Reference No.</th>
                             <th scope="col">Parcel No.</th>
-                            <th scope="col">Applicant</th>
+                            <!-- <th scope="col">Applicant</th> -->
                             <th scope="col">Date Submitted</th>
                             <th scope="col">Time Elapsed</th>
                             <th scope="col">Status</th>
@@ -238,10 +230,10 @@
                                 <strong>{{ app.referenceNo }}</strong>
                             </td>
                             <td>{{ app.parcelNo }}</td>
-                            <td>
+                            <!-- <td>
                                 <div>{{ app.applicantName }}</div>
                                 <small class="text-muted">{{ app.county }} • {{ app.registry }}</small>
-                            </td>
+                            </td> -->
                             <td>{{ app.dateSubmitted }}</td>
                             <td>
                                 <span class="badge bg-secondary">{{ app.timeElapsed }}</span>

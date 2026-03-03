@@ -482,7 +482,7 @@ export class ApplicationDetails implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'submitted':
+      // case 'submitted':
       case 'pending':
         return 'badge bg-warning text-dark';
       case 'submitted':

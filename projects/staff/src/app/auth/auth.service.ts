@@ -26,7 +26,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_BASE_URL = 'https://odipojames.pythonanywhere.com/api/v1';
+  private readonly API_BASE_URL = 'https://onayajames.pythonanywhere.com/api/v1';
 
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;

@@ -2,13 +2,11 @@
     "name": "search-module",
     "version": "0.0.0",
     "scripts": {
-        "build:public": "ng build public --configuration production",
-        "build:staff": "ng build staff --configuration production",
+        "build:public": "ng build public --configuration production --base-href=/",
+        "build:staff": "ng build staff --configuration production --base-href=/staff/",
         "build:all": "npm run build:public && npm run build:staff",
-        "deploy:public": "ng deploy public --base-href=/search/",
-        "deploy:staff": "ng deploy staff --base-href=/search/staff/",
-        "deploy:all": "npm run build:all && npx angular-cli-ghpages --dir=dist/public && npx angular-cli-ghpages --dir=dist/staff",
-        "deploy": "npm run deploy:all"
+        "deploy": "pwsh ./deploy.ps1",
+        "deploy:quick": "npm run build:all && npx angular-cli-ghpages --dir=combined-deploy --branch=gh-pages --no-silent"
     },
     "private": true,
     "dependencies": {

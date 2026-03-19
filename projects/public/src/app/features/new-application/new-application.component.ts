@@ -78,7 +78,7 @@ export class NewApplicationComponent {
     this.searchForm = this.fb.group({
       // search_type: ['PARCEL_SEARCH', Validators.required],
       purpose_of_search: ['', Validators.required],
-      // search_scope: ['ACTIVE', Validators.required],
+      search_scope: ['ACTIVE', Validators.required],
       registry: ['ACTIVE', Validators.required],
       county: ['ACTIVE', Validators.required],
 
@@ -176,6 +176,12 @@ export class NewApplicationComponent {
     }
   }
 
+  viewDocument(document: Document) {
+    if (document.file) {
+      const fileURL = URL.createObjectURL(document.file);
+      window.open(fileURL, '_blank');
+    }
+  }
   removeDocument(id: number) {
     this.documents = this.documents.filter(doc => doc.id !== id)
     this.documentsDataSource.data = this.documents
@@ -208,15 +214,33 @@ export class NewApplicationComponent {
         cancelButtonText: 'No',
       }).then((result) => {
         if (result.isConfirmed) {
-          // Clicked "Yes" - proceed with submission
-          const formData = {
-            ...this.searchForm.value,
-            purpose: this.searchForm.value.purpose_of_search,
-            parcel_number: this.parcels[0]?.parcel_number || '',
-          };
-          delete formData.purpose_of_search;
+          // // Clicked "Yes" - proceed with submission
+          // const formData = {
+          //   ...this.searchForm.value,
+          //   purpose: this.searchForm.value.purpose_of_search,
+          //   parcel_number: this.parcels[0]?.parcel_number || '',
+          // };
+          // delete formData.purpose_of_search;
 
-          this.searchService.createSearchApplication(formData).subscribe({
+           const applicationData = new FormData();
+
+          // Add all the form fields that backend expects
+          applicationData.append('county', this.searchForm.value.county);
+          applicationData.append('registry', this.searchForm.value.registry);
+          applicationData.append('purpose', this.searchForm.value.purpose_of_search);
+          applicationData.append('parcel_number', this.parcels[0]?.parcel_number || '');
+          applicationData.append('search_scope', this.searchForm.value.search_scope);
+
+          // Add all documents/files
+          this.documents.forEach((doc) => {
+            if (doc.file) {
+              applicationData.append('ownership_document', doc.file, doc.file.name);
+                  applicationData.append('ownership_document[]', doc.file, doc.file.name);
+
+            }
+          });
+
+          this.searchService.createSearchApplication(applicationData).subscribe({
             next: (response: any) => {
               // Success message
               Swal.fire({

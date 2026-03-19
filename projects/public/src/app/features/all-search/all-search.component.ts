@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatCard, MatCardContent, MatCardModule } from '@angular/material/card';
 import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
@@ -14,6 +14,8 @@ import { MatDivider } from "@angular/material/divider";
 import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { ViewChildren, QueryList } from '@angular/core';
 
 @Component({
   selector: 'app-all-search',
@@ -25,13 +27,15 @@ import { MatButtonModule } from '@angular/material/button';
     MatPaginator,
     MatFormField,
     MatCardContent,
+    MatCardModule,
     MatTableModule,
     CommonModule,
     MatInput,
     MatBadgeModule,
     MatDivider,
     MatProgressSpinnerModule,
-    MatButtonModule
+    MatButtonModule,
+    MatPaginatorModule,
   ],
   templateUrl: './all-search.component.html',
   styleUrl: './all-search.component.scss'
@@ -39,11 +43,13 @@ import { MatButtonModule } from '@angular/material/button';
 export class AllSearchComponent {
 
   // @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChildren(MatPaginator) paginators!: QueryList<MatPaginator>;
 
   tabs = [
     { label: 'Pending', status: 'pending' },
     { label: 'Submitted', status: 'submitted' },
     { label: 'Completed', status: 'completed' },
+    { label: 'Returned', status: 'returned' },
     { label: 'Rejected', status: 'rejected' }
   ];
 
@@ -67,11 +73,27 @@ export class AllSearchComponent {
   // ngAfterViewInit() {
   //   // Connect paginators after view initialization
   //   this.tabs.forEach(tab => {
-  //     if (this.dataSources[tab.status] && this.paginator) {
-  //       this.dataSources[tab.status].paginator = this.paginator;
+  //     if (this.dataSources[tab.status] && this.parcelPaginator) {
+  //       this.dataSources[tab.status].paginator = this.parcelPaginator;
   //     }
   //   });
   // }
+  ngAfterViewInit() {
+    this.paginators.changes.subscribe(() => {
+      this.attachPaginators();
+    });
+
+    this.attachPaginators();
+  }
+
+  attachPaginators() {
+    this.paginators.forEach((paginator, index) => {
+      const status = this.tabs[index]?.status;
+      if (status && this.dataSources[status]) {
+        this.dataSources[status].paginator = paginator;
+      }
+    });
+  }
 
   onTabChange(event: { index: number }) {
     const selectedTab = this.tabs[event.index];
@@ -84,15 +106,8 @@ export class AllSearchComponent {
     this.searchService.getApplications(status).subscribe({
       next: (response: any) => {
         this.dataSources[status].data = response.results;
-        
-        // Set up filtering for reference number only
+        // Filtering for reference number only
         this.dataSources[status].filterPredicate = this.createFilter();
-        
-        // // Connect paginator
-        // if (this.paginator) {
-        //   this.dataSources[status].paginator = this.paginator;
-        // }
-        
         this.loadingStates[status] = false;
       },
       error: (error: any) => {
@@ -102,11 +117,11 @@ export class AllSearchComponent {
     });
   }
 
-  // Create custom filter predicate for reference number only
+  //filter predicate for reference number only
   createFilter(): (data: SearchApplication, filter: string) => boolean {
     return (data: SearchApplication, filter: string): boolean => {
       const searchStr = filter.toLowerCase();
-      
+
       // Search only in reference_number field
       return data.reference_number?.toLowerCase().includes(searchStr) || false;
     };
@@ -116,13 +131,9 @@ export class AllSearchComponent {
   applyFilter(event: Event, status: string) {
     const filterValue = (event.target as HTMLInputElement).value;
     const dataSource = this.dataSources[status];
-    
+
     if (dataSource) {
       dataSource.filter = filterValue.trim().toLowerCase();
-      
-      // if (dataSource.paginator) {
-      //   dataSource.paginator.firstPage();
-      // }
     }
   }
 

@@ -38,6 +38,7 @@ import { HttpClient } from '@angular/common/http';
   styleUrl: './search-application.component.scss'
 })
 export class SearchApplicationComponent implements OnInit {
+
   //Application details table
   displayedColumns1: string[] = ['id', 'parcel_number', 'status', 'exists', 'verified', 'actions'];
   appDataSource: MatTableDataSource<any>;
@@ -289,13 +290,20 @@ export class SearchApplicationComponent implements OnInit {
     }
   }
 
-getRemarks() {
+  isReturnedApplication(): boolean {
+    const status = this.applicationData?.status?.toLowerCase();
+    return status === 'returned';
+  }
+  editApplication() {
+  }
+
+  getRemarks() {
     // console.log(this.applicationData)
 
     // Get the most recent or last made remark
     const reviews = this.applicationData.reviews || [];
     const review = reviews.length > 0 ? reviews.reduce((latest: any, current: any) => {
-        return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+      return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
     }) : null; // Provide fallback when array is empty
 
     const isRejected = this.applicationData.status?.toLowerCase() === 'rejected';
@@ -306,24 +314,24 @@ getRemarks() {
     const isParcelNotFound = isCompleted && !hasCertificate;
 
     return {
-        // Status checks
-        isRejected,
-        isParcelNotFound,
-        showRemarks: isRejected || isParcelNotFound,
+      // Status checks
+      isRejected,
+      isParcelNotFound,
+      showRemarks: isRejected || isParcelNotFound,
 
-        // Rejection
-        rejectionRemark: isRejected ? {
-            comment: review?.comment || 'Attach correct documents necessary for application processing.',
-            date: review?.created_at || new Date().toISOString()
-        } : null,
+      // Rejection
+      rejectionRemark: isRejected ? {
+        comment: review?.comment || 'Attach correct documents necessary for application processing.',
+        date: review?.created_at || new Date().toISOString()
+      } : null,
 
-        // Parcel not found
-        parcelNotFoundRemark: isParcelNotFound ? {
-            comment: review?.comment || 'The requested parcel number was not found in the registry records. Please verify the parcel number and resubmit the search request.',
-            date: review?.created_at || new Date().toISOString()
-        } : null
+      // Parcel not found
+      parcelNotFoundRemark: isParcelNotFound ? {
+        comment: review?.comment || 'The requested parcel number was not found in the registry records. Please verify the parcel number and resubmit the search request.',
+        date: review?.created_at || new Date().toISOString()
+      } : null
     };
-}
+  }
   private async generateSearchReportHTML(applicationData: any): Promise<string> {
     const template = await this.http.get('/assets/templates/land-search-report.html', {
       responseType: 'text'

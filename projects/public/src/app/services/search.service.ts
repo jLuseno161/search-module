@@ -89,7 +89,7 @@ export class SearchService {
     return this.countyRegistryData;
   }
 
-  createSearchApplication(applicationData: Search): Observable<any> {
+  createSearchApplication(applicationData: FormData): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/applications/create`, applicationData);
   }
 

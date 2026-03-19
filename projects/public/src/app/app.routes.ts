@@ -40,6 +40,12 @@ export const routes: Routes = [
         data: { status: 'submitted' },
         canActivate: [authGuard]
     },
+     {
+        path: 'search-application/returned/:id',
+        component: SearchApplicationComponent,
+        data: { status: 'returned' },
+        canActivate: [authGuard]
+    },
     {
         path: 'search-application/rejected/:id',
         component: SearchApplicationComponent,

@@ -77,7 +77,8 @@
                                     <!-- <br> -->
                                     <br>
                                     <mat-form-field appearance="outline" class="form_field">
-                                        <input matInput placeholder="e.g. NAIROBI/BLOCK48/56" formControlName="parcel_number" type="text" required>
+                                        <input matInput placeholder="e.g. NAIROBI/BLOCK48/56"
+                                            formControlName="parcel_number" type="text" required>
                                         <mat-error *ngIf="parcelNumberControl?.invalid && parcelNumberControl?.touched">
                                             Enter parcel number
                                         </mat-error>
@@ -85,7 +86,9 @@
 
                                     <div style="display: flex; justify-content: space-between; width: 90%;">
                                         <!-- <span class="helper_text">A maximum of 50</span> -->
-                                        <button mat-raised-button color="primary" id="add_parcel" class="form_button" [disabled]="!parcelNumberControl?.value || parcels.length > 0" (click)="addParcel()" type="button">
+                                        <button mat-raised-button color="primary" id="add_parcel" class="form_button"
+                                            [disabled]="!parcelNumberControl?.value || parcels.length > 0"
+                                            (click)="addParcel()" type="button">
                                             Add Parcel
                                         </button>
                                     </div>
@@ -160,23 +163,28 @@
                                     <span aria-required="true" class="required"> *</span>
                                     <br>
                                     <mat-form-field appearance="outline" class="form_field">
-                                        <textarea matInput placeholder="Purpose of search" formControlName="purpose_of_search" required></textarea>
-                                        <mat-error *ngIf="purposeOfSearchControl?.invalid && purposeOfSearchControl?.touched">
+                                        <textarea matInput placeholder="Purpose of search"
+                                            formControlName="purpose_of_search" required></textarea>
+                                        <mat-error
+                                            *ngIf="purposeOfSearchControl?.invalid && purposeOfSearchControl?.touched">
                                             Enter the purpose of search
                                         </mat-error>
                                     </mat-form-field>
                                 </div>
-                                
+
                                 <div><label>Select scope of search</label>
                                     <span aria-required="true" class="required"> *</span>
                                     <br>
                                     <mat-radio-group formControlName="search_scope" role="radiogroup">
                                         <mat-radio-button value="ACTIVE" class="radio_btn">
-                                            Particulars of the subsisting entries in the register of the above-mentioned parcel
+                                            Particulars of the subsisting entries in the register of the above-mentioned
+                                            parcel
                                         </mat-radio-button>
                                         <br>
                                         <mat-radio-button value="ALL" class="radio_btn">
-                                            Particulars noted on the Property section / Proprietorship section<br> / Encumbrance section / Power of attorney register / Registered documents register
+                                            Particulars noted on the Property section / Proprietorship section<br> /
+                                            Encumbrance section / Power of attorney register / Registered documents
+                                            register
                                         </mat-radio-button>
                                     </mat-radio-group>
                                 </div>
@@ -188,7 +196,8 @@
                             <button mat-button matStepperPrevious class="form_button back_btn">
                                 Back
                             </button>
-                            <button mat-raised-button color="primary" matStepperNext class="form_button next_btn" [disabled]="!searchForm.get('purpose_of_search')?.value || parcels.length === 0">
+                            <button mat-raised-button color="primary" matStepperNext class="form_button next_btn"
+                                [disabled]="!searchForm.get('purpose_of_search')?.value || parcels.length === 0">
                                 Next
                             </button>
                         </div>
@@ -212,17 +221,21 @@
                                         <br>
                                         <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
                                             <div fxFlex="75" fxFlex.xs="65">
-                                                <mat-form-field appearance="outline" class="file-input-field full-width">
+                                                <mat-form-field appearance="outline"
+                                                    class="file-input-field full-width">
                                                     <mat-label>Document name</mat-label>
-                                                    <input matInput id="file_input" type="text" placeholder="document name" formControlName="document_name">
+                                                    <input matInput id="file_input" type="text"
+                                                        placeholder="document name" formControlName="document_name">
                                                 </mat-form-field>
                                             </div>
                                             <div fxFlex>
-                                                <button mat-raised-button color="primary" id="upload_other_doc" class="upload-button" (click)="documentUpload.click()">
-                                                        <mat-icon>attach_file</mat-icon>
-                                                        Choose file
-                                                    </button>
-                                                <input #documentUpload hidden id="otherFiles" type="file" (change)="onFileSelected($event)">
+                                                <button mat-raised-button color="primary" id="upload_other_doc"
+                                                    class="upload-button" (click)="documentUpload.click()">
+                                                    <mat-icon>attach_file</mat-icon>
+                                                    Choose file
+                                                </button>
+                                                <input #documentUpload hidden id="otherFiles" type="file"
+                                                    (change)="onFileSelected($event)">
                                             </div>
                                         </div>
                                     </div>
@@ -234,7 +247,7 @@
                                         <ng-container matColumnDef="no">
                                             <th mat-header-cell *matHeaderCellDef> # </th>
                                             <!-- <td mat-cell *matCellDef="let element"> {{element.id}} </td> -->
-                                          <td mat-cell *matCellDef="let element; let i = index">
+                                            <td mat-cell *matCellDef="let element; let i = index">
                                                 {{ i + 1 }}
                                             </td>
                                         </ng-container>
@@ -247,8 +260,9 @@
                                         <ng-container matColumnDef="action">
                                             <th mat-header-cell *matHeaderCellDef> Action </th>
                                             <td mat-cell *matCellDef="let element">
-                                                  <button mat-stroked-button color="primary"
-                                                    (click)="viewDocument(element)" color="primary" style="margin-right:8px">
+                                                <button mat-stroked-button color="primary"
+                                                    (click)="viewDocument(element)" color="primary"
+                                                    style="margin-right:8px">
                                                     View
                                                 </button>
                                                 <button mat-stroked-button (click)="removeDocument(element.id)">
@@ -263,7 +277,7 @@
                                 </div>
                             </div>
                         </form>
-                    </div> 
+                    </div>
 
                     <div class="button-group row_section ">
                         <button mat-raised-button color="primary" matStepperPrevious class="form_button back_btn">
@@ -288,7 +302,7 @@
                             <table class="table2 table_borders">
                                 <tr>
                                     <td class="header"><strong>Applicant:</strong></td>
-                                    <td> {{ currentUser.username | titlecase }}, ID NO. {{currentUser.id}} </td>
+                                    <td> {{ currentUser.username | titlecase }}, ID NO. {{currentUser.id_no}} </td>
                                 </tr>
                                 <tr>
                                     <td class="header"><strong>County</strong></td>
@@ -352,7 +366,8 @@
                         <button mat-raised-button color="primary " matStepperPrevious class="form_button back_btn ">
                             Back
                         </button>
-                        <button mat-raised-button color="primary " id="submit_request " matStepperNext class="form_button next_btn " (click)="submitApplication() ">
+                        <button mat-raised-button color="primary " id="submit_request " matStepperNext
+                            class="form_button next_btn " (click)="submitApplication() ">
                             Submit
                         </button>
                     </div>

@@ -3,7 +3,7 @@
         <div class="header-content"
             style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div class="title-section">
-                <mat-card-title>Search: Application REG/SRCH/{{applicationData.reference_number}}</mat-card-title>
+                <mat-card-title>Search: Application {{applicationData.reference_number}}</mat-card-title>
             </div>
 
             <div class="action-buttons" *ngIf="isReturnedApplication()">
@@ -27,7 +27,7 @@
                                 Status: {{ applicationData.status | titlecase }}
                             </div>
                             <div class="reference-number">
-                                Search Number: REG/SRCH/{{ applicationData.reference_number }}
+                                Search Number: {{ applicationData.reference_number }}
                             </div>
                         </div>
 
@@ -40,7 +40,7 @@
                             <tr>
                                 <td class="header"><strong>Applicant:</strong></td>
                                 <td>{{ applicationData.applicant.username | titlecase }}&nbsp;,&nbsp;ID NO.&nbsp;{{
-                                    applicationData.applicant.id }}
+                                    applicationData.applicant.id_no }}
                                 </td>
                             </tr>
                             <tr>
@@ -88,8 +88,9 @@
                             <ng-container matColumnDef="exists">
                                 <th mat-header-cell *matHeaderCellDef> Parcel exists </th>
                                 <td mat-cell *matCellDef="let element">
-                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ?
-                                    'Pending' : (element.exists === false ? 'No' : 'Yes') }}
+                                    {{ element.status?.toLowerCase() === 'rejected' ? 'No' :
+                                    ['pending', 'submitted', 'returned'].includes(element.status?.toLowerCase()) ?
+                                    'Pending' : element.exists === false ? 'No' : 'Yes' }}
                                 </td>
                             </ng-container>
 
@@ -97,7 +98,8 @@
                             <ng-container matColumnDef="verified">
                                 <th mat-header-cell *matHeaderCellDef> Verification Status </th>
                                 <td mat-cell *matCellDef="let element">
-                                    {{ ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ?
+                                    {{ element.status?.toLowerCase() === 'rejected' ? 'Verified' :
+                                    ['pending', 'submitted', 'rejected'].includes(element.status?.toLowerCase()) ?
                                     'Not verified' : (element.exists === false ? 'Not applicable' : 'Verified') }}
                                 </td>
                             </ng-container>
@@ -128,18 +130,35 @@
                     <div class="section_header">
                         <h4 class="title">Attached Documents</h4>
                     </div>
-
                     <div class="documents-section">
                         <div class="table-responsive">
-                            <table class="table_borders">
-                                <tr *ngFor="let doc of documents">
-                                    <td class="header"><strong>Document {{ doc.id }}:</strong></td>
-                                    <td> {{ doc.name }} </td>
-                                </tr>
-                                <tr *ngIf="documents.length === 0">
-                                    <td colspan="2">No application documents</td>
-                                </tr>
+                            <table mat-table [dataSource]="documentsDataSource" class="mat-sort">
+                                <ng-container matColumnDef="no">
+                                    <th mat-header-cell *matHeaderCellDef> # </th>
+                                    <td mat-cell *matCellDef="let element; let i = index">
+                                        {{ i + 1 }}
+                                    </td>
+                                </ng-container>
+
+                                <ng-container matColumnDef="document">
+                                    <th mat-header-cell *matHeaderCellDef> Uploaded Documents </th>
+                                    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                                </ng-container>
+
+                                <ng-container matColumnDef="action">
+                                    <th mat-header-cell *matHeaderCellDef> Action </th>
+                                    <td mat-cell *matCellDef="let element">
+                                        <button mat-stroked-button color="primary" (click)="viewDocument(element)"
+                                            color="primary" style="margin-right:8px">
+                                            View
+                                        </button>
+                                    </td>
+                                </ng-container>
+
+                                <tr mat-header-row *matHeaderRowDef="documentColumns"></tr>
+                                <tr mat-row *matRowDef="let row; columns: documentColumns;"></tr>
                             </table>
+
                         </div>
                     </div>
                 </div>
@@ -197,7 +216,7 @@
                                 <td mat-cell *matCellDef="let invoice" class="action-cell">
                                     <button mat-raised-button color="primary" class="pay-button"
                                         (click)="payNow(invoice)"
-                                        [disabled]="['completed', 'submitted', 'rejected'].includes(invoice.status?.toLowerCase())">
+                                        [disabled]="['completed', 'submitted', 'rejected', 'returned'].includes(invoice.status?.toLowerCase())">
                                         {{ selectedInvoice?.id === invoice.id ? 'Close' : 'Pay' }}
                                     </button>
 
@@ -240,15 +259,15 @@
                 </div>
             </mat-tab>
 
-            <mat-tab label="Remarks" *ngIf="getRemarks().showRemarks">
+            <mat-tab label="Remarks" *ngIf="getRemarks() as remarks">
                 <div class="tab-content">
                     <div class="section_header">
                         <h4 class="title">Remarks</h4>
                     </div>
                     <div class="remarks">
-                        <!-- Remark for rejected or Returned-->
+                        <!-- Remark for rejected applications-->
                         <div class="comments-section"
-                            *ngIf="getRemarks().isRejected && getRemarks().rejectionRemark as rejection">
+                            *ngIf="remarks.isRejected && remarks.rejectionRemark as rejection">
                             <div class="remark">
                                 <strong>COMMENT:</strong>
                                 <p>{{rejection.comment}}</p>
@@ -258,7 +277,28 @@
                             </div>
 
                             <div class="recommendations">
-                                <strong>RECOMMENDED NEXT STEPS:</strong>
+                                <strong>RECOMMENDED ACTIONS:</strong>
+                                <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+                                    <li>Verify the parcel number with the property owner</li>
+                                    <li>Check with the local lands office for alternative references</li>
+                                    <li>Submit a new search request with corrected information</li>
+                                    <li>Contact registry support for assistance</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Remark for returned applications -->
+                        <div class="comments-section" *ngIf="remarks.isReturned && remarks.returnRemark as returned">
+                            <div class="remark">
+                                <strong>COMMENT:</strong>
+                                <p>{{returned.comment}}</p>
+                                <div class="remark-date">
+                                    Date {{returned.date | date:'mediumDate'}}
+                                </div>
+                            </div>
+
+                            <div class="recommendations">
+                                <strong>RECOMMENDED ACTIONS:</strong>
                                 <ol style="margin: 10px 0 0 0; padding-left: 20px;">
                                     <li>Review the rejection reason above</li>
                                     <li>Correct any issues with your application</li>
@@ -270,7 +310,7 @@
 
                         <!-- Remark for parcel not found -->
                         <div class="comments-section"
-                            *ngIf="getRemarks().isParcelNotFound && getRemarks().parcelNotFoundRemark as parcelRemark">
+                            *ngIf="remarks.isParcelNotFound && remarks.parcelNotFoundRemark as parcelRemark">
                             <div class="remark">
                                 <strong>COMMENT:</strong>
                                 <p>{{parcelRemark.comment}}</p>
@@ -280,7 +320,7 @@
                             </div>
 
                             <div class="recommendations">
-                                <strong>RECOMMENDED NEXT STEPS:</strong>
+                                <strong>RECOMMENDED ACTIONS:</strong>
                                 <ol style="margin: 10px 0 0 0; padding-left: 20px;">
                                     <li>Verify the parcel number with the property owner</li>
                                     <li>Check with the local lands office for alternative references</li>

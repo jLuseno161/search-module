@@ -78,7 +78,7 @@ export class SearchService {
         'Molo'
       ]
     },
-    
+
   ]
 
   getFaqs(): Faqs[] {
@@ -116,5 +116,13 @@ export class SearchService {
 
   downloadSearchResult(applicationId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/certificates/${applicationId}`);
+  }
+
+  getApplicationById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/applications/${id}`);
+  }
+
+  updateApplication(id: string, data: FormData): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/applications/${id}/edit-returned`, data);
   }
 }

@@ -47,6 +47,10 @@ export class SearchApplicationComponent implements OnInit {
   displayedColumns: string[] = ['id', 'date', 'paymentFor', 'amount', 'balance', 'status', 'actions'];
   dataSource: MatTableDataSource<Invoice>;
 
+  //Documents table
+  documentsDataSource = new MatTableDataSource<Document>([]);
+  documentColumns: string[] = ['no', 'document', 'action'];
+
   invoice: Invoice;
   pageSize = 10;
   currentPage = 0;
@@ -76,19 +80,42 @@ export class SearchApplicationComponent implements OnInit {
     };
 
     this.appDataSource.data = [tableData];
+
+    // Populate documents table
+    if (this.applicationData.ownership_document) {
+      const docName = this.applicationData.ownership_document.split('/').pop();
+      this.documents = [{
+        id: 1,
+        name: docName,
+        file: null,
+        url: this.applicationData.ownership_document
+
+      }];
+      this.documentsDataSource.data = this.documents;
+      // this.nextDocumentId = 2;
+    }
+  }
+
+  viewDocument(document: Document) {
+    if (document.file) {
+      const fileURL = URL.createObjectURL(document.file);
+      window.open(fileURL, '_blank');
+    } else if (document.url) {
+      window.open(document.url, '_blank');
+    }
   }
 
   private createInvoice() {
     this.invoice = {
       id: this.applicationData.id,
-      date: new Date(this.applicationData.submitted_at).toLocaleDateString('en-US', {
+      date: new Date(this.applicationData.submitted_at || this.applicationData.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       }),
       paymentFor: 'Search Fee',
-      amount: '500',
-      balance: '500',
+      amount: '1050',
+      balance: '1050',
       status: this.applicationData.status
     };
 
@@ -192,7 +219,7 @@ export class SearchApplicationComponent implements OnInit {
     // Confirm payment
     const confirmed = await Swal.fire({
       title: 'Confirm Payment',
-      text: `Are you sure you want to proceed with payment for application REG/SRCH/${this.applicationData.reference_number}?`,
+      text: `Are you sure you want to proceed with payment for application ${this.applicationData.reference_number}?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#8B4513',
@@ -256,7 +283,7 @@ export class SearchApplicationComponent implements OnInit {
     if (receiptConfirmed.isConfirmed) {
       await Swal.fire({
         title: 'Success!',
-        text: `Payment completed for REG/SRCH/${this.applicationData.reference_number}`,
+        text: `Payment completed for ${this.applicationData.reference_number}`,
         icon: 'success',
         confirmButtonColor: '#8B4513'
       });
@@ -295,33 +322,46 @@ export class SearchApplicationComponent implements OnInit {
     return status === 'returned';
   }
   editApplication() {
+    this.router.navigate(['/new-application'], {
+      queryParams: {
+        id: this.applicationData.id,
+        mode: 'edit'
+      },
+      state: {
+        applicationData: this.applicationData
+      }
+    });
   }
 
   getRemarks() {
-    // console.log(this.applicationData)
-
     // Get the most recent or last made remark
     const reviews = this.applicationData.reviews || [];
     const review = reviews.length > 0 ? reviews.reduce((latest: any, current: any) => {
       return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
-    }) : null; // Provide fallback when array is empty
+    }) : null;
 
     const isRejected = this.applicationData.status?.toLowerCase() === 'rejected';
+    const isReturned = this.applicationData.status?.toLowerCase() === 'returned';
     const isCompleted = this.applicationData.status?.toLowerCase() === 'completed';
-    // const hasReview = !!review;
-    // const isParcelNotFound = isCompleted && !hasReview;
-    const hasCertificate = !!(this.applicationData.certificate && this.applicationData.certificate.id);
+    const hasCertificate = !!this.applicationData.certificate?.id;
     const isParcelNotFound = isCompleted && !hasCertificate;
 
     return {
       // Status checks
       isRejected,
       isParcelNotFound,
-      showRemarks: isRejected || isParcelNotFound,
+      isReturned,
+      showRemarks: isRejected || isParcelNotFound || isReturned,
 
       // Rejection
       rejectionRemark: isRejected ? {
-        comment: review?.comment || 'Attach correct documents necessary for application processing.',
+        comment: review?.comment,
+        date: review?.created_at || new Date().toISOString()
+      } : null,
+
+      // Returned
+      returnRemark: isReturned ? {
+        comment: review?.comment || 'Application is returned.',
         date: review?.created_at || new Date().toISOString()
       } : null,
 
@@ -332,6 +372,7 @@ export class SearchApplicationComponent implements OnInit {
       } : null
     };
   }
+
   private async generateSearchReportHTML(applicationData: any): Promise<string> {
     const template = await this.http.get('/assets/templates/land-search-report.html', {
       responseType: 'text'

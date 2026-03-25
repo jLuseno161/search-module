@@ -7,6 +7,7 @@ import { Application, Registrar } from '../shared/interfaces/application';
 
 export interface ApiApplication {
   id: number;
+  id_no: number;
   reference_number: string;
   parcel_number: string;
   purpose: string;
@@ -14,10 +15,11 @@ export interface ApiApplication {
   registry: string;
   status: string;
   submitted_at: string;
-  assigned_to?: any; // Can be object or number
-  applicant?: any; // Can be object or number
+  assigned_to?: any;
+  applicant?: any;
   user?: {
     normal?: {
+      id_no: number,
       id: number;
       username: string;
       first_name: string;
@@ -45,11 +47,27 @@ export interface UserResponse {
   results: Registrar[];
 }
 
+export interface SignatureResponse {
+  message: string;
+  signature: string;
+}
+
+export interface SignatureStatusResponse {
+  has_signature: boolean;
+  signature_url?: string;
+}
+
+export interface ErrorResponse {
+  error?: string;
+  detail?: string;
+  signature?: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ApplicationService {
-  private apiUrl = 'https://odipojames.pythonanywhere.com/api/v1';
+  private apiUrl = 'https://arthuronama.pythonanywhere.com/api/v1';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -99,7 +117,6 @@ export class ApplicationService {
           return [];
         }
 
-        // Filter for registrar role and matching registry
         const filteredRegistrars = users.results.filter(user =>
           user.role === 'is_registrar' &&
           user.registry === currentUserRegistry
@@ -126,40 +143,24 @@ export class ApplicationService {
     );
   }
 
-  // ========== CERTIFICATE METHODS ==========
 
-  uploadCertificate(applicationId: number, file: File, comment: string = ''): Observable<any> {
-    const formData = new FormData();
-    formData.append('signed_file', file);
-    formData.append('comment', comment.trim() || 'Certificate uploaded');
+// In application.service.ts
+uploadCertificate(applicationId: number, formData: FormData): Observable<any> {
+  console.log(formData);
+  const url = `${this.apiUrl}/registrar/approve/${applicationId}`;
+  console.log(url);
+  return this.http.post(url, formData, {
+    headers: this.authService.getAuthHeaders().delete('Content-Type')
+  }).pipe(
+    tap(response => {
+      console.log('✅ Certificate uploaded successfully:', response);
+    }),
+    catchError((error: HttpErrorResponse) => {
 
-    const url = `${this.apiUrl}/registrar/approve/${applicationId}`;
-
-    return this.http.post(url, formData, {
-      headers: this.authService.getAuthHeaders().delete('Content-Type')
-    }).pipe(
-      tap(response => {
-        console.log('✅ Certificate uploaded successfully:', response);
-      }),
-      catchError(error => {
-        console.error('❌ Certificate upload failed:', error);
-
-        let errorMessage = 'Upload failed. ';
-        if (error.error?.signed_file) {
-          errorMessage += `File error: ${error.error.signed_file.join(', ')}`;
-        } else if (error.error?.detail) {
-          errorMessage += error.error.detail;
-        } else if (error.error?.error) {
-          errorMessage += error.error.error;
-        } else {
-          errorMessage += 'Please try again.';
-        }
-
-        return throwError(() => new Error(errorMessage));
-      })
-    );
-  }
-
+      return throwError(() => error);
+    })
+  );
+}
   rejectApplication(applicationId: number, rejectData: {comment: string}): Observable<any> {
     const url = `${this.apiUrl}/registrar/reject/${applicationId}`;
     const requestData = { comment: rejectData.comment };
@@ -170,6 +171,105 @@ export class ApplicationService {
       tap(response => console.log('✅ Application rejected successfully:', response)),
       catchError(error => {
         console.error('❌ Rejection failed:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  returnApplication(applicationId: number, returnData: {comment: string}): Observable<any> {
+    const url = `${this.apiUrl}/registrar/return/${applicationId}`;
+
+    return this.http.post(url, returnData, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap(response => console.log('✅ Application returned successfully:', response)),
+      catchError(error => {
+        console.error('❌ Return failed:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ========== SIGNATURE METHODS ==========
+
+  uploadRegistrarSignature(formData: FormData): Observable<SignatureResponse> {
+    const url = `${this.apiUrl}/users/me/signature/`;
+
+    console.log('📤 Uploading signature to:', url);
+
+    return this.http.post<SignatureResponse>(url, formData, {
+      headers: this.authService.getAuthHeaders().delete('Content-Type')
+    }).pipe(
+      tap(response => {
+        console.log('✅ Signature uploaded successfully:', response);
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser && response.signature) {
+          const user = JSON.parse(currentUser);
+          user.signature = response.signature;
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          this.authService['currentUserSubject'].next(user);
+        }
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Signature upload failed:', error);
+
+        let errorMessage = 'Failed to upload signature. ';
+
+        if (error.status === 400) {
+          if (error.error?.signature) {
+            errorMessage += error.error.signature.join(', ');
+          } else if (error.error?.error) {
+            errorMessage += error.error.error;
+          } else if (error.error?.detail) {
+            errorMessage += error.error.detail;
+          } else {
+            errorMessage += 'Invalid file. Please ensure dimensions are 300x100px and size is under 200KB.';
+          }
+        } else if (error.status === 401) {
+          errorMessage += 'Please login again.';
+        } else if (error.status === 403) {
+          errorMessage += 'You don\'t have permission to upload a signature.';
+        } else {
+          errorMessage += 'Please try again.';
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  checkRegistrarSignature(registrarId: number): Observable<SignatureStatusResponse> {
+    return this.http.get<SignatureStatusResponse>(`${this.apiUrl}/users/${registrarId}/signature-status/`, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Error checking signature:', error);
+        return of({has_signature: false});
+      })
+    );
+  }
+
+  removeRegistrarSignature(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/users/me/signature/`, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap(response => console.log('✅ Signature removed:', response)),
+      catchError(error => {
+        console.error('❌ Signature removal failed:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ========== PASSWORD METHODS ==========
+
+  changePassword(passwordData: {current_password: string, password: string, passwordconfirm: string}): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password/`, passwordData, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap(response => console.log('✅ Password changed:', response)),
+      catchError(error => {
+        console.error('❌ Password change failed:', error);
         return throwError(() => error);
       })
     );
@@ -187,7 +287,6 @@ export class ApplicationService {
     }
   }
 
-  // Optional completion methods (if your backend supports them)
   completeApplication(applicationId: number): Observable<any> {
     return this.http.patch(`${this.apiUrl}/applications/${applicationId}/`, {
       status: 'completed'
@@ -199,4 +298,39 @@ export class ApplicationService {
       status: 'verified'
     });
   }
+  // In application.service.ts
+saveCertificate(certificateData: any): Observable<any> {
+  const formData = new FormData();
+
+  // Append all fields to FormData
+  Object.keys(certificateData).forEach(key => {
+    if (key === 'certificate_pdf' && certificateData[key] instanceof Blob) {
+      formData.append('certificate_pdf', certificateData[key], `certificate_${certificateData.referenceNumber}.pdf`);
+    } else if (certificateData[key] !== null && certificateData[key] !== undefined) {
+      formData.append(key, certificateData[key].toString());
+    }
+  });
+
+  const url = `${this.apiUrl}/certificates/save/`;
+
+  return this.http.post(url, formData, {
+    headers: this.authService.getAuthHeaders().delete('Content-Type')
+  }).pipe(
+    tap(response => {
+      console.log('✅ Certificate saved to backend:', response);
+    }),
+    catchError((error: HttpErrorResponse) => {
+      console.error('❌ Save certificate failed:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
+// Also add method to get certificate by application
+getCertificateByApplication(applicationId: number): Observable<any> {
+  const url = `${this.apiUrl}/certificates/application/${applicationId}/`;
+  return this.http.get(url, {
+    headers: this.authService.getAuthHeaders()
+  });
+}
 }

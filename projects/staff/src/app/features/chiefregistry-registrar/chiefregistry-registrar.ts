@@ -235,80 +235,124 @@ export class ChiefRegistryRegistrar implements OnInit {
         }
       });
   }
+// private mapApiToLocalApplications(): void {
+//   if (this.registrars.length === 0) {
+//     setTimeout(() => {
+//       this.mapApiToLocalApplications();
+//     }, 500);
+//     return;
+//   }
 
-  // private mapApiToLocalApplications(): void {
-  //   if (this.registrars.length === 0) {
-  //     setTimeout(() => {
-  //       this.mapApiToLocalApplications();
-  //     }, 500);
-  //     return;
-  //   }
+//   this.applications = this.apiApplications.map(apiApp => {
+//     const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
+//       'pending': 'unassigned',
+//       'submitted': 'unassigned',
+//       'assigned': 'ongoing',
+//       'verified': 'verified',
+//       'completed': 'completed',
+//       'rejected': 'rejected'
+//     };
 
-  //   this.applications = this.apiApplications.map(apiApp => {
-  //     const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
-  //       'pending': 'unassigned',
-  //       'submitted': 'unassigned',
-  //       'assigned': 'ongoing',
-  //       'verified': 'verified',
-  //       'completed': 'completed',
-  //       'rejected': 'rejected'
-  //     };
+//     const frontendStatus = statusMap[apiApp.status] || 'unassigned';
+//     const applicant = apiApp.user?.normal;
 
-  //     const frontendStatus = statusMap[apiApp.status] || 'unassigned';
-  //     const applicant = apiApp.user?.normal;
+//     let applicantName = 'Unknown Applicant';
+//     let applicantId = 0;
 
-  //     let applicantName = 'Unknown Applicant';
-  //     let applicantId = 0;
+//     if (applicant) {
+//       applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
+//       applicantId = applicant.id || 0;
+//     }
 
-  //     if (applicant) {
-  //       applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
-  //       applicantId = applicant.id || 0;
-  //     }
+//     // let assignedRegistrarName = 'Not assigned';
+//     // let assignedRegistrarId = null;
 
-  //     let assignedRegistrarName = 'Not assigned';
-  //     let assignedRegistrarId = null;
+//     // if (apiApp.assigned_to) {
+//     //   const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
+//     //   if (assignedRegistrar) {
+//     //     assignedRegistrarName = assignedRegistrar.username;
+//     //     assignedRegistrarId = apiApp.assigned_to;
+//     //   } else {
+//     //     assignedRegistrarName = 'Assigned (Unknown)';
+//     //     assignedRegistrarId = apiApp.assigned_to;
+//     //   }
+//     // }
+// let assignedRegistrarName = 'Not assigned';
+// let assignedRegistrarId: number | null = null;
 
-  //     if (apiApp.assigned_to) {
-  //       const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
-  //       if (assignedRegistrar) {
-  //         assignedRegistrarName = assignedRegistrar.username;
-  //         assignedRegistrarId = apiApp.assigned_to;
-  //       } else {
-  //         assignedRegistrarName = 'Assigned (Unknown)';
-  //         assignedRegistrarId = apiApp.assigned_to;
-  //       }
-  //     }
+// if (apiApp.assigned_to) {
+//   // Extract the registrar ID regardless of the input format
+//   let registrarId: number | null = null;
 
-  //     const application: Application = {
-  //       id: apiApp.id,
-  //       referenceNo: apiApp.reference_number,
-  //       parcelNo: apiApp.parcel_number,
-  //       dateSubmitted: this.formatDate(apiApp.submitted_at),
-  //       timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
-  //       status: frontendStatus,
-  //       applicantName: applicantName,
-  //       applicantId: applicantId,
-  //       county: apiApp.county,
-  //       registry: apiApp.registry,
-  //       assignedRegistrar: assignedRegistrarName,
-  //       assignedRegistrarId: assignedRegistrarId,
-  //       purpose: apiApp.purpose,
-  //       submitted_at: apiApp.submitted_at,
-  //       certificate: apiApp.certificate ? {
-  //         signed_file: apiApp.certificate.signed_file,
-  //         uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
-  //       } : undefined,
-  //       reviews: []
-  //     };
+//   if (apiApp.assigned_to && typeof apiApp.assigned_to === 'object') {
+//     // It's an object - try to get id property
+//     registrarId = (apiApp.assigned_to as any).id || null;
+//   } else if (typeof apiApp.assigned_to === 'number' || typeof apiApp.assigned_to === 'string') {
+//     // It's a number or string - convert to number
+//     const parsedId = Number(apiApp.assigned_to);
+//     registrarId = isNaN(parsedId) ? null : parsedId;
+//   }
 
-  //     return application;
-  //   });
+//   // Now use the registrarId to find the registrar
+//   if (registrarId) {
+//     const assignedRegistrar = this.registrars.find(reg => reg.id === registrarId);
+//     if (assignedRegistrar) {
+//       assignedRegistrarName = assignedRegistrar.username;
+//       assignedRegistrarId = registrarId;
+//     } else {
+//       assignedRegistrarName = 'Assigned (Unknown)';
+//       assignedRegistrarId = registrarId;
+//     }
+//   } else {
+//     // Couldn't extract a valid ID
+//     assignedRegistrarName = 'Assigned (Unknown)';
+//     assignedRegistrarId = null;
+//   }
+// }
+//     // Create the Application object with ALL required properties
+//     const application: Application = {
+//       // REQUIRED properties from Application interface
+//       id: apiApp.id,
+//       reference_number: apiApp.reference_number,
+//       parcel_number: apiApp.parcel_number,
+//       purpose: apiApp.purpose,
+//       county: apiApp.county,
+//       registry: apiApp.registry,
+//       //status: apiApp.status, // Use the backend status here
+//       status: frontendStatus,
+//       submitted_at: apiApp.submitted_at,
+//       assigned_to: assignedRegistrarId,
+//       applicant: applicantId,
 
-  //   this.filterByStatus(this.currentTab);
-  //   setTimeout(() => {
-  //     this.autoAssignUnassignedApplications();
-  //   }, 1000);
-  // }
+//       // Optional display properties (not in interface)
+//       dateSubmitted: this.formatDate(apiApp.submitted_at),
+//       timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
+
+//       // For table compatibility (alias properties)
+//       referenceNo: apiApp.reference_number,
+//       parcelNo: apiApp.parcel_number,
+//       applicantName: applicantName,
+//       applicantId: applicantId,
+
+//       // Additional properties needed for your component
+//       assignedRegistrar: assignedRegistrarName,
+//       assignedRegistrarId: assignedRegistrarId,
+
+//       certificate: apiApp.certificate ? {
+//         signed_file: apiApp.certificate.signed_file,
+//         uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
+//       } : undefined,
+//       reviews: []
+//     };
+
+//     return application;
+//   });
+
+//   this.filterByStatus(this.currentTab);
+//   setTimeout(() => {
+//     this.autoAssignUnassignedApplications();
+//   }, 1000);
+// }
 private mapApiToLocalApplications(): void {
   if (this.registrars.length === 0) {
     setTimeout(() => {
@@ -318,24 +362,26 @@ private mapApiToLocalApplications(): void {
   }
 
   this.applications = this.apiApplications.map(apiApp => {
-    const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
+    const statusMap: Record<string, 'unassigned' | 'submitted' | 'completed' | 'verified' | 'rejected'> = {
       'pending': 'unassigned',
       'submitted': 'unassigned',
-      'assigned': 'ongoing',
+      'assigned': 'submitted',
       'verified': 'verified',
       'completed': 'completed',
       'rejected': 'rejected'
     };
 
     const frontendStatus = statusMap[apiApp.status] || 'unassigned';
-    const applicant = apiApp.user?.normal;
+    const applicant = apiApp.user?.normal || apiApp.applicant;
 
     let applicantName = 'Unknown Applicant';
     let applicantId = 0;
+    let applicantIdNo = 0;  // ADD THIS
 
     if (applicant) {
       applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
       applicantId = applicant.id || 0;
+      applicantIdNo = applicant.id_no || 0;  // ADD THIS - extract id_no
     }
 
     let assignedRegistrarName = 'Not assigned';
@@ -356,17 +402,18 @@ private mapApiToLocalApplications(): void {
     const application: Application = {
       // REQUIRED properties from Application interface
       id: apiApp.id,
+      id_no: applicantIdNo,  // ADD THIS LINE
       reference_number: apiApp.reference_number,
       parcel_number: apiApp.parcel_number,
       purpose: apiApp.purpose,
       county: apiApp.county,
       registry: apiApp.registry,
-      status: apiApp.status, // Use the backend status here
+      status: apiApp.status,
       submitted_at: apiApp.submitted_at,
       assigned_to: assignedRegistrarId,
       applicant: applicantId,
 
-      // Optional display properties (not in interface)
+      // Optional display properties
       dateSubmitted: this.formatDate(apiApp.submitted_at),
       timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
 
@@ -375,6 +422,7 @@ private mapApiToLocalApplications(): void {
       parcelNo: apiApp.parcel_number,
       applicantName: applicantName,
       applicantId: applicantId,
+      applicantIdNo: applicantIdNo,  // ADD THIS if you want to store separately
 
       // Additional properties needed for your component
       assignedRegistrar: assignedRegistrarName,

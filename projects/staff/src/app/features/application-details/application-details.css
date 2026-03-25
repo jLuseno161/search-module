@@ -1,3 +1,82 @@
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #27422e 0%, #27422e 100%);
+
+            color: white;
+        }
+
+        .nav-tabs-custom .nav-link {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .nav-tabs-custom .nav-link.active {
+            background-color: #f8f9fa;
+            border-bottom-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .section-header {
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .bordered-table {
+            width: 100%;
+        }
+
+        .bordered-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .bordered-table td:first-child {
+            width: 40%;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table-responsive-custom {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            font-size: 0.875rem;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .officer-card {
+            background-color: #f8f9fa;
+            border-radius: 0.375rem;
+            padding: 1rem;
+        }
+
+        .profile-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .debug-section {
+            background: #f0f8ff;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
 .application-details-card {
   margin: 16px;
 }
@@ -246,10 +325,17 @@
             border-top: 1px solid #dee2e6;
             margin: 1rem 0;
         }
+.success-snackbar {
+  background: #28a745;
+  color: white;
+}
 
+.success-snackbar .mat-simple-snackbar-action {
+  color: white;
+}
 .badge.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
 .badge.bg-primary { background-color: #0d6efd !important; }
-.badge.bg-success { background-color: #198754 !important; }
+.badge.bg-success { background-color: #27422e !important; }
 .badge.bg-danger { background-color: #dc3545 !important; }
 .badge.bg-secondary { background-color: #6c757d !important; }
 .badge.bg-info { background-color: #0dcaf0 !important; color: #000 !important; }

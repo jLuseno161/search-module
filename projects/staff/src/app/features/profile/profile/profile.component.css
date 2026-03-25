@@ -1,0 +1,438 @@
+ /* .profile-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .account-settings-card {
+      padding: 20px;
+    }
+    .mat-mdc-card-header {
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    .settings-section-header {
+      font-size: 18px;
+      font-weight: 500;
+      color: #555;
+      margin: 25px 0 15px;
+      padding-left: 10px;
+      border-left: 4px solid #3f51b5;
+    }
+    .profile_card {
+      margin-bottom: 30px;
+    }
+    .profile-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .avatar-section {
+      flex: 0 0 200px;
+      text-align: center;
+    }
+    .avatar-container {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #f0f0f0;
+    }
+    .profile-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .upload-btn-container {
+      text-align: center;
+    }
+    .profile-img-upload {
+      font-size: 12px;
+    }
+    .user-details {
+      flex: 1;
+      min-width: 250px;
+    }
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .details-table td {
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .details-table td:first-child {
+      font-weight: 500;
+      color: #666;
+      width: 40%;
+    }
+    .details-table td:last-child {
+      color: #333;
+    }
+    .signature-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .signature-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+    .signature-content {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .no-signature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      border-radius: 4px;
+      color: #856404;
+      margin-bottom: 20px;
+    }
+    .signature-preview {
+      margin-bottom: 20px;
+    }
+    .signature-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      color: #155724;
+      margin-bottom: 15px;
+    }
+    .current-signature {
+      text-align: center;
+      padding: 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .signature-image {
+      max-width: 300px;
+      max-height: 100px;
+      border: 1px solid #eee;
+    }
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      transition: all 0.3s;
+      margin: 20px 0;
+    }
+    .upload-area:hover {
+      border-color: #3f51b5;
+      background: #f5f5f5;
+    }
+    .upload-area mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #999;
+    }
+    .upload-area p {
+      margin: 10px 0 5px;
+      color: #333;
+    }
+    .upload-area small {
+      color: #999;
+    }
+    .file-info {
+      padding: 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .file-info p {
+      margin: 5px 0;
+    }
+    .error-message {
+      color: #dc3545;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .success-message {
+      color: #28a745;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .upload-btn {
+      text-align: center;
+    }
+    .password-section {
+      margin-top: 30px;
+    }
+    .password-form {
+      max-width: 500px;
+      margin-top: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+    .required {
+      color: #dc3545;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .form-actions {
+      text-align: right;
+    }
+    @media (max-width: 768px) {
+      .profile-content {
+        flex-direction: column;
+      }
+      .avatar-section {
+        flex: none;
+      }
+    } */
+.profile-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.account-settings-card {
+  padding: 20px;
+}
+
+.mat-mdc-card-header {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.settings-section-header {
+  font-size: 18px;
+  font-weight: 500;
+  color: #555;
+  margin: 25px 0 15px;
+  padding-left: 10px;
+  border-left: 4px solid #3f51b5;
+}
+
+.profile_card {
+  margin-bottom: 30px;
+  padding: 20px;
+}
+
+.profile-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.avatar-section {
+  flex: 0 0 200px;
+  text-align: center;
+}
+
+.avatar-container {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #f0f0f0;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 250px;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.details-table td {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.details-table td:first-child {
+  font-weight: 500;
+  color: #666;
+  width: 40%;
+}
+
+.details-table td:last-child {
+  color: #333;
+}
+
+/* Signature Section */
+.signature-section {
+  margin: 30px 0;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.signature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-weight: 500;
+  color: #333;
+}
+
+.signature-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.current-signature-preview {
+  margin-bottom: 30px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.signature-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  color: #28a745;
+}
+
+.current-signature {
+  text-align: center;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.signature-image {
+  max-width: 300px;
+  max-height: 100px;
+  border: 1px solid #ddd;
+}
+
+.signature-pad-container {
+  margin-top: 20px;
+}
+
+.signature-pad-container h4 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.signature-canvas-container {
+  cursor: crosshair;
+  background: #fff;
+  max-width: 100%;
+  overflow: hidden;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signature-canvas-container canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  background: #fff;
+}
+
+.signature-actions {
+  padding: 10px;
+}
+
+.signature-actions .btn {
+  margin-bottom: 10px;
+}
+
+.upload-status {
+  margin-top: 20px;
+}
+
+/* Password Section */
+.password-section {
+  margin-top: 30px;
+}
+
+.password-form {
+  max-width: 500px;
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-content {
+    flex-direction: column;
+  }
+
+  .avatar-section {
+    flex: none;
+  }
+
+  .signature-canvas-container canvas {
+    width: 100%;
+    height: auto;
+  }
+}

@@ -244,6 +244,7 @@ private mapApiToLocalApplications(): void {
     // FIX: Handle applicant as object
     let applicantName = 'Unknown Applicant';
     let applicantId = 0;
+    let applicantIdNo = 0;
 
     if (apiApp.applicant && typeof apiApp.applicant === 'object') {
       const applicant = apiApp.applicant;
@@ -251,6 +252,7 @@ private mapApiToLocalApplications(): void {
                      `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() ||
                      'Applicant';
       applicantId = applicant.id || 0;
+      applicantIdNo = applicant.id_no || 0;
       console.log('✅ Applicant object processed:', { name: applicantName, id: applicantId });
     } else {
       console.log('❌ Applicant data not found or not an object:', apiApp.applicant);
@@ -291,6 +293,7 @@ private mapApiToLocalApplications(): void {
       assigned_to: assignedToId,
       assigned_to_username: assignedToUsername,
       applicant: applicantId,
+       id_no: applicantIdNo, 
 
       // Frontend display properties
       dateSubmitted: this.formatDate(apiApp.submitted_at),

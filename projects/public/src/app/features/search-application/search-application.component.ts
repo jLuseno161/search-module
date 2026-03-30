@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
@@ -9,11 +9,11 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Invoice, Document } from '../../interfaces/search';
 import { SearchService } from '../../services/search.service';
-import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { HttpClient } from '@angular/common/http';
+import html2pdf from 'html2pdf.js';
 
 @Component({
   selector: 'app-search-application',
@@ -63,6 +63,25 @@ export class SearchApplicationComponent implements OnInit {
   //on pay
   selectedInvoice: any = null;
 
+  //Generate Invoice/Receipt
+  @ViewChild('invoiceContent') invoiceContent!: ElementRef;
+  @ViewChild('receiptContent') receiptContent!: ElementRef;
+  selectedInvoiceNumber: string = '';
+  selectedInvoiceDate: string = '';
+  selectedService: string = '';
+  selectedAmount: string = '';
+  selectedBalance: string = '';
+  selectedStatusClass: string = '';
+  selectedStatusText: string = '';
+  
+  selectedReceiptNumber: string = '';
+  selectedReceiptDate: string = '';
+  selectedInvoiceId: string = '';
+  selectedInvoiceDateForReceipt: string = '';
+  selectedServiceForReceipt: string = '';
+  selectedAmountPaid: string = '';
+  selectedTransactionId: string = '';
+
   constructor(private searchService: SearchService, private http: HttpClient, private router: Router) {
     this.invoice = {} as Invoice;
     this.dataSource = new MatTableDataSource([this.invoice]);
@@ -96,12 +115,17 @@ export class SearchApplicationComponent implements OnInit {
     }
   }
 
+  //Displaying Invoices and Receipts
   viewDocument(document: Document) {
     if (document.file) {
       const fileURL = URL.createObjectURL(document.file);
       window.open(fileURL, '_blank');
     } else if (document.url) {
-      window.open(document.url, '_blank');
+      // window.open(document.url, '_blank');
+      this.http.get(document.url, { responseType: 'blob' }).subscribe(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+      });
     }
   }
 
@@ -133,68 +157,66 @@ export class SearchApplicationComponent implements OnInit {
 
   async viewInvoice(invoice: any): Promise<void> {
     console.log('View invoice details:', invoice);
-    const htmlContent = await this.generateInvoiceHTML(invoice);
-    this.openInNewTab(htmlContent, `Invoice-${invoice.id}`);
+    this.selectedInvoiceNumber = `INV-${invoice.id}-${new Date().getFullYear()}`;
+    this.selectedInvoiceDate = invoice.date;
+    this.selectedService = invoice.paymentFor;
+    this.selectedAmount = invoice.amount;
+    this.selectedBalance = invoice.balance;
+
+    const hasPayment = this.applicationData?.payment &&
+      this.applicationData.payment.result_code === '0';
+    const paymentStatus = hasPayment ? 'completed' : 'pending';
+
+    // const paymentStatus = invoice.status === 'completed' || invoice.balance === '0' ? 'completed' :
+    //   invoice.status === 'submitted' ? 'submitted' : 'pending';
+
+    this.selectedStatusClass = paymentStatus;
+    this.selectedStatusText = paymentStatus === 'completed' ? 'Payment Completed' : 'Pending Payment';
+
+    // Allow Angular to update the DOM
+    setTimeout(() => {
+      this.openAsPDF(this.invoiceContent.nativeElement, `Invoice-${invoice.id}`);
+    });
   }
 
   async viewReceipt(paymentData: any): Promise<void> {
     console.log('Viewing receipt for invoice:', paymentData);
-    const htmlContent = await this.generateReceiptHTML(paymentData.payment);
-    this.openInNewTab(htmlContent, `Receipt-${paymentData.payment.id}`);
-  }
-
-  private async generateInvoiceHTML(invoice: any): Promise<string> {
-    const template = await this.http.get('assets/templates/invoice.html', {
-      responseType: 'text'
-    }).toPromise();
-
-    const paymentStatus = invoice.status === 'completed' || invoice.balance === '0' ? 'completed' :
-      invoice.status === 'submitted' ? 'submitted' : 'pending';
-
-    const statusIcon = paymentStatus === 'completed' ? '✓' :
-      paymentStatus === 'submitted' ? '⏳' : '⏰';
-
-    const statusText = paymentStatus === 'completed' ? 'Payment Completed' :
-      paymentStatus === 'submitted' ? 'Payment Submitted' : 'Pending Payment';
-
-    return template!
-      .replace(/{{INVOICE_NUMBER}}/g, `INV-${invoice.id}-${new Date().getFullYear()}`)
-      .replace(/{{DATE}}/g, invoice.date)
-      .replace(/{{SERVICE}}/g, invoice.paymentFor)
-      .replace(/{{AMOUNT}}/g, invoice.amount)
-      .replace(/{{BALANCE}}/g, invoice.balance)
-      .replace(/{{STATUS_CLASS}}/g, paymentStatus)
-      .replace(/{{STATUS_ICON}}/g, statusIcon)
-      .replace(/{{STATUS_TEXT}}/g, statusText);
-  }
-
-  private async generateReceiptHTML(paymentData: any): Promise<string> {
-    const template = await this.http.get('assets/templates/receipt.html', {
-      responseType: 'text'
-    }).toPromise();
-
-    const currentDate = paymentData.paid_at ?
-      new Date(paymentData.paid_at).toLocaleDateString('en-US', {
+    this.selectedReceiptNumber = `RCP-${paymentData.payment.payment_reference}`;
+    this.selectedReceiptDate = paymentData.payment.paid_at ?
+      new Date(paymentData.payment.paid_at).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
       }) : 'Not Available';
+    this.selectedInvoiceId = `INV-${paymentData.payment.invoice_number}`;
+    this.selectedInvoiceDateForReceipt = this.invoice.date;
+    this.selectedServiceForReceipt = this.invoice.paymentFor;
+    this.selectedAmountPaid = paymentData.payment.amount;
+    this.selectedTransactionId = paymentData.payment.mpesa_receipt_number;
 
-    return template!
-      .replace(/{{RECEIPT_NUMBER}}/g, `RCP-${paymentData.payment_reference}`)
-      .replace(/{{RECEIPT_DATE}}/g, currentDate)
-      .replace(/{{INVOICE_ID}}/g, `INV-${paymentData.invoice_number}`)
-      .replace(/{{INVOICE_DATE}}/g, this.invoice.date)
-      .replace(/{{SERVICE}}/g, this.invoice.paymentFor)
-      .replace(/{{AMOUNT}}/g, paymentData.amount)
-      .replace(/{{TRANSACTION_ID}}/g, paymentData.mpesa_receipt_number);
+    // Allow Angular to update the DOM
+    setTimeout(() => {
+      this.openAsPDF(this.receiptContent.nativeElement, `Receipt-${paymentData.payment.id}`);
+    });
   }
 
-  private openInNewTab(htmlContent: string, title: string): void {
-    const newWindow = window.open('', '_blank');
-    if (newWindow) {
-      newWindow.document.write(htmlContent);
-      newWindow.document.title = title;
-      newWindow.document.close();
-    }
+  private openAsPDF(element: HTMLElement, fileName: string): void {
+    const options = {
+      margin: 10,
+      filename: `${fileName}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, logging: false, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+    };
+
+    html2pdf()
+      .from(element)
+      .set(options)
+      .outputPdf('blob')
+      .then((pdfBlob: Blob) => {
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      })
+      .catch((error: any) => console.error('PDF generation failed:', error));
   }
 
   async onMockPayment() {
@@ -308,12 +330,25 @@ export class SearchApplicationComponent implements OnInit {
     return isPending || parcelNotFound;
   }
 
-  async viewSearchReport(): Promise<void> {
-    try {
-      const htmlContent = await this.generateSearchReportHTML(this.applicationData);
-      this.openInNewTab(htmlContent, `Land-Search-Report-${this.applicationData.reference_number}`);
-    } catch (error) {
-      console.error('Error generating search report:', error);
+  viewSearchCertificate() {
+    if (this.applicationData.certificate && this.applicationData.certificate.id) {
+      const certificateId = this.applicationData.certificate.id;
+      // console.log('Using certificate ID:', certificateId);
+
+      this.searchService.downloadSearchResult(certificateId).subscribe({
+        next: (response: any) => {
+          const fileUrl = response.signed_file;
+          // console.log('File URL:', fileUrl);
+          if (fileUrl) {
+            window.open(fileUrl, '_blank');
+          } else {
+            console.error('No file URL found in response');
+          }
+        },
+        error: (error) => {
+          console.log('View failed:', error);
+        }
+      });
     }
   }
 
@@ -353,19 +388,16 @@ export class SearchApplicationComponent implements OnInit {
       isReturned,
       showRemarks: isRejected || isParcelNotFound || isReturned,
 
-      // Rejection
       rejectionRemark: isRejected ? {
         comment: review?.comment,
         date: review?.created_at || new Date().toISOString()
       } : null,
 
-      // Returned
       returnRemark: isReturned ? {
         comment: review?.comment || 'Application is returned.',
         date: review?.created_at || new Date().toISOString()
       } : null,
 
-      // Parcel not found
       parcelNotFoundRemark: isParcelNotFound ? {
         comment: review?.comment || 'The requested parcel number was not found in the registry records. Please verify the parcel number and resubmit the search request.',
         date: review?.created_at || new Date().toISOString()
@@ -373,86 +405,32 @@ export class SearchApplicationComponent implements OnInit {
     };
   }
 
-  private async generateSearchReportHTML(applicationData: any): Promise<string> {
-    const template = await this.http.get('/assets/templates/land-search-report.html', {
-      responseType: 'text'
-    }).toPromise();
-
-    // Use available data from applicationData, leave empty if not available
-    const titleNumber = applicationData.parcel_number || 'Not Available';
-    const referenceNumber = applicationData.reference_number || 'N/A';
-    const searchDate = applicationData.submitted_at ?
-      new Date(applicationData.submitted_at).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric'
-      }) : 'Not Available';;
-    const location = applicationData.county || 'Not Specified';
-    const parcelSize = applicationData.size || 'Not Specified';
-    const landTenure = applicationData.tenure_type || 'Not Specified';
-    const ownerName = applicationData.owner_name || 'Not Available';
-    const ownerId = applicationData.id || 'Not Available';
-    const registrationDate = applicationData.registration_date || 'Not Available';
-
-    // Mock encumbrances data - to replace with actual data
-    const hasEncumbrances = applicationData.has_encumbrances || false;
-    const encumbrances = applicationData.encumbrances || [];
-
-    let encumbrancesSection = '';
-    if (hasEncumbrances && encumbrances.length > 0) {
-      const encumbrancesHTML = encumbrances.map((enc: any) => `
-      <div style="margin-bottom: 8px;">
-        <strong>${enc.type || 'Encumbrance'}:</strong> ${enc.description || 'No description available'}<br>
-        <small>Registered: ${enc.date || 'Date not specified'}</small>
-      </div>
-    `).join('');
-
-      encumbrancesSection = `
-      <div class="warning">
-        <strong>WARNING: ENCUMBRANCES REGISTERED</strong>
-        <div style="margin-top: 10px;">
-          ${encumbrancesHTML}
-        </div>
-      </div>
-    `;
-    } else {
-      encumbrancesSection = `
-      <div class="clear">
-        <strong>✓ NO REGISTERED ENCUMBRANCES</strong>
-        <p style="margin: 5px 0 0 0;">This property is free from any registered caveats, charges, or restrictions.</p>
-      </div>
-    `;
-    }
-
-    return template!
-      .replace(/{{TITLE_NUMBER}}/g, titleNumber)
-      .replace(/{{REFERENCE_NUMBER}}/g, referenceNumber)
-      .replace(/{{SEARCH_DATE}}/g, searchDate)
-      .replace(/{{LOCATION}}/g, location)
-      .replace(/{{PARCEL_SIZE}}/g, parcelSize)
-      .replace(/{{LAND_TENURE}}/g, landTenure)
-      .replace(/{{OWNER_NAME}}/g, ownerName)
-      .replace(/{{OWNER_ID}}/g, ownerId)
-      .replace(/{{REGISTRATION_DATE}}/g, registrationDate)
-      .replace(/{{HAS_ENCUMBRANCES}}/g, hasEncumbrances.toString())
-      .replace(/{{GENERATED_DATE}}/g, new Date().toLocaleDateString())
-      .replace('{{#if HAS_ENCUMBRANCES}}', '')
-      .replace('{{else}}', '')
-      .replace('{{/if}}', '')
-      .replace('{{#each ENCUMBRANCES}}', '')
-      .replace('{{/each}}', '')
-      .replace('{{ENCUMBRANCES_SECTION}}', encumbrancesSection);
-  }
-
   downloadCertificate() {
     if (this.applicationData.certificate && this.applicationData.certificate.id) {
       const certificateId = this.applicationData.certificate.id;
-      // console.log('Using certificate ID:', certificateId);
 
       this.searchService.downloadSearchResult(certificateId).subscribe({
         next: (response: any) => {
           const fileUrl = response.signed_file;
-          // console.log('File URL:', fileUrl);
+
           if (fileUrl) {
-            window.open(fileUrl, '_blank');
+            const fullPath = fileUrl.split('/certificates/')[1];
+            const fileName = fullPath.replace('cert_with_qr_', '');
+
+            // Fetch the file as blob
+            fetch(fileUrl)
+              .then(res => res.blob())
+              .then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+              })
+              .catch(error => console.error('Fetch failed:', error));
           } else {
             console.error('No file URL found in response');
           }

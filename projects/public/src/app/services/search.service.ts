@@ -50,6 +50,29 @@ export class SearchService {
 
   private countyRegistryData: CountyRegistryData[] = [
     {
+      county: 'Kajiado',
+      registries: [
+        'Kajiado Central',
+        'Ngong',
+      ]
+    },
+    {
+      county: 'Baringo',
+      registries: [
+        'Kabarnet',
+        'Eldama Ravine',
+      ]
+    },
+    {
+      county: 'Kisumu',
+      registries: [
+        'Kisumu East',
+        'Nyando',
+        'Seme'
+
+      ]
+    },
+    {
       county: 'Nairobi',
       registries: [
         'Nairobi',
@@ -63,22 +86,6 @@ export class SearchService {
         'Mombasa Island'
       ]
     },
-    {
-      county: 'Kisumu',
-      registries: [
-        'Kisumu Central',
-        'Kisumu Lake'
-      ]
-    },
-    {
-      county: 'Nakuru',
-      registries: [
-        'Nakuru Town',
-        'Naivasha',
-        'Molo'
-      ]
-    },
-
   ]
 
   getFaqs(): Faqs[] {

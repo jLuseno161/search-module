@@ -108,7 +108,7 @@
                                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                                 <td mat-cell *matCellDef="let element" class="action-cell">
                                     <button mat-raised-button color="primary" class="view-button"
-                                        (click)="viewSearchReport()" [disabled]="isActionDisabled(element)">
+                                        (click)="viewSearchCertificate()" [disabled]="isActionDisabled(element)">
                                         View
                                     </button>
                                     <button mat-raised-button color="primary" class="download-button"
@@ -255,6 +255,105 @@
                         <mat-paginator [pageSize]="pageSize" [length]="totalItems" [pageIndex]="currentPage"
                             [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" class="invoice-paginator">
                         </mat-paginator>
+                    </div>
+                </div>
+
+                <div class="invoice_and_receipts">
+                    <div id="invoices" style="display: none;">
+                        <div #invoiceContent class="invoice-container">
+                            <div class="container">
+                                <div class="header">
+                                    <h2>Invoice Details</h2>
+                                </div>
+
+                                <div class="top">
+                                    <div>
+                                        <h3>Ministry of Lands & Physical Planning</h3>
+                                        <p>Ardhi House, 1st Ngong Avenue</p>
+                                        <p>P.O. Box 30450-00100, Nairobi, Kenya</p>
+                                        <p>Email: info&#64;lands.go.ke</p>
+                                        <p>Phone: +254 700 000 000</p>
+                                    </div>
+                                    <div class="invoice-title">
+                                        <h3>INVOICE</h3>
+                                        <p>#{{ selectedInvoiceNumber }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="invoice-details">
+                                    <div class="row"><span>Date:</span><span>{{ selectedInvoiceDate }}</span></div>
+                                    <div class="row"><span>Service:</span><span>{{ selectedService }}</span></div>
+                                    <div class="row"><span>Amount Due:</span><span class="amount">KSh {{ selectedAmount
+                                            }}</span></div>
+                                    <div class="row"><span>Balance:</span><span>KSh {{ selectedBalance }}</span></div>
+                                    <div class="row">
+                                        <span>Status:</span>
+                                        <span class="status-badge {{ selectedStatusClass }}">
+                                            {{ selectedStatusText }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="receipts" style="display: none;">
+                        <div #receiptContent class="receipt-container">
+                            <div class="container">
+                                <div class="header">
+                                    <h2>Payment Receipt</h2>
+                                </div>
+
+                                <div class="receipt-header">
+                                    <div>
+                                        <h3>Ministry of Lands & Physical Planning</h3>
+                                        <p>Ardhi House, 1st Ngong Avenue</p>
+                                        <p>P.O. Box 30450-00100, Nairobi, Kenya</p>
+                                        <p>Email: info&#64;lands.go.ke</p>
+                                        <p>Phone: +254 700 000 000</p>
+                                    </div>
+                                    <div class="receipt-title">
+                                        <h1>OFFICIAL RECEIPT</h1>
+                                        <p>#{{ selectedReceiptNumber }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="receipt-details">
+                                    <div class="section">
+                                        <h4>Payment Details</h4>
+                                        <div class="row"><span>Receipt Date:</span><span>{{ selectedReceiptDate
+                                                }}</span></div>
+                                        <div class="row"><span>Original Invoice:</span><span>#{{ selectedInvoiceId
+                                                }}</span></div>
+                                        <div class="row"><span>Invoice Date:</span><span>{{
+                                                selectedInvoiceDateForReceipt }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="section">
+                                        <h4>Payment Information</h4>
+                                        <div class="row"><span>Service:</span><span>{{ selectedServiceForReceipt
+                                                }}</span></div>
+                                        <div class="row"><span>Amount Paid:</span><span class="amount">KSh {{
+                                                selectedAmountPaid
+                                                }}</span></div>
+                                        <div class="row"><span>Payment Method:</span><span>M-PESA</span></div>
+                                        <div class="row"><span>Transaction ID:</span><span class="txn">{{
+                                                selectedTransactionId
+                                                }}</span></div>
+                                    </div>
+
+                                    <div class="status">
+                                        ✓ Payment Completed Successfully
+                                    </div>
+
+                                    <div class="footer">
+                                        <p>This is an official receipt for payment made.</p>
+                                        <p>Please keep this receipt for your records.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </mat-tab>

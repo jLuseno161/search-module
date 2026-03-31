@@ -78,20 +78,23 @@
                                     <br>
                                     <mat-form-field appearance="outline" class="form_field">
                                         <input matInput placeholder="e.g. NAIROBI/BLOCK48/56"
-                                            formControlName="parcel_number" type="text" required>
-                                        <mat-error *ngIf="parcelNumberControl?.invalid && parcelNumberControl?.touched">
-                                            Enter parcel number
-                                        </mat-error>
+                                            formControlName="parcel_number" type="text" required
+                                            [readonly]="!isEditMode && parcels.length > 0">
                                     </mat-form-field>
-
-                                    <div style="display: flex; justify-content: space-between; width: 90%;">
-                                        <!-- <span class="helper_text">A maximum of 50</span> -->
+                                    <!-- <div style="display: flex; justify-content: space-between; width: 90%;">
                                         <button mat-raised-button color="primary" id="add_parcel" class="form_button"
-                                            [disabled]="!parcelNumberControl?.value || parcels.length > 0"
+                                            [disabled]="!parcelNumberControl?.value || (parcels.length > 0 && !isEditMode)"
                                             (click)="addParcel()" type="button">
-                                            Add Parcel
+                                            {{ isEditMode ? 'Update' : 'Add Parcel' }}
                                         </button>
-                                    </div>
+                                    </div> -->
+                                    <div style="display: flex; justify-content: space-between; width: 90%;">
+    <button mat-raised-button color="primary" id="add_parcel" class="form_button"
+        [disabled]="!parcelNumberControl?.value || (parcels.length > 0 && !isEditMode) || (isEditMode && editingParcelId === null && parcels.length > 0)"
+        (click)="addParcel()" type="button">
+        {{ isEditMode && editingParcelId !== null ? 'Update' : 'Add Parcel' }}
+    </button>
+</div>
                                 </form>
 
                                 <div class="table-responsive">
@@ -112,12 +115,15 @@
                                         <ng-container matColumnDef="action">
                                             <th mat-header-cell *matHeaderCellDef> Action </th>
                                             <td mat-cell *matCellDef="let element">
-                                                <button mat-stroked-button (click)="removeParcel(element.id)">
-                                                    Remove
+                                                <button mat-stroked-button *ngIf="!isEditMode"
+                                                    (click)="removeParcel(element.id)"> Remove
+                                                </button>
+                                                <!-- Edit button -->
+                                                <button mat-stroked-button color="primary" *ngIf="isEditMode"
+                                                    [disabled]="isUpdatingParcel" (click)="editParcel(element)">Edit
                                                 </button>
                                             </td>
                                         </ng-container>
-
                                         <tr mat-header-row *matHeaderRowDef="parcelColumns"></tr>
                                         <tr mat-row *matRowDef="let row; columns: parcelColumns;"></tr>
                                     </table>
@@ -225,12 +231,14 @@
                                                     class="file-input-field full-width">
                                                     <mat-label>Document name</mat-label>
                                                     <input matInput id="file_input" type="text"
-                                                        placeholder="document name" formControlName="document_name">
+                                                        placeholder="document name" formControlName="document_name"
+                                                        [readonly]="documents.length > 0">
                                                 </mat-form-field>
                                             </div>
                                             <div fxFlex>
                                                 <button mat-raised-button color="primary" id="upload_other_doc"
-                                                    class="upload-button" (click)="documentUpload.click()">
+                                                    class="upload-button" (click)="documentUpload.click()"
+                                                    [disabled]="documents.length > 0">
                                                     <mat-icon>attach_file</mat-icon>
                                                     Choose file
                                                 </button>

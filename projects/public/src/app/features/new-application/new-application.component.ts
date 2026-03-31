@@ -79,6 +79,8 @@ export class NewApplicationComponent {
   //on Edit application
   isEditMode = false;
   applicationId: string | null = null;
+  editingParcelId: number | null = null;
+  isUpdatingParcel: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -127,65 +129,6 @@ export class NewApplicationComponent {
     this.checkEditMode();
   }
 
-  checkEditMode() {
-    this.route.queryParams.subscribe(params => {
-      if (params['mode'] === 'edit') {
-        this.isEditMode = true;
-        this.applicationId = params['id'];
-
-        const stateData =
-          this.router.getCurrentNavigation()?.extras?.state?.['applicationData']
-          || history.state.applicationData;
-
-        console.log('STATE DATA:', stateData);
-
-        if (stateData) {
-          this.populateForm(stateData);
-          // Wait for the view to render, then set the stepper to the second step (index 1)
-          setTimeout(() => {
-            if (this.stepper) {
-              this.stepper.selectedIndex = 1;
-            }
-          });
-        }
-      }
-    });
-  }
-
-  populateForm(data: any) {
-    // 1. Patch search form fields
-    this.searchForm.patchValue({
-      county: data.county,
-      registry: data.registry,
-      purpose_of_search: data.purpose,
-      search_scope: data.search_scope || 'ACTIVE',
-    });
-
-    // 2. Populate parcel table
-    if (data.parcel_number) {
-      this.parcels = [{
-        id: 1,
-        parcel_number: data.parcel_number
-      }];
-      this.parcelsDataSource.data = this.parcels;
-      this.nextParcelId = 2;
-    }
-
-    // 3. Populate documents table
-    if (data.ownership_document) {
-      const docName = data.ownership_document.split('/').pop();
-      this.documents = [{
-        id: 1,
-        name: docName,
-        file: null,
-        url: data.ownership_document // Store document URL for viewing
-
-      }];
-      this.documentsDataSource.data = this.documents;
-      this.nextDocumentId = 2;
-    }
-  }
-
   get parcelNumberControl() {
     return this.parcelsForm.get('parcel_number');
   }
@@ -197,20 +140,31 @@ export class NewApplicationComponent {
   addParcel() {
     const parcelNumber = this.parcelNumberControl?.value;
     if (parcelNumber) {
-      const newParcel: Parcel = {
-        id: this.nextParcelId++,
-        parcel_number: parcelNumber
-      };
-
-      this.parcels.push(newParcel);
-      this.parcelsDataSource.data = this.parcels;
+      if (this.isEditMode && this.editingParcelId !== null) {
+        // Update existing parcel
+        const parcelIndex = this.parcels.findIndex(p => p.id === this.editingParcelId);
+        if (parcelIndex !== -1) {
+          this.parcels[parcelIndex].parcel_number = parcelNumber;
+          this.parcelsDataSource.data = [...this.parcels];
+          // Reset editing state
+          this.editingParcelId = null;
+          this.isUpdatingParcel = false;
+        }
+      } else {
+        // Creating new parcel
+        const newParcel: Parcel = {
+          id: this.nextParcelId++,
+          parcel_number: parcelNumber
+        };
+        this.parcels.push(newParcel);
+        this.parcelsDataSource.data = this.parcels;
+      }
       this.parcelNumberControl?.reset();
     }
   }
-
   removeParcel(id: number) {
     this.parcels = this.parcels.filter(parcel => parcel.id !== id);
-    this.parcelsDataSource.data = this.parcels; // Update the data source
+    this.parcelsDataSource.data = this.parcels;
   }
 
   onCountyChange(selectedCounty: string | null) {
@@ -253,12 +207,6 @@ export class NewApplicationComponent {
     }
   }
 
-  // viewDocument(document: Document) {
-  //   if (document.file) {
-  //     const fileURL = URL.createObjectURL(document.file);
-  //     window.open(fileURL, '_blank');
-  //   }
-  // }
   viewDocument(document: Document) {
     if (document.file) {
       const fileURL = URL.createObjectURL(document.file);
@@ -364,9 +312,79 @@ export class NewApplicationComponent {
     });
   }
 
+  //Edit Application
+  checkEditMode() {
+    this.route.queryParams.subscribe(params => {
+      if (params['mode'] === 'edit') {
+        this.isEditMode = true;
+        this.applicationId = params['id'];
+
+        const stateData =
+          this.router.getCurrentNavigation()?.extras?.state?.['applicationData']
+          || history.state.applicationData;
+
+        console.log('STATE DATA:', stateData);
+
+        if (stateData) {
+          this.populateForm(stateData);
+          // Wait for the view to render, then set the stepper to the second step (index 1)
+          setTimeout(() => {
+            if (this.stepper) {
+              this.stepper.selectedIndex = 1;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  populateForm(data: any) {
+    // 1. Patch search form fields
+    this.searchForm.patchValue({
+      county: data.county,
+      registry: data.registry,
+      purpose_of_search: data.purpose,
+      search_scope: data.search_scope || 'ACTIVE',
+    });
+
+    // 2. Populate parcel table
+    if (data.parcel_number) {
+      this.parcels = [{
+        id: 1,
+        parcel_number: data.parcel_number
+      }];
+      this.parcelsDataSource.data = this.parcels;
+      this.nextParcelId = 2;
+    }
+
+    // 3. Populate documents table
+    if (data.ownership_document) {
+      const docName = data.ownership_document.split('/').pop();
+      this.documents = [{
+        id: 1,
+        name: docName,
+        file: null,
+        url: data.ownership_document // Store document URL for viewing
+
+      }];
+      this.documentsDataSource.data = this.documents;
+      this.nextDocumentId = 2;
+    }
+  }
+
+  editParcel(parcel: Parcel) {
+    this.editingParcelId = parcel.id;
+    this.parcelNumberControl?.setValue(parcel.parcel_number);
+    this.isUpdatingParcel = true;
+
+    setTimeout(() => {
+      const input = document.querySelector('input[formControlName="parcel_number"]') as HTMLInputElement;
+      if (input) input.focus();
+    });
+  }
+
   updateApplication() {
     const formData = new FormData();
-
     formData.append('county', this.searchForm.value.county);
     formData.append('registry', this.searchForm.value.registry);
     formData.append('purpose', this.searchForm.value.purpose_of_search);

@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CountyRegistryData, Faqs, Search } from '../interfaces/search';
 import { environment } from '../../environments/environment';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -131,5 +133,33 @@ export class SearchService {
 
   updateApplication(id: string, data: FormData): Observable<any> {
     return this.http.patch(`${this.apiUrl}/applications/${id}/edit-returned`, data);
+  }
+
+  // verifyApplication(reference: string): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/applications/all`, {
+  //     params: { reference }
+  //   });
+  // }
+
+  verifyApplication(reference: string): Observable<any> {
+    return this.http.get<any[]>(`${this.apiUrl}/applications/all`).pipe(
+      map(applications => {
+        // Log all completed applications
+        const completedApps = applications.filter(app => app.status === 'completed');
+        console.log('All Completed Applications:', completedApps);
+
+        // Find the specific one by reference
+        const found = completedApps.find(app =>
+          app.reference_number === reference ||
+          app.application_number === reference
+        );
+        // console.log('Searching for reference:', reference);
+        return found || null;
+      }),
+      catchError(error => {
+        console.error('Error fetching applications:', error);
+        return of(null);
+      })
+    );
   }
 }

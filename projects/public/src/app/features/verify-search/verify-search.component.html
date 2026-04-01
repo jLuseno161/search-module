@@ -1,0 +1,190 @@
+<div class="verify-container">
+  <!-- Header -->
+  <div class="header">
+    <mat-icon class="header-icon" style="color: #8B4513;">verified</mat-icon>
+    <h1>Verify Search</h1>
+    <p class="subtitle">Enter application reference number to verify authenticity</p>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-input-wrapper">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Reference Number</mat-label>
+        <input matInput [(ngModel)]="reference" placeholder="e.g., REG/SRCH/DAC096OK" (keyup.enter)="search()"
+          [disabled]="isLoading">
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-hint>Enter the reference number from the application document</mat-hint>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="search()" [disabled]="!reference || isLoading"
+        class="search-button">
+        <mat-icon *ngIf="!isLoading">search</mat-icon>
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <span *ngIf="!isLoading">Verify</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Verifying application...</p>
+  </div>
+
+  <!-- Not Found State -->
+  <div *ngIf="notFound && !isLoading" class="not-found-state">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h2>Application Not Found</h2>
+    <p>No application exists with reference number: <strong>{{reference}}</strong></p>
+    <p class="hint">Please verify the reference number and try again.</p>
+    <button mat-stroked-button color="primary" (click)="clear()">
+      <mat-icon>refresh</mat-icon>
+      Try Another Number
+    </button>
+  </div>
+
+  <!-- Basic Info View (Summary) -->
+  <div *ngIf="searchData && !showDetails && !isLoading" class="result-section">
+    <div class="verified-badge">
+      <mat-icon>check_circle</mat-icon>
+      <span>Verified</span>
+    </div>
+
+    <h2>Application Summary</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="label">Reference Number:</span>
+        <span class="value">{{searchData.reference_number}}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Applicant Name:</span>
+        <span class="value">{{searchData.applicant?.username | titlecase }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Date Filed:</span>
+        <span class="value">{{searchData.created_at | date:'mediumDate'}}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Status:</span>
+        <span class="value status-badge" [class.completed]="searchData.status === 'Valid'">
+          Valid
+        </span>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" (click)="viewDetails()">
+        <mat-icon>visibility</mat-icon>
+        View Full Details
+      </button>
+      <button mat-stroked-button (click)="newSearch()">
+        <mat-icon>search</mat-icon>
+        New Search
+      </button>
+    </div>
+  </div>
+
+  <!-- Full Details View -->
+  <div *ngIf="searchData && showDetails && !isLoading" class="details-section">
+    <div class="details-header">
+      <h2>Full Application Details</h2>
+      <button mat-icon-button (click)="backToSummary()" class="close-details">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Application Information -->
+    <div class="details-group">
+      <h3>
+        <mat-icon style="color: #8B4513">info</mat-icon>
+        Application Information
+      </h3>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="label">Reference Number:</span>
+          <span class="value">{{searchData.reference_number}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Application ID:</span>
+          <span class="value">{{searchData.id}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Applicant:</span>
+          <span class="value">{{searchData.applicant?.username}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Status:</span>
+          <span class="value status-badge" [class.completed]="searchData.status === 'completed'">
+            {{searchData.status | uppercase}}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Created:</span>
+          <span class="value">{{searchData.created_at | date:'medium'}}</span>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Property Information -->
+    <div class="details-group">
+      <h3>
+        <mat-icon style="color: #8B4513">home</mat-icon>
+        Property Information
+      </h3>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="label">Parcel Number:</span>
+          <span class="value">{{searchData.parcel_number}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Registry:</span>
+          <span class="value">{{searchData.registry}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">County:</span>
+          <span class="value">{{searchData.county}}</span>
+        </div>
+        <!-- <div class="detail-item full-width">
+          <span class="label">Purpose:</span>
+          <span class="value">{{searchData.purpose}}</span>
+        </div> -->
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Payment Information -->
+    <div *ngIf="searchData.payment" class="details-group">
+      <h3>
+        <mat-icon style="color: #8B4513">payment</mat-icon>
+        Payment Details
+      </h3>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="label">Amount:</span>
+          <span class="value">KES {{searchData.payment.amount}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Invoice Number:</span>
+          <span class="value">{{searchData.payment.invoice_number}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Payment Reference:</span>
+          <span class="value">{{searchData.payment.payment_reference}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="back-button">
+      <button mat-stroked-button (click)="backToSummary()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Summary
+      </button>
+    </div>
+  </div>
+</div>

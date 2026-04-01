@@ -1,17 +1,70 @@
 .user-newApplicationBackground {
     min-height: 100vh;
     background-color: #f5f5f5;
+
     .newApplication_card {
         background: white;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         padding: 12px;
         margin: 0 auto;
+
         // max-width: 1200px;
         mat-card-header {
             margin-bottom: 16px;
             margin-top: 16px;
         }
+    }
+}
+
+// For dropdowns
+.readonly-field {
+    pointer-events: none;
+
+    // Keep the dropdown arrow visible but not clickable
+    .mat-select-arrow-wrapper {
+        pointer-events: none;
+    }
+
+    // Keep all text colors normal
+    .mat-form-field-outline {
+        color: rgba(0, 0, 0, 0.12);
+    }
+
+    .mat-select-value-text {
+        color: rgba(0, 0, 0, 0.87) !important;
+    }
+
+    .mat-form-field-label {
+        color: rgba(0, 0, 0, 0.6) !important;
+    }
+}
+
+// For radio buttons
+.readonly-radio {
+    pointer-events: none;
+
+    .mat-radio-label-content {
+        color: rgba(0, 0, 0, 0.87) !important;
+    }
+
+    .mat-radio-outer-circle {
+        border-color: rgba(0, 0, 0, 0.38);
+    }
+
+    .mat-radio-inner-circle {
+        background-color: rgba(0, 0, 0, 0.38);
+    }
+}
+
+// For readonly inputs (already not grayed out)
+input[readonly],
+textarea[readonly] {
+    color: rgba(0, 0, 0, 0.87);
+    background-color: transparent;
+
+    &:focus {
+        outline: none;
     }
 }
 
@@ -29,9 +82,11 @@
     padding: 16px;
     border-radius: 4px;
     margin-bottom: 24px;
+
     a {
         color: #2c2c2c;
         text-decoration: none;
+
         &:hover {
             text-decoration: underline;
         }
@@ -45,18 +100,22 @@
         border-radius: 4px;
         overflow: hidden;
         box-shadow: none !important;
+
         .mat-expansion-panel-header {
             // background: #f5f5f5;
             height: auto !important;
             min-height: 48px;
+
             .mat-expansion-panel-header-title {
                 font-weight: 500;
                 color: inherit;
             }
+
             &.mat-expanded {
                 background: #f5f5f5;
             }
         }
+
         .mat-expansion-panel-content {
             .mat-expansion-panel-body {
                 background: white;
@@ -70,6 +129,7 @@
     display: flex;
     gap: 24px;
     margin-bottom: 24px;
+
     &.row_section_margins {
         margin: 32px 0;
     }
@@ -106,6 +166,7 @@
     font-weight: 400;
     font-size: 14px;
     text-transform: uppercase;
+
     &.next_btn,
     &.back_btn {
         padding: 0 24px;
@@ -138,6 +199,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin: 16px 0;
+
     th,
     td {
         padding: 12px;
@@ -145,6 +207,7 @@ table {
         border: 1px solid #e0e0e0;
         border-bottom: 1px solid #e0e0e0 !important;
     }
+
     th {
         background: #f5f5f5;
         font-weight: 500;
@@ -154,6 +217,7 @@ table {
 //Additional docs upload
 .file_upload_form {
     margin-top: 20px;
+
     label {
         margin-bottom: 16px;
         display: block;
@@ -163,13 +227,16 @@ table {
 
 .file-input-field {
     width: 100%;
-     ::ng-deep .mat-mdc-text-field-wrapper {
+
+    ::ng-deep .mat-mdc-text-field-wrapper {
         height: 48px;
     }
-     ::ng-deep .mat-mdc-form-field-flex {
+
+    ::ng-deep .mat-mdc-form-field-flex {
         height: 100%;
     }
-     ::ng-deep .mat-mdc-form-field-infix {
+
+    ::ng-deep .mat-mdc-form-field-infix {
         padding-top: 8px !important;
         padding-bottom: 8px !important;
     }
@@ -184,13 +251,16 @@ table {
 .table2 {
     width: 100%;
     border-collapse: collapse;
+
     &.table_borders {
+
         td,
         th {
             border: 1px solid #e0e0e0;
             padding: 12px;
             text-align: left;
         }
+
         .header {
             background-color: #f5f5f5;
             font-weight: 500;
@@ -224,25 +294,31 @@ table {
     .user-newApplicationBackground {
         padding: 10px;
     }
+
     .newApplication_card {
         padding: 16px;
     }
+
     .row_section {
         flex-direction: column;
         gap: 16px;
     }
+
     [fxFlex="50"] {
         max-width: 100%;
         margin-right: 0 !important;
     }
+
     .mat-stepper-horizontal {
         .mat-horizontal-stepper-header-container {
             flex-wrap: wrap;
         }
+
         .mat-step-header {
             margin-bottom: 16px;
         }
     }
+
     .table-responsive {
         // width: 100%;
         width: 90%;

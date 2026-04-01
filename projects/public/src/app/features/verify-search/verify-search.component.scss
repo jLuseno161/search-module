@@ -2,7 +2,7 @@
   // max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px;
-  min-height: 100vh;
+  min-height: 100%;
   background: #fafafa;
 
   .header {
@@ -165,9 +165,14 @@
             font-weight: 500;
             width: fit-content;
 
-            &.active {
+            &.valid {
               background: #e8f5e9;
               color: #2e7d32;
+            }
+
+            &.invalid {
+              background: #fff3e0;
+              color: #c62828;
             }
           }
         }
@@ -270,9 +275,14 @@
               font-weight: 500;
               width: fit-content;
 
-              &.active {
+              &.valid {
                 background: #e8f5e9;
                 color: #2e7d32;
+              }
+
+              &.invalid {
+                background: #fff3e0;
+                color: #c62828;
               }
             }
           }

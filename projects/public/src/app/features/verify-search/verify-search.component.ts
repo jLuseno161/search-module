@@ -83,4 +83,15 @@ export class VerifySearchComponent {
   newSearch(): void {
     this.clear();
   }
+  
+  get isWithin6Months(): boolean {
+    if (this.searchData?.status !== 'completed') return false;
+    if (!this.searchData?.payment?.paid_at) return false;
+
+    const filedDate = new Date(this.searchData.payment.paid_at);
+    const cutoffDate = new Date();
+    cutoffDate.setMonth(cutoffDate.getMonth() - 6);
+
+    return filedDate >= cutoffDate;
+  }
 }

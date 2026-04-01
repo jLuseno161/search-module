@@ -105,7 +105,9 @@ export class AllSearchComponent {
 
     this.searchService.getApplications(status).subscribe({
       next: (response: any) => {
-        this.dataSources[status].data = response.results;
+        this.dataSources[status].data = response.results; //Array with object wrapper
+        this.dataSources[status].data = response; //with array
+        // console.log(response)
         // Filtering for reference number only
         this.dataSources[status].filterPredicate = this.createFilter();
         this.loadingStates[status] = false;

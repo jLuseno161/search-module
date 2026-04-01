@@ -89,12 +89,12 @@
                                         </button>
                                     </div> -->
                                     <div style="display: flex; justify-content: space-between; width: 90%;">
-    <button mat-raised-button color="primary" id="add_parcel" class="form_button"
-        [disabled]="!parcelNumberControl?.value || (parcels.length > 0 && !isEditMode) || (isEditMode && editingParcelId === null && parcels.length > 0)"
-        (click)="addParcel()" type="button">
-        {{ isEditMode && editingParcelId !== null ? 'Update' : 'Add Parcel' }}
-    </button>
-</div>
+                                        <button mat-raised-button color="primary" id="add_parcel" class="form_button"
+                                            [disabled]="!parcelNumberControl?.value || (parcels.length > 0 && !isEditMode) || (isEditMode && editingParcelId === null && parcels.length > 0)"
+                                            (click)="addParcel()" type="button">
+                                            {{ isEditMode && editingParcelId !== null ? 'Update' : 'Add Parcel' }}
+                                        </button>
+                                    </div>
                                 </form>
 
                                 <div class="table-responsive">
@@ -133,7 +133,8 @@
                             <div fxFlex>
                                 <div>
                                     <label>Select County</label><span class="required"> *</span>
-                                    <mat-form-field appearance="outline" class="form_field">
+                                    <mat-form-field appearance="outline" class="form_field"
+                                        [class.readonly-field]="isEditMode">
                                         <mat-label>Choose County</mat-label>
                                         <mat-select formControlName="county">
                                             <mat-option>-- Select County --</mat-option>
@@ -148,7 +149,8 @@
                                 </div>
 
                                 <div><label>Select Registry</label><span class="required"> *</span>
-                                    <mat-form-field appearance="outline" class="form_field">
+                                    <mat-form-field appearance="outline" class="form_field"
+                                        [class.readonly-field]="isEditMode">
                                         <mat-label>Choose Registry</mat-label>
                                         <mat-select formControlName="registry">
                                             <mat-option>-- Select Registry --</mat-option>
@@ -170,7 +172,8 @@
                                     <br>
                                     <mat-form-field appearance="outline" class="form_field">
                                         <textarea matInput placeholder="Purpose of search"
-                                            formControlName="purpose_of_search" required></textarea>
+                                            formControlName="purpose_of_search" required
+                                            [readonly]="isEditMode"></textarea>
                                         <mat-error
                                             *ngIf="purposeOfSearchControl?.invalid && purposeOfSearchControl?.touched">
                                             Enter the purpose of search
@@ -181,7 +184,8 @@
                                 <div><label>Select scope of search</label>
                                     <span aria-required="true" class="required"> *</span>
                                     <br>
-                                    <mat-radio-group formControlName="search_scope" role="radiogroup">
+                                    <mat-radio-group formControlName="search_scope" role="radiogroup"
+                                        [class.readonly-radio]="isEditMode">
                                         <mat-radio-button value="ACTIVE" class="radio_btn">
                                             Particulars of the subsisting entries in the register of the above-mentioned
                                             parcel

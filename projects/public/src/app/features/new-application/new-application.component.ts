@@ -385,12 +385,12 @@ export class NewApplicationComponent {
 
   updateApplication() {
     const formData = new FormData();
-    formData.append('county', this.searchForm.value.county);
-    formData.append('registry', this.searchForm.value.registry);
-    formData.append('purpose', this.searchForm.value.purpose_of_search);
+    // formData.append('county', this.searchForm.value.county);
+    // formData.append('registry', this.searchForm.value.registry);
+    // formData.append('purpose', this.searchForm.value.purpose_of_search);
+    // formData.append('search_scope', this.searchForm.value.search_scope);
+    // formData.append('id', this.applicationId!);
     formData.append('parcel_number', this.parcels[0]?.parcel_number || '');
-    formData.append('search_scope', this.searchForm.value.search_scope);
-    formData.append('id', this.applicationId!);
 
     // Add only new documents (files that were uploaded)
     this.documents.forEach((doc) => {

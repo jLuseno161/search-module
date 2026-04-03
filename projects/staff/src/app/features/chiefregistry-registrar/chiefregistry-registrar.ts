@@ -1,3 +1,590 @@
+// import { Component, OnInit } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { HttpClientModule } from '@angular/common/http';
+// import { MatCardModule } from '@angular/material/card';
+// import { MatFormFieldModule } from '@angular/material/form-field';
+// import { MatSelectModule } from '@angular/material/select';
+// import { MatInputModule } from '@angular/material/input';
+// import { MatButtonModule } from '@angular/material/button';
+// import { MatDividerModule } from '@angular/material/divider';
+// import { MatTabsModule } from '@angular/material/tabs';
+// import { MatBadgeModule } from '@angular/material/badge';
+// import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+// import { Router } from '@angular/router';
+// import { MatIconModule } from '@angular/material/icon';
+// import { MatTableModule } from '@angular/material/table';
+// import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+// import { MatDialogModule } from '@angular/material/dialog';
+// import { AuthService } from '../../auth/auth.service';
+// import { ApplicationService, ApiApplication, ApiResponse } from '../../services/application.service';
+// import { Application, Registrar } from '../../shared/interfaces/application';
+// import { StatisticsComponent } from './statistics/statistics.component';
+
+// // Type for search configuration
+// type SearchType = 'parcel' | 'document';  // Removed invoice and receipt since you only want paid_at
+// type ApplicationStatus = 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'registry' | 'statistics';
+// type UserRole = 'is_registrar' | 'is_registrar_in_charge';
+
+// @Component({
+//   selector: 'app-chief-registry-registrar',
+//   standalone: true,
+//   imports: [
+//     CommonModule,
+//     HttpClientModule,
+//     StatisticsComponent,
+//     FormsModule,
+//     ReactiveFormsModule,
+//     MatCardModule,
+//     MatFormFieldModule,
+//     MatSelectModule,
+//     MatInputModule,
+//     MatButtonModule,
+//     MatDividerModule,
+//     MatTabsModule,
+//     MatBadgeModule,
+//     MatIconModule,
+//     MatTableModule,
+//     MatProgressSpinnerModule,
+//     MatDialogModule,
+//   ],
+//   templateUrl: './chiefregistry-registrar.html',
+//   styleUrls: ['./chiefregistry-registrar.css']
+// })
+// export class ChiefRegistryRegistrar implements OnInit {
+//   // Search form properties
+//   selectedSearchType: SearchType = 'parcel';
+//   inputLabel: string = 'Enter Parcel Number';
+//   inputPlaceholder: string = 'Enter Parcel Number';
+//   searchValue: string = '';
+
+//   // Table search property
+//   tableSearchValue: string = '';
+
+//   // Current state properties
+//   currentTab: ApplicationStatus = 'unassigned';
+//   currentUserRole: UserRole = 'is_registrar_in_charge';
+//   currentUserName: string = 'Chief Registrar';
+//   currentUserRegistry: string = 'Nairobi Central';
+//   filteredApplications: Application[] = [];
+
+//   // API data properties
+//   apiApplications: ApiApplication[] = [];
+//   applications: Application[] = [];
+//   registrars: Registrar[] = [];
+//   isLoading: boolean = false;
+//   isRegistrarsLoading: boolean = false;
+//   error: string = '';
+
+//   // Configuration for search types
+//   searchConfig: Record<SearchType, { label: string; placeholder: string }> = {
+//     parcel: { label: 'Enter Parcel Number', placeholder: 'Enter Parcel Number' },
+//     document: { label: 'Enter Document Number', placeholder: 'Enter Document Number' }
+//   };
+
+//   constructor(
+//     private router: Router,
+//     private authService: AuthService,
+//     private applicationService: ApplicationService
+//   ) {
+//     this.currentUserRole = this.authService.getCurrentUserRole() as UserRole;
+//     this.currentUserName = this.authService.getCurrentUserName();
+//     this.currentUserRegistry = this.authService.getCurrentUserRegistry();
+//   }
+
+//   ngOnInit(): void {
+//     this.loadApplications();
+//     this.loadRegistrars();
+//   }
+
+//   // ========== API METHODS ==========
+//   loadApplications(): void {
+//     this.isLoading = true;
+//     this.error = '';
+
+//     this.applicationService.getRegistrarInChargeApplications()
+//       .subscribe({
+//         next: (response: any) => {
+//           console.log('📦 Full API Response:', response);
+
+//           let applicationsArray = [];
+
+//           if (Array.isArray(response)) {
+//             applicationsArray = response;
+//             console.log('✅ Response is an array with', applicationsArray.length, 'applications');
+//           } else if (response && response.results && Array.isArray(response.results)) {
+//             applicationsArray = response.results;
+//             console.log('✅ Response has results array with', applicationsArray.length, 'applications');
+//           } else {
+//             console.error('❌ Unexpected response format:', response);
+//             applicationsArray = [];
+//           }
+
+//           this.apiApplications = applicationsArray;
+//           console.log('📋 Applications count:', this.apiApplications.length);
+
+//           if (this.apiApplications.length > 0) {
+//             console.log('🔍 All fields in first application:', Object.keys(this.apiApplications[0]));
+//             console.log('📋 Full first application object:', this.apiApplications[0]);
+//           }
+
+//           this.isLoading = false;
+//           this.mapApiToLocalApplications();
+//         },
+//         error: (error: any) => {
+//           this.isLoading = false;
+//           this.error = 'Failed to load applications. Please try again.';
+//           console.error('Error loading applications:', error);
+//           this.applications = [];
+//           this.filteredApplications = [];
+//         }
+//       });
+//   }
+
+//   loadRegistrars(): void {
+//     this.isRegistrarsLoading = true;
+//     this.applicationService.getAvailableRegistrars(this.currentUserRegistry)
+//       .subscribe({
+//         next: (registrars: any[]) => {
+//           this.registrars = Array.isArray(registrars) ? registrars : [];
+//           this.isRegistrarsLoading = false;
+
+//           if (this.registrars.length === 0) {
+//             console.warn('⚠️ No registrars found for registry:', this.currentUserRegistry);
+//           } else {
+//             console.log('✅ Registrars loaded:', this.registrars.length);
+//           }
+//         },
+//         error: (error: any) => {
+//           this.isRegistrarsLoading = false;
+//           this.registrars = [];
+//           console.error('Error loading registrars:', error);
+//         }
+//       });
+//   }
+
+
+// private mapApiToLocalApplications(): void {
+//   this.applications = this.apiApplications.map(apiApp => {
+//     // ONLY use payment.paid_at - no fallbacks
+//     let paymentDate: string | null = null;
+
+//     // Check if payment exists and has paid_at
+//     if (apiApp.payment && typeof apiApp.payment === 'object' && 'paid_at' in apiApp.payment) {
+//       paymentDate = (apiApp.payment as any).paid_at;
+//       console.log(`💰 Payment date for app ${apiApp.id}: ${paymentDate}`);
+//     } else {
+//       console.warn(`⚠️ No payment.paid_at found for app ${apiApp.id}`);
+//     }
+
+//     // Format the date for display
+//     const formattedDate = paymentDate ? this.formatDate(paymentDate) : 'Payment pending';
+//     const timeElapsed = paymentDate ? this.calculateTimeElapsed(paymentDate) : 'Unknown';
+
+//     // Get applicant info
+//     const applicant = apiApp.applicant || apiApp.user?.normal;
+//     let applicantName = 'Unknown Applicant';
+//     let applicantId = 0;
+//     let applicantIdNo = 0;
+
+//     if (applicant) {
+//       if (typeof applicant === 'object') {
+//         applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() ||
+//                        applicant.username || 'Applicant';
+//         applicantId = applicant.id || 0;
+//         applicantIdNo = applicant.id_no || 0;
+//       }
+//     }
+
+//     // Handle assigned_to (can be object or number)
+//     let assignedRegistrarName = 'Not assigned';
+//     let assignedRegistrarId: number | null = null;
+
+//     if (apiApp.assigned_to) {
+//       if (typeof apiApp.assigned_to === 'object' && apiApp.assigned_to !== null) {
+//         assignedRegistrarId = (apiApp.assigned_to as any).id;
+//         assignedRegistrarName = (apiApp.assigned_to as any).username || 'Assigned Registrar';
+//       } else if (typeof apiApp.assigned_to === 'number') {
+//         assignedRegistrarId = apiApp.assigned_to;
+//         const assignedRegistrar = this.registrars.find(reg => reg.id === assignedRegistrarId);
+//         if (assignedRegistrar) {
+//           assignedRegistrarName = assignedRegistrar.username;
+//         }
+//       }
+//     }
+
+//     // ========== ADD STATUS MAPPING HERE ==========
+//     // Map API status to UI display status
+//     let displayStatus = apiApp.status;
+//     if (displayStatus === 'assigned') {
+//       displayStatus = 'ongoing';
+//     } else if (displayStatus === 'submitted' || displayStatus === 'pending') {
+//       displayStatus = 'unassigned';
+//     }
+//     // ===========================================
+
+//     // Create the Application object
+//     const application: Application = {
+//       id: apiApp.id,
+//       id_no: applicantIdNo,
+//       reference_number: apiApp.reference_number,
+//       parcel_number: apiApp.parcel_number,
+//       purpose: apiApp.purpose,
+//       county: apiApp.county,
+//       registry: apiApp.registry,
+//       status: displayStatus, // USE displayStatus INSTEAD OF apiApp.status
+//       submitted_at: apiApp.submitted_at,
+//       assigned_to: assignedRegistrarId,
+//       applicant: applicantId,
+
+//       // Store payment info
+//       payment: apiApp.payment as any,
+
+//       // Display properties - using ONLY paid_at
+//      // dateSubmitted: formattedDate, // Make sure to include this
+//       time_elapsed: timeElapsed,
+
+//       // For table compatibility
+//       referenceNo: apiApp.reference_number,
+//       parcelNo: apiApp.parcel_number,
+//       applicantName: applicantName,
+//       applicantId: applicantId,
+//       applicantIdNo: applicantIdNo,
+
+//       // Additional properties
+//       assignedRegistrar: assignedRegistrarName,
+//       assignedRegistrarId: assignedRegistrarId,
+
+//       certificate: apiApp.certificate ? {
+//         signed_file: apiApp.certificate.signed_file,
+//         uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
+//       } : undefined,
+//       reviews: []
+//     };
+
+//     return application;
+//   });
+
+//   console.log('✅ Applications mapped using payment.paid_at:', this.applications.length);
+//   console.log('Sample application:', this.applications[0]);
+//   this.filterByStatus(this.currentTab);
+// }
+
+//   private formatDate(dateString: string): string {
+//     if (!dateString) {
+//       return 'Payment pending';
+//     }
+
+//     try {
+//       const date = new Date(dateString);
+//       if (isNaN(date.getTime())) {
+//         return 'Invalid date';
+//       }
+//       return date.toLocaleDateString('en-US', {
+//         year: 'numeric',
+//         month: 'short',
+//         day: 'numeric'
+//       });
+//     } catch (error) {
+//       console.error('Error formatting date:', error);
+//       return 'Invalid date';
+//     }
+//   }
+
+//   private calculateTimeElapsed(dateString: string): string {
+//     if (!dateString) {
+//       return 'Unknown';
+//     }
+
+//     try {
+//       const submitted = new Date(dateString);
+//       if (isNaN(submitted.getTime())) {
+//         return 'Unknown';
+//       }
+
+//       const now = new Date();
+//       const diffTime = Math.abs(now.getTime() - submitted.getTime());
+//       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+//       if (diffDays === 0) return 'Today';
+//       if (diffDays === 1) return '1 day ago';
+//       if (diffDays < 30) return `${diffDays} days ago`;
+//       if (diffDays < 365) {
+//         const months = Math.floor(diffDays / 30);
+//         return `${months} month${months !== 1 ? 's' : ''} ago`;
+//       }
+//       const years = Math.floor(diffDays / 365);
+//       return `${years} year${years !== 1 ? 's' : ''} ago`;
+//     } catch (error) {
+//       console.error('Error calculating time elapsed:', error);
+//       return 'Unknown';
+//     }
+//   }
+
+//   // ========== ASSIGNMENT METHODS ==========
+//   manualReassign(applicationId: number, registrarId: string): void {
+//     if (!registrarId) return;
+//     this.assignToRegistrar(applicationId, parseInt(registrarId, 10));
+//   }
+
+//   assignToRegistrar(applicationId: number, registrarId: number): void {
+//     const registrar = this.registrars.find(r => r.id === registrarId);
+
+//     if (!registrar) {
+//       alert('Selected registrar not found.');
+//       return;
+//     }
+
+//     this.applicationService.assignApplication(applicationId, registrarId)
+//       .subscribe({
+//         next: (response: any) => {
+//           console.log('Assignment successful:', response);
+//           alert(`Application successfully assigned to ${registrar.username}`);
+//           this.loadApplications();
+//         },
+//         error: (error: any) => {
+//           console.error('Assignment failed:', error);
+//           alert(`Failed to assign application: ${error.message}`);
+//         }
+//       });
+//   }
+
+//   markAsCompleted(applicationId: number): void {
+//     const application = this.applications.find(app => app.id === applicationId);
+//     if (!application) return;
+
+//     if (this.currentUserRole === 'is_registrar_in_charge' && application.registry === this.currentUserRegistry) {
+//       this.applicationService.completeApplication(applicationId)
+//         .subscribe({
+//           next: () => {
+//             alert('Application marked as completed');
+//             this.loadApplications();
+//           },
+//           error: (error: any) => {
+//             alert('Failed to mark application as completed.');
+//             console.error('Error completing application:', error);
+//           }
+//         });
+//     } else {
+//       alert('You can only mark applications from your registry as completed');
+//     }
+//   }
+
+//   markAsVerified(applicationId: number): void {
+//     const application = this.applications.find(app => app.id === applicationId);
+//     if (!application) return;
+
+//     if (this.currentUserRole === 'is_registrar_in_charge' && application.registry === this.currentUserRegistry) {
+//       this.applicationService.verifyApplication(applicationId)
+//         .subscribe({
+//           next: () => {
+//             alert('Application marked as verified');
+//             this.loadApplications();
+//           },
+//           error: (error: any) => {
+//             alert('Failed to mark application as verified.');
+//             console.error('Error verifying application:', error);
+//           }
+//         });
+//     } else {
+//       alert('You can only mark applications from your registry as verified');
+//     }
+//   }
+
+//   // ========== SEARCH METHODS ==========
+//   onSearchTypeChange(): void {
+//     const config = this.searchConfig[this.selectedSearchType];
+//     if (config) {
+//       this.inputLabel = config.label;
+//       this.inputPlaceholder = config.placeholder;
+//     }
+//   }
+
+//   onSearch(): void {
+//     if (!this.searchValue.trim()) {
+//       alert('Please enter a search value');
+//       return;
+//     }
+
+//     const searchTerm = this.searchValue.toLowerCase().trim();
+//     let filtered = this.applications.filter(app => {
+//       if (app.registry?.toLowerCase() !== this.currentUserRegistry?.toLowerCase()) return false;
+
+//       const parcelNo = app.parcelNo || app.parcel_number || '';
+//       const referenceNo = app.referenceNo || app.reference_number || '';
+
+//       switch (this.selectedSearchType) {
+//         case 'parcel':
+//           return parcelNo.toLowerCase().includes(searchTerm);
+//         case 'document':
+//           return referenceNo.toLowerCase().includes(searchTerm);
+//         default:
+//           return true;
+//       }
+//     });
+
+//     this.filteredApplications = filtered;
+//   }
+
+//   onTableSearch(): void {
+//     const searchTerm = this.tableSearchValue.toLowerCase().trim();
+//     if (!searchTerm) {
+//       this.filterByStatus(this.currentTab);
+//       return;
+//     }
+
+//     let applicationsToSearch = this.applications.filter(app =>
+//       app.registry?.toLowerCase() === this.currentUserRegistry?.toLowerCase()
+//     );
+
+//     if (this.currentTab !== 'registry') {
+//       applicationsToSearch = applicationsToSearch.filter(app => {
+//         if (this.currentTab === 'unassigned') {
+//           return app.status === 'pending' || app.status === 'submitted' || app.status === 'unassigned';
+//         } else if (this.currentTab === 'ongoing') {
+//           return app.status === 'assigned' || app.status === 'ongoing';
+//         } else if (this.currentTab === 'completed') {
+//           return app.status === 'completed';
+//         } else if (this.currentTab === 'verified') {
+//           return app.status === 'verified';
+//         }
+//         return true;
+//       });
+//     }
+
+//     this.filteredApplications = applicationsToSearch.filter(app => {
+//       const referenceNo = app.referenceNo || app.reference_number || '';
+//       const parcelNo = app.parcelNo || app.parcel_number || '';
+//       const applicantName = app.applicantName || '';
+//       const county = app.county || '';
+//       const registry = app.registry || '';
+//       const assignedRegistrar = app.assignedRegistrar || '';
+//       const purpose = app.purpose || '';
+
+//       return (
+//         referenceNo.toLowerCase().includes(searchTerm) ||
+//         parcelNo.toLowerCase().includes(searchTerm) ||
+//         (app.time_elapsed || '').toLowerCase().includes(searchTerm) ||
+//         applicantName.toLowerCase().includes(searchTerm) ||
+//         county.toLowerCase().includes(searchTerm) ||
+//         registry.toLowerCase().includes(searchTerm) ||
+//         assignedRegistrar.toLowerCase().includes(searchTerm) ||
+//         purpose.toLowerCase().includes(searchTerm)
+//       );
+//     });
+//   }
+
+//   // ========== FILTER METHODS ==========
+//   filterByStatus(status: ApplicationStatus): void {
+//     this.currentTab = status;
+
+//     let filtered = this.applications.filter(app => {
+//       const appRegistry = app.registry?.toLowerCase().trim();
+//       const userRegistry = this.currentUserRegistry?.toLowerCase().trim();
+//       return appRegistry === userRegistry;
+//     });
+
+//     console.log(`🔍 Filtering by status: ${status}`);
+//     console.log(`User registry: "${this.currentUserRegistry}"`);
+//     console.log(`Total applications in registry: ${filtered.length}`);
+
+//     switch (status) {
+//       case 'unassigned':
+//         filtered = filtered.filter(app =>
+//           app.status === 'pending' || app.status === 'submitted' || app.status === 'unassigned'
+//         );
+//         break;
+//       case 'ongoing':
+//         filtered = filtered.filter(app => app.status === 'assigned' || app.status === 'ongoing');
+//         break;
+//       case 'completed':
+//         filtered = filtered.filter(app => app.status === 'completed');
+//         break;
+//       case 'verified':
+//         filtered = filtered.filter(app => app.status === 'verified');
+//         break;
+//       case 'registry':
+//         break;
+//     }
+
+//     console.log(`✅ After status filter: ${filtered.length} applications`);
+//     this.filteredApplications = filtered;
+//     this.tableSearchValue = '';
+//   }
+
+//   getStatusCount(status: ApplicationStatus): number {
+//     const registryApplications = this.applications.filter(app => {
+//       const appRegistry = app.registry?.toLowerCase().trim();
+//       const userRegistry = this.currentUserRegistry?.toLowerCase().trim();
+//       return appRegistry === userRegistry;
+//     });
+
+//     switch (status) {
+//       case 'unassigned':
+//         return registryApplications.filter(app =>
+//           app.status === 'pending' || app.status === 'submitted' || app.status === 'unassigned'
+//         ).length;
+//       case 'ongoing':
+//         return registryApplications.filter(app => app.status === 'assigned' || app.status === 'ongoing').length;
+//       case 'completed':
+//         return registryApplications.filter(app => app.status === 'completed').length;
+//       case 'verified':
+//         return registryApplications.filter(app => app.status === 'verified').length;
+//       case 'registry':
+//         return registryApplications.length;
+//       default:
+//         return 0;
+//     }
+//   }
+
+//   // ========== PERMISSION METHODS ==========
+//   canReassign(application: Application): boolean {
+//     return this.currentUserRole === 'is_registrar_in_charge' &&
+//            application.registry === this.currentUserRegistry &&
+//            (application.status === 'assigned' || application.status === 'ongoing') &&
+//            !!application.assigned_to;
+//   }
+
+//   canMarkCompleted(application: Application): boolean {
+//     return this.currentUserRole === 'is_registrar_in_charge' &&
+//            application.registry === this.currentUserRegistry &&
+//            (application.status === 'assigned' || application.status === 'ongoing');
+//   }
+
+//   canMarkVerified(application: Application): boolean {
+//     return this.currentUserRole === 'is_registrar_in_charge' &&
+//            application.registry === this.currentUserRegistry &&
+//            application.status === 'completed';
+//   }
+
+//   getRegistrarsForCurrentRegistry(): Registrar[] {
+//     if (!this.registrars || this.registrars.length === 0) {
+//       return [];
+//     }
+//     return this.registrars.filter(registrar =>
+//       registrar.registry?.toLowerCase() === this.currentUserRegistry?.toLowerCase() &&
+//       registrar.role === 'is_registrar'
+//     );
+//   }
+
+//   // ========== UTILITY METHODS ==========
+//   clearSearch(): void {
+//     this.searchValue = '';
+//     this.tableSearchValue = '';
+//     this.filterByStatus(this.currentTab);
+//   }
+
+//   viewApplicationDetails(application: Application): void {
+//     this.router.navigate(['/application-details', application.id]);
+//   }
+
+//   setTab(status: ApplicationStatus): void {
+//     this.filterByStatus(status);
+//   }
+
+//   retryLoadApplications(): void {
+//     this.loadApplications();
+//   }
+// }
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
@@ -18,12 +605,12 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '../../auth/auth.service';
 import { ApplicationService, ApiApplication, ApiResponse } from '../../services/application.service';
 import { Application, Registrar } from '../../shared/interfaces/application';
+import { StatisticsComponent } from './statistics/statistics.component';
 
 // Type for search configuration
-type SearchType = 'invoice' | 'parcel' | 'document' | 'receipt';
-type ApplicationStatus = 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'registry';
+type SearchType = 'parcel' | 'document';
+type ApplicationStatus = 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'registry' | 'statistics';
 type UserRole = 'is_registrar' | 'is_registrar_in_charge';
-type AssignmentStrategy = 'round-robin' | 'load-balancing' | 'random';
 
 @Component({
   selector: 'app-chief-registry-registrar',
@@ -31,6 +618,7 @@ type AssignmentStrategy = 'round-robin' | 'load-balancing' | 'random';
   imports: [
     CommonModule,
     HttpClientModule,
+    StatisticsComponent,
     FormsModule,
     ReactiveFormsModule,
     MatCardModule,
@@ -51,9 +639,9 @@ type AssignmentStrategy = 'round-robin' | 'load-balancing' | 'random';
 })
 export class ChiefRegistryRegistrar implements OnInit {
   // Search form properties
-  selectedSearchType: SearchType = 'invoice';
-  inputLabel: string = 'Enter Invoice Number';
-  inputPlaceholder: string = 'Enter Invoice Number';
+  selectedSearchType: SearchType = 'parcel';
+  inputLabel: string = 'Enter Parcel Number';
+  inputPlaceholder: string = 'Enter Parcel Number';
   searchValue: string = '';
 
   // Table search property
@@ -74,17 +662,10 @@ export class ChiefRegistryRegistrar implements OnInit {
   isRegistrarsLoading: boolean = false;
   error: string = '';
 
-  // Auto-assignment properties
-  autoAssignEnabled: boolean = true;
-  assignmentStrategy: AssignmentStrategy = 'round-robin';
-  lastAssignedRegistrarIndex: number = -1;
-
   // Configuration for search types
   searchConfig: Record<SearchType, { label: string; placeholder: string }> = {
-    invoice: { label: 'Enter Invoice Number', placeholder: 'Enter Invoice Number' },
     parcel: { label: 'Enter Parcel Number', placeholder: 'Enter Parcel Number' },
-    document: { label: 'Enter Document Number', placeholder: 'Enter Document Number' },
-    receipt: { label: 'Enter Receipt Number', placeholder: 'Enter Receipt Number' }
+    document: { label: 'Enter Document Number', placeholder: 'Enter Document Number' }
   };
 
   constructor(
@@ -92,7 +673,6 @@ export class ChiefRegistryRegistrar implements OnInit {
     private authService: AuthService,
     private applicationService: ApplicationService
   ) {
-    // Initialize user data from AuthService
     this.currentUserRole = this.authService.getCurrentUserRole() as UserRole;
     this.currentUserName = this.authService.getCurrentUserName();
     this.currentUserRegistry = this.authService.getCurrentUserRegistry();
@@ -103,117 +683,46 @@ export class ChiefRegistryRegistrar implements OnInit {
     this.loadRegistrars();
   }
 
-  // ========== AUTO-ASSIGNMENT METHODS ==========
-  toggleAutoAssignment(): void {
-    this.autoAssignEnabled = !this.autoAssignEnabled;
-    console.log(`Auto-assignment ${this.autoAssignEnabled ? 'enabled' : 'disabled'}`);
-
-    if (this.autoAssignEnabled) {
-      setTimeout(() => {
-        this.autoAssignUnassignedApplications();
-      }, 500);
-    }
-  }
-
-  private autoAssignUnassignedApplications(): void {
-    if (!this.autoAssignEnabled) return;
-
-    const unassignedApps = this.applications.filter(app =>
-      app.status === 'unassigned' &&
-      app.registry === this.currentUserRegistry
-    );
-
-    console.log(`Found ${unassignedApps.length} unassigned applications for auto-assignment`);
-
-    if (unassignedApps.length > 0) {
-      setTimeout(() => {
-        unassignedApps.forEach((app, index) => {
-          setTimeout(() => {
-            this.autoAssignRegistrar(app.id);
-          }, index * 1000);
-        });
-      }, 1000);
-    }
-  }
-
-  private autoAssignRegistrar(applicationId: number): void {
-    if (!this.autoAssignEnabled) return;
-
-    const availableRegistrars = this.getRegistrarsForCurrentRegistry();
-    if (availableRegistrars.length === 0) return;
-
-    let registrarId: number;
-
-    switch (this.assignmentStrategy) {
-      case 'round-robin':
-        registrarId = this.roundRobinAssignment(availableRegistrars);
-        break;
-      case 'load-balancing':
-        registrarId = this.loadBalancingAssignment(availableRegistrars);
-        break;
-      case 'random':
-        registrarId = this.randomAssignment(availableRegistrars);
-        break;
-      default:
-        registrarId = this.roundRobinAssignment(availableRegistrars);
-    }
-
-    this.assignToRegistrar(applicationId, registrarId, true);
-  }
-
-  private roundRobinAssignment(registrars: Registrar[]): number {
-    this.lastAssignedRegistrarIndex = (this.lastAssignedRegistrarIndex + 1) % registrars.length;
-    return registrars[this.lastAssignedRegistrarIndex].id;
-  }
-
-  private loadBalancingAssignment(registrars: Registrar[]): number {
-    const assignmentCounts = this.calculateCurrentWorkload(registrars);
-    const leastBusyRegistrar = registrars.reduce((prev, current) =>
-      assignmentCounts[prev.id] < assignmentCounts[current.id] ? prev : current
-    );
-    return leastBusyRegistrar.id;
-  }
-
-  private randomAssignment(registrars: Registrar[]): number {
-    const randomIndex = Math.floor(Math.random() * registrars.length);
-    return registrars[randomIndex].id;
-  }
-
-  private calculateCurrentWorkload(registrars: Registrar[]): { [registrarId: number]: number } {
-    const workloads: { [registrarId: number]: number } = {};
-    registrars.forEach(registrar => {
-      workloads[registrar.id] = 0;
-    });
-    this.applications.forEach(app => {
-      if (app.status === 'ongoing' && app.assignedRegistrarId) {
-        workloads[app.assignedRegistrarId] = (workloads[app.assignedRegistrarId] || 0) + 1;
-      }
-    });
-    return workloads;
-  }
-
-  // Manual reassignment method
-  manualReassign(applicationId: number, registrarId: string): void {
-    if (!registrarId) return;
-    this.assignToRegistrar(applicationId, parseInt(registrarId, 10), false);
-  }
-
   // ========== API METHODS ==========
   loadApplications(): void {
     this.isLoading = true;
     this.error = '';
 
+    console.log('🔄 Loading applications...');
+
     this.applicationService.getRegistrarInChargeApplications()
       .subscribe({
-        next: (response: ApiResponse) => {
-          this.apiApplications = response.results;
-          this.isLoading = false;
+        next: (response: any) => {
+          console.log('📦 Full API Response:', response);
+
+          let applicationsArray = [];
+
+          if (Array.isArray(response)) {
+            applicationsArray = response;
+            console.log('✅ Response is an array with', applicationsArray.length, 'applications');
+          } else if (response && response.results && Array.isArray(response.results)) {
+            applicationsArray = response.results;
+            console.log('✅ Response has results array with', applicationsArray.length, 'applications');
+          } else {
+            console.error('❌ Unexpected response format:', response);
+            applicationsArray = [];
+          }
+
+          this.apiApplications = applicationsArray;
+          console.log('📋 Applications count:', this.apiApplications.length);
+
+          if (this.apiApplications.length > 0) {
+            console.log('🔍 All fields in first application:', Object.keys(this.apiApplications[0]));
+            console.log('📋 Full first application object:', this.apiApplications[0]);
+          }
+
+          // Call mapping function
           this.mapApiToLocalApplications();
         },
         error: (error: any) => {
-          this.isLoading = false;
+          console.error('❌ Error loading applications:', error);
           this.error = 'Failed to load applications. Please try again.';
-          console.error('Error loading applications:', error);
+          this.isLoading = false;
           this.applications = [];
           this.filteredApplications = [];
         }
@@ -224,9 +733,15 @@ export class ChiefRegistryRegistrar implements OnInit {
     this.isRegistrarsLoading = true;
     this.applicationService.getAvailableRegistrars(this.currentUserRegistry)
       .subscribe({
-        next: (registrars: Registrar[]) => {
-          this.registrars = registrars;
+        next: (registrars: any[]) => {
+          this.registrars = Array.isArray(registrars) ? registrars : [];
           this.isRegistrarsLoading = false;
+
+          if (this.registrars.length === 0) {
+            console.warn('⚠️ No registrars found for registry:', this.currentUserRegistry);
+          } else {
+            console.log('✅ Registrars loaded:', this.registrars.length);
+          }
         },
         error: (error: any) => {
           this.isRegistrarsLoading = false;
@@ -235,256 +750,206 @@ export class ChiefRegistryRegistrar implements OnInit {
         }
       });
   }
-// private mapApiToLocalApplications(): void {
-//   if (this.registrars.length === 0) {
-//     setTimeout(() => {
-//       this.mapApiToLocalApplications();
-//     }, 500);
-//     return;
-//   }
 
-//   this.applications = this.apiApplications.map(apiApp => {
-//     const statusMap: Record<string, 'unassigned' | 'ongoing' | 'completed' | 'verified' | 'rejected'> = {
-//       'pending': 'unassigned',
-//       'submitted': 'unassigned',
-//       'assigned': 'ongoing',
-//       'verified': 'verified',
-//       'completed': 'completed',
-//       'rejected': 'rejected'
-//     };
+  private mapApiToLocalApplications(): void {
+    try {
+      console.log('🔄 Starting to map applications...');
 
-//     const frontendStatus = statusMap[apiApp.status] || 'unassigned';
-//     const applicant = apiApp.user?.normal;
+      if (!this.apiApplications || this.apiApplications.length === 0) {
+        console.warn('⚠️ No applications to map');
+        this.applications = [];
+        this.filteredApplications = [];
+        this.isLoading = false;
+        return;
+      }
 
-//     let applicantName = 'Unknown Applicant';
-//     let applicantId = 0;
+      this.applications = this.apiApplications.map(apiApp => {
+        try {
+          // ONLY use payment.paid_at - no fallbacks
+          let paymentDate: string | null = null;
 
-//     if (applicant) {
-//       applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
-//       applicantId = applicant.id || 0;
-//     }
+          // Check if payment exists and has paid_at
+          if (apiApp.payment && typeof apiApp.payment === 'object' && 'paid_at' in apiApp.payment) {
+            paymentDate = (apiApp.payment as any).paid_at;
+            console.log(`💰 Payment date for app ${apiApp.id}: ${paymentDate}`);
+          } else {
+            console.warn(`⚠️ No payment.paid_at found for app ${apiApp.id}`);
+          }
 
-//     // let assignedRegistrarName = 'Not assigned';
-//     // let assignedRegistrarId = null;
+          // Format the date for display
+          const formattedDate = paymentDate ? this.formatDate(paymentDate) : 'Payment pending';
+          const timeElapsed = paymentDate ? this.calculateTimeElapsed(paymentDate) : 'Unknown';
 
-//     // if (apiApp.assigned_to) {
-//     //   const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
-//     //   if (assignedRegistrar) {
-//     //     assignedRegistrarName = assignedRegistrar.username;
-//     //     assignedRegistrarId = apiApp.assigned_to;
-//     //   } else {
-//     //     assignedRegistrarName = 'Assigned (Unknown)';
-//     //     assignedRegistrarId = apiApp.assigned_to;
-//     //   }
-//     // }
-// let assignedRegistrarName = 'Not assigned';
-// let assignedRegistrarId: number | null = null;
+          // Get applicant info
+          const applicant = apiApp.applicant || apiApp.user?.normal;
+          let applicantName = 'Unknown Applicant';
+          let applicantId = 0;
+          let applicantIdNo = 0;
 
-// if (apiApp.assigned_to) {
-//   // Extract the registrar ID regardless of the input format
-//   let registrarId: number | null = null;
+          if (applicant && typeof applicant === 'object') {
+            applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() ||
+                           applicant.username || 'Applicant';
+            applicantId = applicant.id || 0;
+            applicantIdNo = applicant.id_no || 0;
+          }
 
-//   if (apiApp.assigned_to && typeof apiApp.assigned_to === 'object') {
-//     // It's an object - try to get id property
-//     registrarId = (apiApp.assigned_to as any).id || null;
-//   } else if (typeof apiApp.assigned_to === 'number' || typeof apiApp.assigned_to === 'string') {
-//     // It's a number or string - convert to number
-//     const parsedId = Number(apiApp.assigned_to);
-//     registrarId = isNaN(parsedId) ? null : parsedId;
-//   }
+          // Handle assigned_to (can be object or number)
+          let assignedRegistrarName = 'Not assigned';
+          let assignedRegistrarId: number | null = null;
 
-//   // Now use the registrarId to find the registrar
-//   if (registrarId) {
-//     const assignedRegistrar = this.registrars.find(reg => reg.id === registrarId);
-//     if (assignedRegistrar) {
-//       assignedRegistrarName = assignedRegistrar.username;
-//       assignedRegistrarId = registrarId;
-//     } else {
-//       assignedRegistrarName = 'Assigned (Unknown)';
-//       assignedRegistrarId = registrarId;
-//     }
-//   } else {
-//     // Couldn't extract a valid ID
-//     assignedRegistrarName = 'Assigned (Unknown)';
-//     assignedRegistrarId = null;
-//   }
-// }
-//     // Create the Application object with ALL required properties
-//     const application: Application = {
-//       // REQUIRED properties from Application interface
-//       id: apiApp.id,
-//       reference_number: apiApp.reference_number,
-//       parcel_number: apiApp.parcel_number,
-//       purpose: apiApp.purpose,
-//       county: apiApp.county,
-//       registry: apiApp.registry,
-//       //status: apiApp.status, // Use the backend status here
-//       status: frontendStatus,
-//       submitted_at: apiApp.submitted_at,
-//       assigned_to: assignedRegistrarId,
-//       applicant: applicantId,
+          if (apiApp.assigned_to) {
+            if (typeof apiApp.assigned_to === 'object' && apiApp.assigned_to !== null) {
+              assignedRegistrarId = (apiApp.assigned_to as any).id;
+              assignedRegistrarName = (apiApp.assigned_to as any).username || 'Assigned Registrar';
+            } else if (typeof apiApp.assigned_to === 'number') {
+              assignedRegistrarId = apiApp.assigned_to;
+              const assignedRegistrar = this.registrars.find(reg => reg.id === assignedRegistrarId);
+              if (assignedRegistrar) {
+                assignedRegistrarName = assignedRegistrar.username;
+              }
+            }
+          }
 
-//       // Optional display properties (not in interface)
-//       dateSubmitted: this.formatDate(apiApp.submitted_at),
-//       timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
+          // Map API status to UI display status
+          let displayStatus = apiApp.status;
+          if (displayStatus === 'assigned') {
+            displayStatus = 'ongoing';
+          } else if (displayStatus === 'submitted' || displayStatus === 'pending') {
+            displayStatus = 'unassigned';
+          }
 
-//       // For table compatibility (alias properties)
-//       referenceNo: apiApp.reference_number,
-//       parcelNo: apiApp.parcel_number,
-//       applicantName: applicantName,
-//       applicantId: applicantId,
+          // Create payment object
+          let paymentObj = undefined;
+          if (apiApp.payment && typeof apiApp.payment === 'object') {
+            const payment = apiApp.payment as any;
+            paymentObj = {
+              id: payment.id,
+              amount: payment.amount,
+              invoice_number: payment.invoice_number,
+              payment_reference: payment.payment_reference,
+              merchant_request_id: payment.merchant_request_id,
+              paid_at: payment.paid_at
+            };
+          }
 
-//       // Additional properties needed for your component
-//       assignedRegistrar: assignedRegistrarName,
-//       assignedRegistrarId: assignedRegistrarId,
+          // Create the Application object
+          const application: Application = {
+            id: apiApp.id,
+            id_no: applicantIdNo,
+            reference_number: apiApp.reference_number,
+            parcel_number: apiApp.parcel_number,
+            purpose: apiApp.purpose,
+            county: apiApp.county,
+            registry: apiApp.registry,
+            status: displayStatus,
+            submitted_at: apiApp.submitted_at,
+            assigned_to: assignedRegistrarId,
+            applicant: applicantId,
+            payment: paymentObj,
+            //dateSubmitted: formattedDate,
+            time_elapsed: timeElapsed,
+            referenceNo: apiApp.reference_number,
+            parcelNo: apiApp.parcel_number,
+            applicantName: applicantName,
+            applicantId: applicantId,
+            applicantIdNo: applicantIdNo,
+            assignedRegistrar: assignedRegistrarName,
+            assignedRegistrarId: assignedRegistrarId,
+            certificate: apiApp.certificate ? {
+              signed_file: apiApp.certificate.signed_file,
+              uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
+            } : undefined,
+         //   reviews: apiApp.reviews || []
+          };
 
-//       certificate: apiApp.certificate ? {
-//         signed_file: apiApp.certificate.signed_file,
-//         uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
-//       } : undefined,
-//       reviews: []
-//     };
+          return application;
+        } catch (mapError) {
+          console.error(`❌ Error mapping application ${apiApp.id}:`, mapError);
+          return null;
+        }
+      }).filter(app => app !== null) as Application[];
 
-//     return application;
-//   });
+      console.log('✅ Applications mapped successfully:', this.applications.length);
 
-//   this.filterByStatus(this.currentTab);
-//   setTimeout(() => {
-//     this.autoAssignUnassignedApplications();
-//   }, 1000);
-// }
-private mapApiToLocalApplications(): void {
-  if (this.registrars.length === 0) {
-    setTimeout(() => {
-      this.mapApiToLocalApplications();
-    }, 500);
-    return;
+      if (this.applications.length > 0) {
+        console.log('📋 First mapped application:', this.applications[0]);
+      }
+
+      // Set loading to false AFTER successful mapping
+      this.isLoading = false;
+
+      // Now filter applications
+      this.filterByStatus(this.currentTab);
+
+    } catch (error) {
+      console.error('❌ Fatal error in mapApiToLocalApplications:', error);
+      this.error = 'Error processing applications. Please refresh.';
+      this.isLoading = false;
+    }
   }
 
-  this.applications = this.apiApplications.map(apiApp => {
-    const statusMap: Record<string, 'unassigned' | 'submitted' | 'completed' | 'verified' | 'rejected'> = {
-      'pending': 'unassigned',
-      'submitted': 'unassigned',
-      'assigned': 'submitted',
-      'verified': 'verified',
-      'completed': 'completed',
-      'rejected': 'rejected'
-    };
-
-    const frontendStatus = statusMap[apiApp.status] || 'unassigned';
-    const applicant = apiApp.user?.normal || apiApp.applicant;
-
-    let applicantName = 'Unknown Applicant';
-    let applicantId = 0;
-    let applicantIdNo = 0;  // ADD THIS
-
-    if (applicant) {
-      applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
-      applicantId = applicant.id || 0;
-      applicantIdNo = applicant.id_no || 0;  // ADD THIS - extract id_no
-    }
-
-    let assignedRegistrarName = 'Not assigned';
-    let assignedRegistrarId = null;
-
-    if (apiApp.assigned_to) {
-      const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
-      if (assignedRegistrar) {
-        assignedRegistrarName = assignedRegistrar.username;
-        assignedRegistrarId = apiApp.assigned_to;
-      } else {
-        assignedRegistrarName = 'Assigned (Unknown)';
-        assignedRegistrarId = apiApp.assigned_to;
-      }
-    }
-
-    // Create the Application object with ALL required properties
-    const application: Application = {
-      // REQUIRED properties from Application interface
-      id: apiApp.id,
-      id_no: applicantIdNo,  // ADD THIS LINE
-      reference_number: apiApp.reference_number,
-      parcel_number: apiApp.parcel_number,
-      purpose: apiApp.purpose,
-      county: apiApp.county,
-      registry: apiApp.registry,
-      status: apiApp.status,
-      submitted_at: apiApp.submitted_at,
-      assigned_to: assignedRegistrarId,
-      applicant: applicantId,
-
-      // Optional display properties
-      dateSubmitted: this.formatDate(apiApp.submitted_at),
-      timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
-
-      // For table compatibility (alias properties)
-      referenceNo: apiApp.reference_number,
-      parcelNo: apiApp.parcel_number,
-      applicantName: applicantName,
-      applicantId: applicantId,
-      applicantIdNo: applicantIdNo,  // ADD THIS if you want to store separately
-
-      // Additional properties needed for your component
-      assignedRegistrar: assignedRegistrarName,
-      assignedRegistrarId: assignedRegistrarId,
-
-      certificate: apiApp.certificate ? {
-        signed_file: apiApp.certificate.signed_file,
-        uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
-      } : undefined,
-      reviews: []
-    };
-
-    return application;
-  });
-
-  this.filterByStatus(this.currentTab);
-  setTimeout(() => {
-    this.autoAssignUnassignedApplications();
-  }, 1000);
-}
   private formatDate(dateString: string): string {
+    if (!dateString) {
+      return 'Payment pending';
+    }
+
     try {
       const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       });
     } catch (error) {
-      return 'Invalid Date';
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
     }
   }
 
   private calculateTimeElapsed(dateString: string): string {
+    if (!dateString) {
+      return 'Unknown';
+    }
+
     try {
       const submitted = new Date(dateString);
+      if (isNaN(submitted.getTime())) {
+        return 'Unknown';
+      }
+
       const now = new Date();
       const diffTime = Math.abs(now.getTime() - submitted.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays < 30) {
-        return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-      } else if (diffDays < 365) {
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return '1 day ago';
+      if (diffDays < 30) return `${diffDays} days ago`;
+      if (diffDays < 365) {
         const months = Math.floor(diffDays / 30);
-        return `${months} month${months !== 1 ? 's' : ''}`;
-      } else {
-        const years = Math.floor(diffDays / 365);
-        return `${years} year${years !== 1 ? 's' : ''}`;
+        return `${months} month${months !== 1 ? 's' : ''} ago`;
       }
+      const years = Math.floor(diffDays / 365);
+      return `${years} year${years !== 1 ? 's' : ''} ago`;
     } catch (error) {
+      console.error('Error calculating time elapsed:', error);
       return 'Unknown';
     }
   }
 
   // ========== ASSIGNMENT METHODS ==========
-  assignToRegistrar(applicationId: number, registrarId: number, isAutoAssignment: boolean = false): void {
+  manualReassign(applicationId: number, registrarId: string): void {
+    if (!registrarId) return;
+    this.assignToRegistrar(applicationId, parseInt(registrarId, 10));
+  }
+
+  assignToRegistrar(applicationId: number, registrarId: number): void {
     const registrar = this.registrars.find(r => r.id === registrarId);
 
     if (!registrar) {
-      if (!isAutoAssignment) {
-        alert('Selected registrar not found.');
-      }
+      alert('Selected registrar not found.');
       return;
     }
 
@@ -492,16 +957,12 @@ private mapApiToLocalApplications(): void {
       .subscribe({
         next: (response: any) => {
           console.log('Assignment successful:', response);
-          if (!isAutoAssignment) {
-            alert(`Application successfully assigned to ${registrar.username}`);
-          }
+          alert(`Application successfully assigned to ${registrar.username}`);
           this.loadApplications();
         },
         error: (error: any) => {
           console.error('Assignment failed:', error);
-          if (!isAutoAssignment) {
-            alert(`Failed to assign application: ${error.message}`);
-          }
+          alert(`Failed to assign application: ${error.message}`);
         }
       });
   }
@@ -557,125 +1018,132 @@ private mapApiToLocalApplications(): void {
     }
   }
 
-// In the search method:
-onSearch(): void {
-  if (!this.searchValue.trim()) {
-    alert('Please enter a search value');
-    return;
-  }
-
-  const searchTerm = this.searchValue.toLowerCase().trim();
-  let filtered = this.applications.filter(app => {
-    if (app.registry !== this.currentUserRegistry) return false;
-
-    // Use safe access with fallbacks
-    const parcelNo = app.parcelNo || app.parcel_number || '';
-    const invoiceNumber = app.payment?.invoice_number || '';
-    const referenceNo = app.referenceNo || app.reference_number || '';
-    const receiptNumber = app.payment?.payment_reference || '';
-
-    switch (this.selectedSearchType) {
-      case 'parcel':
-        return parcelNo.toLowerCase().includes(searchTerm);
-      case 'invoice':
-        return invoiceNumber.toLowerCase().includes(searchTerm);
-      case 'document':
-        return referenceNo.toLowerCase().includes(searchTerm);
-      case 'receipt':
-        return receiptNumber.toLowerCase().includes(searchTerm);
-      default:
-        return true;
+  onSearch(): void {
+    if (!this.searchValue.trim()) {
+      alert('Please enter a search value');
+      return;
     }
-  });
 
-  this.filteredApplications = filtered;
-}
+    const searchTerm = this.searchValue.toLowerCase().trim();
+    let filtered = this.applications.filter(app => {
+      if (app.registry?.toLowerCase() !== this.currentUserRegistry?.toLowerCase()) return false;
 
-// In the table search method:
-onTableSearch(): void {
-  const searchTerm = this.tableSearchValue.toLowerCase().trim();
-  if (!searchTerm) {
-    this.filterByStatus(this.currentTab);
-    return;
+      const parcelNo = app.parcelNo || app.parcel_number || '';
+      const referenceNo = app.referenceNo || app.reference_number || '';
+
+      switch (this.selectedSearchType) {
+        case 'parcel':
+          return parcelNo.toLowerCase().includes(searchTerm);
+        case 'document':
+          return referenceNo.toLowerCase().includes(searchTerm);
+        default:
+          return true;
+      }
+    });
+
+    this.filteredApplications = filtered;
   }
 
-  let applicationsToSearch = this.applications.filter(app => app.registry === this.currentUserRegistry);
-  if (this.currentTab !== 'registry') {
-    applicationsToSearch = applicationsToSearch.filter(app => app.status === this.currentTab);
-  }
+  onTableSearch(): void {
+    const searchTerm = this.tableSearchValue.toLowerCase().trim();
+    if (!searchTerm) {
+      this.filterByStatus(this.currentTab);
+      return;
+    }
 
-  this.filteredApplications = applicationsToSearch.filter(app => {
-    // Safe access with fallbacks
-    const referenceNo = app.referenceNo || app.reference_number || '';
-    const parcelNo = app.parcelNo || app.parcel_number || '';
-    const applicantName = app.applicantName || '';
-    const county = app.county || '';
-    const registry = app.registry || '';
-    const assignedRegistrar = app.assignedRegistrar || '';
-    const purpose = app.purpose || '';
-
-    return (
-      referenceNo.toLowerCase().includes(searchTerm) ||
-      parcelNo.toLowerCase().includes(searchTerm) ||
-      (app.dateSubmitted || '').toLowerCase().includes(searchTerm) ||
-      (app.timeElapsed || '').toLowerCase().includes(searchTerm) ||
-      applicantName.toLowerCase().includes(searchTerm) ||
-      county.toLowerCase().includes(searchTerm) ||
-      registry.toLowerCase().includes(searchTerm) ||
-      assignedRegistrar.toLowerCase().includes(searchTerm) ||
-      purpose.toLowerCase().includes(searchTerm)
+    let applicationsToSearch = this.applications.filter(app =>
+      app.registry?.toLowerCase() === this.currentUserRegistry?.toLowerCase()
     );
-  });
-}
 
-  // onTableSearch(): void {
-  //   const searchTerm = this.tableSearchValue.toLowerCase().trim();
-  //   if (!searchTerm) {
-  //     this.filterByStatus(this.currentTab);
-  //     return;
-  //   }
+    if (this.currentTab !== 'registry' && this.currentTab !== 'statistics') {
+      applicationsToSearch = applicationsToSearch.filter(app => {
+        if (this.currentTab === 'unassigned') {
+          return app.status === 'unassigned';
+        } else if (this.currentTab === 'ongoing') {
+          return app.status === 'ongoing';
+        } else if (this.currentTab === 'completed') {
+          return app.status === 'completed';
+        } else if (this.currentTab === 'verified') {
+          return app.status === 'verified';
+        }
+        return true;
+      });
+    }
 
-  //   let applicationsToSearch = this.applications.filter(app => app.registry === this.currentUserRegistry);
-  //   if (this.currentTab !== 'registry') {
-  //     applicationsToSearch = applicationsToSearch.filter(app => app.status === this.currentTab);
-  //   }
+    this.filteredApplications = applicationsToSearch.filter(app => {
+      const referenceNo = app.referenceNo || app.reference_number || '';
+      const parcelNo = app.parcelNo || app.parcel_number || '';
+      const applicantName = app.applicantName || '';
+      const county = app.county || '';
+      const registry = app.registry || '';
+      const assignedRegistrar = app.assignedRegistrar || '';
+      const purpose = app.purpose || '';
 
-  //   this.filteredApplications = applicationsToSearch.filter(app =>
-  //     app.referenceNo.toLowerCase().includes(searchTerm) ||
-  //     app.parcelNo.toLowerCase().includes(searchTerm) ||
-  //     app.dateSubmitted.toLowerCase().includes(searchTerm) ||
-  //     app.timeElapsed.toLowerCase().includes(searchTerm) ||
-  //     app.applicantName?.toLowerCase().includes(searchTerm) ||
-  //     app.county?.toLowerCase().includes(searchTerm) ||
-  //     app.registry?.toLowerCase().includes(searchTerm) ||
-  //     app.assignedRegistrar?.toLowerCase().includes(searchTerm) ||
-  //     app.purpose?.toLowerCase().includes(searchTerm) ||
-  //     false
-  //   );
-  // }
+      return (
+        referenceNo.toLowerCase().includes(searchTerm) ||
+        parcelNo.toLowerCase().includes(searchTerm) ||
+        (app.time_elapsed || '').toLowerCase().includes(searchTerm) ||
+        applicantName.toLowerCase().includes(searchTerm) ||
+        county.toLowerCase().includes(searchTerm) ||
+        registry.toLowerCase().includes(searchTerm) ||
+        assignedRegistrar.toLowerCase().includes(searchTerm) ||
+        purpose.toLowerCase().includes(searchTerm)
+      );
+    });
+  }
 
   // ========== FILTER METHODS ==========
   filterByStatus(status: ApplicationStatus): void {
     this.currentTab = status;
-    let filtered = this.applications.filter(app => app.registry === this.currentUserRegistry);
 
-    if (status === 'unassigned') {
-      filtered = filtered.filter(app => app.status === 'unassigned');
-    } else if (status === 'ongoing') {
-      filtered = filtered.filter(app => app.status === 'ongoing');
-    } else if (status === 'completed') {
-      filtered = filtered.filter(app => app.status === 'completed');
-    } else if (status === 'verified') {
-      filtered = filtered.filter(app => app.status === 'verified');
+    // If statistics tab, don't filter applications
+    if (status === 'statistics') {
+      this.filteredApplications = [];
+      return;
     }
 
+    let filtered = this.applications.filter(app => {
+      const appRegistry = app.registry?.toLowerCase().trim();
+      const userRegistry = this.currentUserRegistry?.toLowerCase().trim();
+      return appRegistry === userRegistry;
+    });
+
+    console.log(`🔍 Filtering by status: ${status}`);
+    console.log(`User registry: "${this.currentUserRegistry}"`);
+    console.log(`Total applications in registry: ${filtered.length}`);
+
+    switch (status) {
+      case 'unassigned':
+        filtered = filtered.filter(app => app.status === 'unassigned');
+        break;
+      case 'ongoing':
+        filtered = filtered.filter(app => app.status === 'ongoing');
+        break;
+      case 'completed':
+        filtered = filtered.filter(app => app.status === 'completed');
+        break;
+      case 'verified':
+        filtered = filtered.filter(app => app.status === 'verified');
+        break;
+      case 'registry':
+        // Keep all filtered applications
+        break;
+    }
+
+    console.log(`✅ After status filter: ${filtered.length} applications`);
     this.filteredApplications = filtered;
     this.tableSearchValue = '';
   }
 
-  // ========== COUNT METHODS ==========
   getStatusCount(status: ApplicationStatus): number {
-    const registryApplications = this.applications.filter(app => app.registry === this.currentUserRegistry);
+    // For statistics tab, return 0
+    if (status === 'statistics') return 0;
+
+    const registryApplications = this.applications.filter(app => {
+      const appRegistry = app.registry?.toLowerCase().trim();
+      const userRegistry = this.currentUserRegistry?.toLowerCase().trim();
+      return appRegistry === userRegistry;
+    });
 
     switch (status) {
       case 'unassigned':
@@ -689,7 +1157,7 @@ onTableSearch(): void {
       case 'registry':
         return registryApplications.length;
       default:
-        return registryApplications.length;
+        return 0;
     }
   }
 
@@ -698,7 +1166,7 @@ onTableSearch(): void {
     return this.currentUserRole === 'is_registrar_in_charge' &&
            application.registry === this.currentUserRegistry &&
            application.status === 'ongoing' &&
-           !!application.assignedRegistrarId;
+           !!application.assigned_to;
   }
 
   canMarkCompleted(application: Application): boolean {
@@ -718,7 +1186,7 @@ onTableSearch(): void {
       return [];
     }
     return this.registrars.filter(registrar =>
-      registrar.registry === this.currentUserRegistry &&
+      registrar.registry?.toLowerCase() === this.currentUserRegistry?.toLowerCase() &&
       registrar.role === 'is_registrar'
     );
   }

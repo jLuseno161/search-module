@@ -13,13 +13,13 @@ export interface Application {
   county: string;
   registry: string;
   status: string;
-  submitted_at: string;
+  submitted_at: string | null;
   assigned_to: number | null;
   applicant: number;
   returned?: boolean;
-  // Optional frontend properties
-  dateSubmitted?: string;
-  timeElapsed?: string;
+  paid_at?: string | null;
+  paid_at_formatted?: string;
+  time_elapsed?: string;
   referenceNo?: string;
   parcelNo?: string;
 
@@ -33,7 +33,7 @@ export interface Application {
   // Optional additional properties
   assigned_to_username?: string;
   certificate?: CertificateInfo;
-  payment?: any;
+  payment?:{}
   reviews?: any[];
 
   // For component-specific needs
@@ -107,4 +107,13 @@ export interface StatusChange {
   changedAt: string;
   changedBy: string;
   reason?: string;
+}
+
+export interface Payment {
+  id: number;
+  amount: string;
+  invoice_number: string;
+  payment_reference: string;
+  merchant_request_id: string;
+  paid_at: string;
 }

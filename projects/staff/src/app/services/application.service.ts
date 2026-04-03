@@ -11,6 +11,15 @@ export interface ApiApplication {
   reference_number: string;
   parcel_number: string;
   purpose: string;
+  payment?: {
+    id: number;
+    amount: string;
+    invoice_number: string;
+    payment_reference: string;
+    merchant_request_id: string;
+    paid_at: string;  // This is the payment date
+  };
+  dateSubmitted?: string;
   county: string;
   registry: string;
   status: string;
@@ -106,43 +115,83 @@ export class ApplicationService {
   }
 
   // ========== REGISTRAR METHODS ==========
+// In application.service.ts - Update getAvailableRegistrars method
 
-  getAvailableRegistrars(currentUserRegistry: string): Observable<Registrar[]> {
-    return this.http.get<UserResponse>(`${this.apiUrl}/users`).pipe(
-      map(users => {
-        console.log('👥 Loading registrars for registry:', currentUserRegistry);
+getAvailableRegistrars(currentUserRegistry: string): Observable<Registrar[]> {
+  console.log('🔍 Fetching registrars for registry:', currentUserRegistry);
 
-        if (!users.results || users.results.length === 0) {
-          console.log('❌ No users returned from API');
-          return [];
+  return this.http.get<UserResponse>(`${this.apiUrl}/users`).pipe(
+    map(users => {
+      console.log('👥 Full API response for users:', users);
+
+      // Handle different response structures
+      let usersArray = [];
+      if (users && users.results && Array.isArray(users.results)) {
+        usersArray = users.results;
+      } else if (Array.isArray(users)) {
+        usersArray = users;
+      } else {
+        console.log('❌ No users array found in response');
+        return [];
+      }
+
+      console.log('👥 All users from API:', usersArray);
+
+      // Check the structure of first user to see what fields are available
+      if (usersArray.length > 0) {
+        console.log('📋 First user structure:', Object.keys(usersArray[0]));
+        console.log('📋 First user data:', usersArray[0]);
+      }
+
+      const filteredRegistrars = usersArray.filter(user => {
+        // Check for role in different possible locations
+        const userRole = user.role || user.user_role || user.roles?.[0] || (user as any).user_type;
+
+        // Check if user is a registrar (based on roles array or role field)
+        let isRegistrar = false;
+
+        // Check if roles array exists and contains 'is_registrar'
+        if (user.roles && Array.isArray(user.roles)) {
+          isRegistrar = user.roles.includes('is_registrar');
+        }
+        // Check if role field equals 'is_registrar'
+        else if (userRole === 'is_registrar') {
+          isRegistrar = true;
         }
 
-        const filteredRegistrars = users.results.filter(user =>
-          user.role === 'is_registrar' &&
-          user.registry === currentUserRegistry
-        );
+        // Also check if user has any of these role indicators
+        const hasRegistrarRole = userRole === 'is_registrar' ||
+                                (user.roles && user.roles.includes('is_registrar')) ||
+                                user.user_type === 'registrar';
 
-        console.log(`✅ Found ${filteredRegistrars.length} registrars for registry: ${currentUserRegistry}`);
+        const matchesRegistry = user.registry === currentUserRegistry;
 
-        return filteredRegistrars.map(user => ({
-          id: user.id,
-          name: this.formatUserName(user),
-          username: user.username,
-          email: user.email,
-          county: user.county,
-          registry: user.registry,
-          role: user.role,
-          first_name: user.first_name,
-          last_name: user.last_name
-        }));
-      }),
-      catchError(error => {
-        console.error('❌ Error loading registrars:', error);
-        return of([]);
-      })
-    );
-  }
+        console.log(`User ${user.username}: role=${userRole}, roles=${user.roles}, isRegistrar=${hasRegistrarRole}, registry=${user.registry}, matches=${hasRegistrarRole && matchesRegistry}`);
 
+        return hasRegistrarRole && matchesRegistry;
+      });
+
+      console.log(`✅ Found ${filteredRegistrars.length} registrars for registry: ${currentUserRegistry}`);
+      console.log('Filtered registrars:', filteredRegistrars);
+
+      return filteredRegistrars.map(user => ({
+        id: user.id,
+        name: this.formatUserName(user),
+        username: user.username,
+        email: user.email,
+        county: user.county,
+        registry: user.registry,
+        role: user.role || (user.roles && user.roles[0]) || 'is_registrar',
+        first_name: user.first_name,
+        last_name: user.last_name
+      }));
+    }),
+    catchError(error => {
+      console.error('❌ Error loading registrars:', error);
+      return of([]);
+    })
+  );
+}
 
 // In application.service.ts
 uploadCertificate(applicationId: number, formData: FormData): Observable<any> {
@@ -332,5 +381,53 @@ getCertificateByApplication(applicationId: number): Observable<any> {
   return this.http.get(url, {
     headers: this.authService.getAuthHeaders()
   });
+}
+// Get completed applications (historical works) for a registrar
+getRegistrarHistoricalApplications(): Observable<any> {
+  return this.http.get(`${this.apiUrl}/registrar/completed`, {
+    headers: this.authService.getAuthHeaders()
+  }).pipe(
+    tap(response => console.log('✅ Historical applications response:', response)),
+    catchError(error => {
+      console.error('❌ Error fetching historical applications:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
+// Alternative: Get applications by status
+getApplicationsByStatus(status: string): Observable<any> {
+  return this.http.get(`${this.apiUrl}/registrar/applications?status=${status}`, {
+    headers: this.authService.getAuthHeaders()
+  }).pipe(
+    catchError(error => {
+      console.error(`❌ Error fetching ${status} applications:`, error);
+      return throwError(() => error);
+    })
+  );
+}
+// Get supporting document for an application
+getSupportingDocument(applicationId: number): Observable<any> {
+  return this.http.get(`${this.apiUrl}/applications/${applicationId}/supporting-document`, {
+    headers: this.authService.getAuthHeaders()
+  }).pipe(
+    tap(response => console.log('✅ Supporting document response:', response)),
+    catchError(error => {
+      console.error('❌ Error fetching supporting document:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
+// Alternative: Get all documents for an application
+getApplicationDocuments(applicationId: number): Observable<any> {
+  return this.http.get(`${this.apiUrl}/applications/${applicationId}/documents`, {
+    headers: this.authService.getAuthHeaders()
+  }).pipe(
+    catchError(error => {
+      console.error('❌ Error fetching documents:', error);
+      return throwError(() => error);
+    })
+  );
 }
 }

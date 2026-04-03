@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <!-- Quick Stats -->
+  <!-- Quick Stats - Uncommented -->
   <div class="row mb-4">
     <div class="col-md-2">
       <div class="card bg-warning text-dark">
@@ -65,38 +65,6 @@
     </div>
   </div>
 
-  <!-- Auto-Assignment Controls -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5 class="card-title mb-0">Assignment Management</h5>
-    </div>
-    <div class="card-body">
-      <div class="row align-items-center">
-        <div class="col-md-6">
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="autoAssignSwitch"
-                   [(ngModel)]="autoAssignEnabled" (change)="toggleAutoAssignment()">
-            <label class="form-check-label fw-semibold" for="autoAssignSwitch">
-              Auto-Assignment System
-            </label>
-          </div>
-          <small class="text-muted">
-            {{ autoAssignEnabled ? 'Auto-assignment is enabled' : 'Auto-assignment is disabled' }}
-          </small>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Assignment Strategy</label>
-          <select class="form-select" [(ngModel)]="assignmentStrategy"
-                  [disabled]="!autoAssignEnabled">
-            <option value="round-robin">Round Robin</option>
-            <option value="load-balancing">Load Balancing</option>
-            <option value="random">Random</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Search Card -->
   <div class="card mb-4">
     <div class="card-header">
@@ -112,10 +80,8 @@
                     (change)="onSearchTypeChange()"
                     name="searchType"
                     required>
-              <option value="invoice">Invoice Number</option>
               <option value="parcel">Parcel Number</option>
               <option value="document">Document Number</option>
-              <option value="receipt">Receipt Number</option>
             </select>
           </div>
           <div class="col-md-5">
@@ -200,6 +166,14 @@
           <span class="badge bg-secondary ms-1">{{ getStatusCount('registry') }}</span>
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                [class.active]="currentTab === 'statistics'"
+                (click)="setTab('statistics')"
+                type="button">
+          <i class="bi bi-graph-up me-1"></i>Statistics
+        </button>
+      </li>
     </ul>
 
     <!-- Tab Content -->
@@ -218,144 +192,147 @@
         <button class="btn btn-primary" (click)="retryLoadApplications()">Retry</button>
       </div>
 
-      <!-- Search within table -->
-      <div *ngIf="!isLoading && !error" class="row mb-3">
-        <div class="col-md-6">
-          <div class="text-muted">
-            Showing {{ filteredApplications.length }} applications
-            <span *ngIf="tableSearchValue" class="text-info">
-              • Filtered by: "{{ tableSearchValue }}"
-            </span>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="input-group">
-            <span class="input-group-text">
-              <i class="bi bi-search"></i>
-            </span>
-            <input type="text"
-                   class="form-control"
-                   [(ngModel)]="tableSearchValue"
-                   (input)="onTableSearch()"
-                   [placeholder]="'Search in ' + currentTab + '...'">
-            <button *ngIf="tableSearchValue"
-                    class="btn btn-outline-secondary"
-                    type="button"
-                    (click)="tableSearchValue = ''; onTableSearch()">
-              <i class="bi bi-x"></i>
-            </button>
-          </div>
-        </div>
+      <!-- Statistics Tab Content -->
+      <div *ngIf="!isLoading && currentTab === 'statistics'">
+        <app-statistics [applications]="applications" [registrars]="registrars" [registry]="currentUserRegistry"></app-statistics>
       </div>
 
-      <!-- Applications Table -->
-      <div *ngIf="!isLoading && !error && filteredApplications.length > 0" class="table-responsive">
-        <table class="table table-striped table-hover">
-          <thead class="table-light">
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Reference No.</th>
-              <th scope="col">Parcel No.</th>
-              <!-- <th scope="col">Applicant</th> -->
-              <th scope="col">Date Submitted</th>
-              <th scope="col">Time Elapsed</th>
-              <th scope="col">Status</th>
-              <th scope="col" *ngIf="currentTab === 'ongoing'">Assigned Registrar</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let app of filteredApplications; let i = index">
-              <td>{{ i + 1 }}</td>
-              <td>
-                <strong>{{ app.referenceNo }}</strong>
-              </td>
-              <td>{{ app.parcelNo }}</td>
-              <!-- <td>
-                <div>{{ app.applicantName }}</div>
-                <small class="text-muted">{{ app.county }} • {{ app.registry }}</small>
-              </td> -->
-              <td>{{ app.dateSubmitted }}</td>
-              <td>
-                <span class="badge bg-secondary">{{ app.timeElapsed }}</span>
-              </td>
-              <td>
-                <span class="badge"
-                      [class.bg-warning]="app.status === 'unassigned'"
-                      [class.bg-primary]="app.status === 'ongoing'"
-                      [class.bg-success]="app.status === 'completed'"
-                      [class.bg-info]="app.status === 'verified'">
-                  {{ app.status | titlecase }}
-                </span>
-              </td>
+      <!-- Applications Tab Content -->
+      <div *ngIf="!isLoading && currentTab !== 'statistics'">
+        <!-- Search within table -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="text-muted">
+              Showing {{ filteredApplications.length }} applications
+              <span *ngIf="tableSearchValue" class="text-info">
+                • Filtered by: "{{ tableSearchValue }}"
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text"
+                     class="form-control"
+                     [(ngModel)]="tableSearchValue"
+                     (input)="onTableSearch()"
+                     [placeholder]="'Search in ' + currentTab + '...'">
+              <button *ngIf="tableSearchValue"
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      (click)="tableSearchValue = ''; onTableSearch()">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+        </div>
 
-              <!-- Assigned Registrar Column -->
-              <td *ngIf="currentTab === 'ongoing'">
-                <div class="d-flex align-items-center gap-2">
-                  <span>{{ app.assignedRegistrar || 'Not assigned' }}</span>
-                  <!-- Reassign Dropdown -->
-                  <div *ngIf="canReassign(app)" class="dropdown">
-                    <select class="form-select form-select-sm"
-                            (change)="manualReassign(app.id, $any($event.target).value)"
-                            title="Reassign to another registrar">
-                      <option value="">Reassign...</option>
-                      <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
-                              [value]="registrar.id"
-                              [selected]="registrar.id === app.assignedRegistrarId">
-                        {{ registrar.username }}
-                      </option>
-                    </select>
+        <!-- Applications Table -->
+        <div *ngIf="filteredApplications.length > 0" class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Reference No.</th>
+                <th scope="col">Parcel No.</th>
+                <th scope="col">Date Submitted</th>
+                <th scope="col">Time Elapsed</th>
+                <th scope="col">Status</th>
+                <th scope="col" *ngIf="currentTab === 'ongoing'">Assigned Registrar</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let app of filteredApplications; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <strong>{{ app.referenceNo }}</strong>
+                </td>
+                <td>{{ app.parcelNo }}</td>
+                <td>{{ app.paid_at || 'Payment pending' }}</td>
+                <td>
+                  <span class="badge bg-secondary">{{ app.time_elapsed }}</span>
+                </td>
+                <td>
+                  <span class="badge"
+                        [class.bg-warning]="app.status === 'unassigned'"
+                        [class.bg-primary]="app.status === 'ongoing'"
+                        [class.bg-success]="app.status === 'completed'"
+                        [class.bg-info]="app.status === 'verified'">
+                    {{ app.status | titlecase }}
+                  </span>
+                </td>
+
+                <!-- Assigned Registrar Column -->
+                <td *ngIf="currentTab === 'ongoing'">
+                  <div class="d-flex align-items-center gap-2">
+                    <span>{{ app.assignedRegistrar || 'Not assigned' }}</span>
+                    <!-- Reassign Dropdown -->
+                    <div *ngIf="canReassign(app)" class="dropdown">
+                      <select class="form-select form-select-sm"
+                              (change)="manualReassign(app.id, $any($event.target).value)"
+                              title="Reassign to another registrar">
+                        <option value="">Reassign...</option>
+                        <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
+                                [value]="registrar.id"
+                                [selected]="registrar.id === app.assignedRegistrarId">
+                          {{ registrar.username }}
+                        </option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <!-- Actions Column -->
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-primary"
-                          (click)="viewApplicationDetails(app)"
-                          title="View Details">
-                    <i class="bi bi-eye"></i> View
-                  </button>
+                <!-- Actions Column -->
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary"
+                            (click)="viewApplicationDetails(app)"
+                            title="View Details">
+                      <i class="bi bi-eye"></i> View
+                    </button>
 
-                  <!-- Mark as Complete Button -->
-                  <button *ngIf="currentTab === 'ongoing' && canMarkCompleted(app)"
-                          class="btn btn-outline-success"
-                          (click)="markAsCompleted(app.id)"
-                          title="Mark as Completed">
-                    <i class="bi bi-check-lg"></i> Complete
-                  </button>
+                    <!-- Mark as Complete Button -->
+                    <button *ngIf="currentTab === 'ongoing' && canMarkCompleted(app)"
+                            class="btn btn-outline-success"
+                            (click)="markAsCompleted(app.id)"
+                            title="Mark as Completed">
+                      <i class="bi bi-check-lg"></i> Complete
+                    </button>
 
-                  <!-- Mark as Verified Button -->
-                  <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
-                          class="btn btn-outline-info"
-                          (click)="markAsVerified(app.id)"
-                          title="Mark as Verified">
-                    <i class="bi bi-shield-check"></i> Verify
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!isLoading && !error && filteredApplications.length === 0" class="text-center py-5">
-        <div class="mb-3">
-          <i class="bi bi-inbox fs-1 text-muted"></i>
+                    <!-- Mark as Verified Button -->
+                    <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
+                            class="btn btn-outline-info"
+                            (click)="markAsVerified(app.id)"
+                            title="Mark as Verified">
+                      <i class="bi bi-shield-check"></i> Verify
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <h5 class="text-muted">No applications found</h5>
-        <p class="text-muted mb-3">
-          {{ currentTab === 'unassigned' ? 'No unassigned applications' :
-             currentTab === 'ongoing' ? 'No ongoing applications' :
-             currentTab === 'completed' ? 'No completed applications' :
-             currentTab === 'verified' ? 'No verified applications' :
-             'No applications in registry' }}
-        </p>
-        <button class="btn btn-outline-primary" (click)="clearSearch()">
-          <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters
-        </button>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+          <div class="mb-3">
+            <i class="bi bi-inbox fs-1 text-muted"></i>
+          </div>
+          <h5 class="text-muted">No applications found</h5>
+          <p class="text-muted mb-3">
+            {{ currentTab === 'unassigned' ? 'No unassigned applications' :
+               currentTab === 'ongoing' ? 'No ongoing applications' :
+               currentTab === 'completed' ? 'No completed applications' :
+               currentTab === 'verified' ? 'No verified applications' :
+               'No applications in registry' }}
+          </p>
+          <button class="btn btn-outline-primary" (click)="clearSearch()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -366,6 +343,7 @@
 .nav-tabs .nav-link {
   font-weight: 500;
   color: #6c757d;
+  cursor: pointer;
 }
 .nav-tabs .nav-link.active {
   font-weight: 600;

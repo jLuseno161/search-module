@@ -7,6 +7,7 @@ import { ChiefRegistryRegistrar } from './features/chiefregistry-registrar/chief
 import { ApplicationDetails } from './features/application-details/application-details';
 import { ProfileComponent } from '../app/features/profile/profile/profile.component';
 import { AuthGuard } from './auth/auth.guard';
+import { PreviousWorksComponent } from './features/previous-works/previous-works.component';
 
 export const routes: Routes = [
   {
@@ -52,28 +53,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ['is_registrar', 'is_registrar_in_charge', 'admin'] }
   },
-  // Add these if you have components for these routes
-  // {
-  //   path: 'dashboard',
-  //   component: DashboardComponent,
-  //   canActivate: [AuthGuard]
-  // },
-  // {
-  //   path: 'applications',
-  //   component: ApplicationsComponent,
-  //   canActivate: [AuthGuard]
-  // },
-  // {
-  //   path: 'flag-parcel',
-  //   component: FlagParcelComponent,
-  //   canActivate: [AuthGuard]
-  // },
-  // {
-  //   path: 'user-guide',
-  //   component: UserGuideComponent,
-  //   canActivate: [AuthGuard]
-  // },
-  // ... etc for all sidebar links
+ {
+    path: 'previous-works',
+    component: PreviousWorksComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['is_registrar', 'is_registrar_in_charge'] }
+  },
   {
     path: '**',
     redirectTo: '/login'

@@ -119,7 +119,7 @@
                   <th scope="col">No.</th>
                   <th scope="col">Reference No.</th>
                   <th scope="col">Parcel No.</th>
-                  <th scope="col">Date of submission</th>
+                  <!-- <th scope="col">Date of submission</th> -->
                   <th scope="col">Time elapsed</th>
                   <th scope="col">Actions</th>
                 </tr>
@@ -129,8 +129,7 @@
                   <td>{{ app.id }}</td>
                   <td>{{ app.referenceNo }}</td>
                   <td>{{ app.parcelNo }}</td>
-                  <td>{{ app.dateSubmitted }}</td>
-                  <td>{{ app.timeElapsed }}</td>
+                  <td>{{ app.time_elapsed || 'Unknown' }}</td>
                   <td>
                   <button class="btn btn-success btn-sm" (click)="viewApplicationDetails(app)">View</button>
                   </td>

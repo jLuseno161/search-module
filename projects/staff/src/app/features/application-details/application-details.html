@@ -65,7 +65,7 @@
                             Application Details
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
+                    <li class="nav-item" role="presentation" *ngIf="canAccessSearchForm()">
                         <button class="nav-link"
                                 [class.active]="activeTab === 'search-form'"
                                 (click)="setActiveTab('search-form')"
@@ -95,7 +95,7 @@
                 <!-- Tab Content -->
                 <div class="tab-content mt-3">
                     <!-- Application Details Tab -->
-                    <div *ngIf="activeTab === 'details'" class="tab-pane fade show active">
+                    <div *ngIf="activeTab === 'details'" class="tab-pane fade show active  ">
                         <!-- Application Status Alert -->
                         <div class="alert alert-info d-flex align-items-center">
                             <i class="bi bi-info-circle me-2"></i>
@@ -105,7 +105,7 @@
                                     {{ application.status | titlecase }}
                                 </span>
                                 <span class="ms-3">
-                                    <strong>Time Elapsed:</strong> {{ application.timeElapsed }}
+                                    <strong>Time Elapsed:</strong> {{ application.time_elapsed }}
                                 </span>
                             </div>
                         </div>
@@ -152,7 +152,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Date Submitted:</strong></td>
-                                        <td>{{ application.dateSubmitted }}</td>
+                                        <td>{{ application.time_elapsed }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Assigned To:</strong></td>
@@ -234,7 +234,7 @@
                                                             <td>{{ getAssignedRegistrarName() }}</td>
                                                             <td>Registrar</td>
                                                             <td>EMP/{{ application.assigned_to || 'N/A' }}</td>
-                                                            <td>{{ application.dateSubmitted }}</td>
+                                                            <td>{{ application.time_elapsed }}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>

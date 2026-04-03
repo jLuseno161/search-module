@@ -107,66 +107,121 @@ export class ApplicationDetails implements OnInit {
     });
   }
 
-  public loadApplicationDetails(id: number): void {
-    this.isLoading = true;
-    this.error = null;
+ public loadApplicationDetails(id: number): void {
+  console.log('🔍 loadApplicationDetails called with id:', id);
+  console.log('👤 Current user role:', this.currentUserRole);
+  this.isLoading = true;
+  this.error = null;
 
-    if (this.currentUserRole === 'is_registrar') {
-      this.loadRegistrarApplication(id);
-    } else if (this.currentUserRole === 'is_registrar_in_charge') {
-      this.loadRegistrarInChargeApplication(id);
-    } else {
-      this.error = 'Unauthorized access';
+  if (this.currentUserRole === 'is_registrar') {
+    console.log('👤 Loading as registrar - calling loadRegistrarApplication');
+    this.loadRegistrarApplication(id);
+  } else if (this.currentUserRole === 'is_registrar_in_charge') {
+    console.log('👤 Loading as registrar in charge - calling loadRegistrarInChargeApplication');
+    this.loadRegistrarInChargeApplication(id);
+  } else {
+    console.log('❌ Unauthorized access, role:', this.currentUserRole);
+    this.error = 'Unauthorized access';
+    this.isLoading = false;
+  }
+}
+ private loadRegistrarApplication(id: number): void {
+  console.log('📡 Inside loadRegistrarApplication, calling API with id:', id);
+
+  this.applicationService.getRegistrarAssignedApplications().subscribe({
+    next: (response) => {
+      console.log('📦 API Response received in loadRegistrarApplication:', response);
+
+      // Handle different response formats
+      let applicationsArray = [];
+      if (Array.isArray(response)) {
+        applicationsArray = response;
+        console.log('✅ Response is an array with', applicationsArray.length, 'applications');
+      } else if (response && response.results && Array.isArray(response.results)) {
+        applicationsArray = response.results;
+        console.log('✅ Response has results array with', applicationsArray.length, 'applications');
+      } else {
+        console.error('❌ Unexpected response format:', response);
+        this.error = 'Invalid response format from server';
+        this.isLoading = false;
+        return;
+      }
+
+      console.log('🔍 Looking for application with id:', id);
+      const apiApplication = applicationsArray.find((app: any) => app.id === id);
+      console.log('🔍 Found application:', apiApplication);
+
+      if (apiApplication) {
+        console.log('✅ Application found, calling mapApiToApplication');
+        this.application = this.mapApiToApplication(apiApplication);
+        console.log('✅ Application mapped successfully:', this.application);
+      } else {
+        console.log('❌ Application not found or not assigned to you');
+        this.error = 'Application not found or not assigned to you';
+      }
+      console.log('🔄 Setting isLoading to false');
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('❌ Error in loadRegistrarApplication:', error);
+      this.error = 'Failed to load application details: ' + (error.message || 'Unknown error');
       this.isLoading = false;
     }
-  }
+  });
+}
 
-  private loadRegistrarApplication(id: number): void {
-    this.applicationService.getRegistrarAssignedApplications().subscribe({
-      next: (response) => {
-        const apiApplication = response.results.find((app: any) => app.id === id);
-        if (apiApplication) {
-          this.application = this.mapApiToApplication(apiApplication);
-          console.log('✅ Application loaded:', this.application);
-        } else {
-          this.error = 'Application not found or not assigned to you';
-        }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('❌ Error loading application:', error);
-        this.error = 'Failed to load application details';
-        this.isLoading = false;
-      }
-    });
-  }
+ private loadRegistrarInChargeApplication(id: number): void {
+  console.log('📡 Inside loadRegistrarInChargeApplication, calling API with id:', id);
 
-  private loadRegistrarInChargeApplication(id: number): void {
-    this.applicationService.getRegistrarInChargeApplications().subscribe({
-      next: (response) => {
-        const apiApplication = response.results.find((app: any) => app.id === id);
-        if (apiApplication) {
-          this.application = this.mapApiToApplication(apiApplication);
-          console.log('✅ Application loaded:', this.application);
-        } else {
-          this.error = 'Application not found in your registry';
-        }
+  this.applicationService.getRegistrarInChargeApplications().subscribe({
+    next: (response) => {
+      console.log('📦 API Response received in loadRegistrarInChargeApplication:', response);
+
+      // Handle different response formats
+      let applicationsArray = [];
+      if (Array.isArray(response)) {
+        applicationsArray = response;
+        console.log('✅ Response is an array with', applicationsArray.length, 'applications');
+      } else if (response && response.results && Array.isArray(response.results)) {
+        applicationsArray = response.results;
+        console.log('✅ Response has results array with', applicationsArray.length, 'applications');
+      } else {
+        console.error('❌ Unexpected response format:', response);
+        this.error = 'Invalid response format from server';
         this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('❌ Error loading application:', error);
-        this.error = 'Failed to load application details';
-        this.isLoading = false;
+        return;
       }
-    });
-  }
+
+      console.log('🔍 Looking for application with id:', id);
+      const apiApplication = applicationsArray.find((app: any) => app.id === id);
+      console.log('🔍 Found application:', apiApplication);
+
+      if (apiApplication) {
+        console.log('✅ Application found, calling mapApiToApplication');
+        this.application = this.mapApiToApplication(apiApplication);
+        console.log('✅ Application mapped successfully:', this.application);
+      } else {
+        console.log('❌ Application not found in registry');
+        this.error = 'Application not found in your registry';
+      }
+      console.log('🔄 Setting isLoading to false');
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('❌ Error in loadRegistrarInChargeApplication:', error);
+      this.error = 'Failed to load application details: ' + (error.message || 'Unknown error');
+      this.isLoading = false;
+    }
+  });
+}
 
   // ========== DATA MAPPING METHOD ==========
 
   private mapApiToApplication(apiApp: any): Application {
     console.log('🔍 Mapping API data:', apiApp);
 
-    const submittedDate = new Date(apiApp.submitted_at);
+    const submittedDate = new Date(apiApp.payment.paid_at);
+    console.log("time", submittedDate);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - submittedDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -187,6 +242,12 @@ export class ApplicationDetails implements OnInit {
       assignedRegistrarName = foundRegistrar?.username || `Registrar #${assignedRegistrarId}`;
     }
 
+    let paidAtValue = null;
+    if (apiApp.payment && apiApp.payment.paid_at) {
+      paidAtValue = apiApp.payment.paid_at;
+    } else if (apiApp.paid_at) {
+      paidAtValue = apiApp.paid_at;
+    }
     // Extract applicant info
     let applicantName = 'Unknown Applicant';
     let applicantId = 0;
@@ -244,12 +305,12 @@ export class ApplicationDetails implements OnInit {
       applicantEmail: applicantEmail,
       applicantPhone: applicantPhone,
       applicantIdNo: applicantIdNo,
-      dateSubmitted: submittedDate.toLocaleDateString('en-US', {
+      paid_at_formatted: submittedDate.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       }),
-      timeElapsed: this.calculateTimeElapsed(diffDays),
+      time_elapsed: this.calculateTimeElapsed(diffDays),
       referenceNo: apiApp.reference_number,
       parcelNo: apiApp.parcel_number,
       certificate: certificateInfo,
@@ -265,7 +326,7 @@ export class ApplicationDetails implements OnInit {
   canUploadCertificate(): boolean {
     if (!this.application || !this.currentUserId) return false;
     const isAssignedToCurrentUser = this.application.assigned_to === this.currentUserId;
-    const isValidStatus = this.application.status === 'assigned';
+    const isValidStatus = this.application.status === 'submitted' || this.application.status === 'assigned';
     const canUpload = this.currentUserRole === 'is_registrar' && isValidStatus && isAssignedToCurrentUser;
     return canUpload;
   }
@@ -488,62 +549,6 @@ onNextToUpload(certificateData: any): void {
     });
   }
 }
-
-  // onNextToUpload(certificateData: any): void {
-  //   console.log('➡️ Moving to upload tab with certificate:', certificateData);
-  //   this.savedCertificateData = certificateData;
-
-  //   // Retrieve the stored PDF from localStorage
-  //   const storageKey = certificateData.storageKey || `certificate_${this.applicationId}`;
-  //   const storedPdf = localStorage.getItem(storageKey);
-
-  //   if (storedPdf) {
-  //     // Convert base64 back to File
-  //     const base64Data = storedPdf.split(',')[1] || storedPdf;
-  //     const byteCharacters = atob(base64Data);
-  //     const byteNumbers = new Array(byteCharacters.length);
-  //     for (let i = 0; i < byteCharacters.length; i++) {
-  //       byteNumbers[i] = byteCharacters.charCodeAt(i);
-  //     }
-  //     const byteArray = new Uint8Array(byteNumbers);
-  //     const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
-
-  //     this.selectedCertificate = new File(
-  //       [pdfBlob],
-  //       `LRA84_${this.application?.reference_number}.pdf`,
-  //       { type: 'application/pdf' }
-  //     );
-
-  //     console.log('✅ Retrieved PDF from localStorage:', {
-  //       key: storageKey,
-  //       name: this.selectedCertificate.name,
-  //       size: `${(this.selectedCertificate.size / 1024).toFixed(2)} KB`
-  //     });
-
-  //     this.snackBar?.open('Certificate loaded. Please upload supporting document and approve.', 'Close', { duration: 3000 });
-  //   } else {
-  //     console.warn('⚠️ No stored PDF found in localStorage');
-  //     this.snackBar?.open('Certificate not found. Please generate it again.', 'Close', { duration: 3000 });
-  //   }
-
-  //   // Check if application is assigned before switching
-  //   if (this.application?.status === 'assigned' && this.application?.assigned_to === this.currentUserId) {
-  //     this.setActiveTab('certificate-upload');
-  //   } else {
-  //     // Try to assign first
-  //     this.applicationService.assignApplication(this.applicationId!, this.currentUserId).subscribe({
-  //       next: () => {
-  //         this.loadApplicationDetails(this.applicationId!);
-  //         this.setActiveTab('certificate-upload');
-  //         this.snackBar?.open('Application assigned! Please upload supporting document.', 'Close', { duration: 3000 });
-  //       },
-  //       error: (error) => {
-  //         console.error('Failed to assign:', error);
-  //         this.snackBar?.open('Please contact Registrar In Charge to assign this application to you.', 'Close', { duration: 5000 });
-  //       }
-  //     });
-  //   }
-  // }
 
   async previewCertificate(formData: any): Promise<void> {
     console.log('👁️ Preview requested:', formData);
@@ -899,7 +904,23 @@ onNextToUpload(certificateData: any): void {
   uploadSupportingDocument(): void {
     this.uploadCertificate();
   }
+// In application-details.ts, add this method:
 
+canAccessSearchForm(): boolean {
+  if (!this.application || !this.currentUserId) return false;
+
+  // Check if user is a registrar
+  if (this.currentUserRole !== 'is_registrar') return false;
+
+  // Check if application is assigned
+  if (!this.application.assigned_to) return false;
+
+  // Check if current user is the assigned registrar
+  const isAssignedRegistrar = this.application.assigned_to === this.currentUserId;
+
+  // Only allow access if application is assigned to this registrar
+  return isAssignedRegistrar;
+}
   debugAndApprove(): void {
     console.log('🔍 ===== DEBUG: APPROVE BUTTON CLICKED =====');
     console.log('📋 Current State:');

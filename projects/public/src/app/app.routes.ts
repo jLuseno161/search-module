@@ -5,6 +5,7 @@ import { NewApplicationComponent } from './features/new-application/new-applicat
 import { SearchApplicationComponent } from './features/search-application/search-application.component';
 import { guestGuard } from './guard/guest.guard';
 import { authGuard } from './guard/auth.guard';
+import { VerifySearchComponent } from './features/verify-search/verify-search.component';
 
 export const routes: Routes = [
     {
@@ -41,6 +42,12 @@ export const routes: Routes = [
         canActivate: [authGuard]
     },
     {
+        path: 'search-application/returned/:id',
+        component: SearchApplicationComponent,
+        data: { status: 'returned' },
+        canActivate: [authGuard]
+    },
+    {
         path: 'search-application/rejected/:id',
         component: SearchApplicationComponent,
         data: { status: 'rejected' },
@@ -51,6 +58,9 @@ export const routes: Routes = [
         component: NewApplicationComponent,
         canActivate: [authGuard]
     },
+
+    { path: 'verification', component: VerifySearchComponent },
+
     // Wildcard route (handle 404)
     {
         path: '**',

@@ -12,6 +12,8 @@ interface MenuItem {
   text: string;
   route: string;
   isActive: boolean;
+  children?: MenuItem[];  // Optional children for submenu
+  isExpanded?: boolean;   // Track if submenu is expanded
 }
 
 @Component({
@@ -39,7 +41,13 @@ export class PublicDashboardComponent implements OnInit {
 
   menuItems: MenuItem[] = [
     { icon: 'dashboard', text: 'Dashboard', route: '/search-application', isActive: true },
-    { icon: 'apps', text: 'Services', route: '/services', isActive: false },
+    {
+      icon: 'apps', text: 'Services', route: '/services', isActive: false,
+      isExpanded: false,
+      children: [
+        { icon: 'verification', text: 'Verify Search', route: '/verification', isActive: false },
+      ]
+    },
     { icon: 'home', text: 'My Properties', route: '/properties', isActive: false },
     { icon: 'payment', text: 'Ardhipay', route: '/payment', isActive: false },
     { icon: 'forum', text: 'Communication', route: '/communication', isActive: false },
@@ -66,9 +74,17 @@ export class PublicDashboardComponent implements OnInit {
   }
 
   setActiveItem(selectedItem: MenuItem): void {
-    this.menuItems.forEach(item => item.isActive = false);
-    selectedItem.isActive = true;
-    this.router.navigate([selectedItem.route]);
+    // If item has children, toggle expansion
+    if (selectedItem.children) {
+      selectedItem.isExpanded = !selectedItem.isExpanded;
+    } else {
+      // Normal navigation for items without children
+      this.menuItems.forEach(item => item.isActive = false);
+      selectedItem.isActive = true;
+      if (selectedItem.route) {
+        this.router.navigate([selectedItem.route]);
+      }
+    }
   }
 
   navigateTo(route: string): void {

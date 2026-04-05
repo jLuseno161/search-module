@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CountyRegistryData, Faqs, Search } from '../interfaces/search';
 import { environment } from '../../environments/environment';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -50,6 +52,29 @@ export class SearchService {
 
   private countyRegistryData: CountyRegistryData[] = [
     {
+      county: 'Kajiado',
+      registries: [
+        'Kajiado Central',
+        'Ngong',
+      ]
+    },
+    {
+      county: 'Baringo',
+      registries: [
+        'Kabarnet',
+        'Eldama Ravine',
+      ]
+    },
+    {
+      county: 'Kisumu',
+      registries: [
+        'Kisumu East',
+        'Nyando',
+        'Seme'
+
+      ]
+    },
+    {
       county: 'Nairobi',
       registries: [
         'Nairobi',
@@ -63,22 +88,6 @@ export class SearchService {
         'Mombasa Island'
       ]
     },
-    {
-      county: 'Kisumu',
-      registries: [
-        'Kisumu Central',
-        'Kisumu Lake'
-      ]
-    },
-    {
-      county: 'Nakuru',
-      registries: [
-        'Nakuru Town',
-        'Naivasha',
-        'Molo'
-      ]
-    },
-    
   ]
 
   getFaqs(): Faqs[] {
@@ -89,7 +98,7 @@ export class SearchService {
     return this.countyRegistryData;
   }
 
-  createSearchApplication(applicationData: Search): Observable<any> {
+  createSearchApplication(applicationData: FormData): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/applications/create`, applicationData);
   }
 
@@ -116,5 +125,41 @@ export class SearchService {
 
   downloadSearchResult(applicationId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/certificates/${applicationId}`);
+  }
+
+  getApplicationById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/applications/${id}`);
+  }
+
+  updateApplication(id: string, data: FormData): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/applications/${id}/edit-returned`, data);
+  }
+
+  // verifyApplication(reference: string): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/applications/all`, {
+  //     params: { reference }
+  //   });
+  // }
+
+  verifyApplication(reference: string): Observable<any> {
+    return this.http.get<any[]>(`${this.apiUrl}/applications/all`).pipe(
+      map(applications => {
+        // Log all completed applications
+        const completedApps = applications.filter(app => app.status === 'completed');
+        console.log('All Completed Applications:', completedApps);
+
+        // Find the specific one by reference
+        const found = completedApps.find(app =>
+          app.reference_number === reference ||
+          app.application_number === reference
+        );
+        // console.log('Searching for reference:', reference);
+        return found || null;
+      }),
+      catchError(error => {
+        console.error('Error fetching applications:', error);
+        return of(null);
+      })
+    );
   }
 }

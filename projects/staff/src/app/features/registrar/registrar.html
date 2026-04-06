@@ -67,8 +67,8 @@
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link"
-              [class.active]="currentTab === 'completed'"
-              (click)="setTab('completed')"
+              [class.active]="currentTab === 'returned'"
+              (click)="setTab('returned')"
               type="button">
         Returned <span class="badge bg-secondary ms-1">{{ getStatusCount('returned') }}</span>
       </button>
@@ -162,7 +162,75 @@
         </div>
       </div>
     </div>
+    <!--returned -->
+    <div class="tab-pane" [class.show]="currentTab === 'returned'" [class.active]="currentTab === 'returned'">
+      <div class="card">
+        <div class="card-body">
+          <!-- Search and Filter Section -->
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <div class="text-muted">
+                Showing {{ filteredApplications.length }} of {{ getStatusCount('returned') }} ongoing applications
+                <span *ngIf="searchValue" class="text-info">
+                  • Filtered by: "{{ searchValue }}"
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       [(ngModel)]="tableSearchValue"
+                       (input)="onTableSearch()"
+                       placeholder="Search in table...">
+                <button *ngIf="tableSearchValue"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        (click)="tableSearchValue = ''; onTableSearch()">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          </div>
 
+          <!-- Data Table -->
+          <div class="table-responsive" *ngIf="filteredApplications.length > 0">
+            <table class="table table-striped table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">No.</th>
+                  <th scope="col">Reference No.</th>
+                  <th scope="col">Parcel No.</th>
+                  <!-- <th scope="col">Date of submission</th> -->
+                  <th scope="col">Time elapsed</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let app of filteredApplications">
+                  <td>{{ app.id }}</td>
+                  <td>{{ app.referenceNo }}</td>
+                  <td>{{ app.parcelNo }}</td>
+                  <td>{{ app.time_elapsed || 'Unknown' }}</td>
+                  <td>
+                  <button class="btn btn-success btn-sm" (click)="viewApplicationDetails(app)">View</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- No results message -->
+          <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+            <p class="text-muted">No applications found</p>
+            <button class="btn btn-outline-primary" (click)="clearSearch()">Clear Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Completed Tab -->
     <div class="tab-pane" [class.show]="currentTab === 'completed'" [class.active]="currentTab === 'completed'">
       <div class="card">
@@ -233,6 +301,75 @@
 
           <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
             <p class="text-muted">No completed applications found</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--------Rejected------->
+    <div class="tab-pane" [class.show]="currentTab === 'rejected'" [class.active]="currentTab === 'rejected'">
+      <div class="card">
+        <div class="card-body">
+          <!-- Search and Filter Section -->
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <div class="text-muted">
+                Showing {{ filteredApplications.length }} of {{ getStatusCount('ongoing') }} ongoing applications
+                <span *ngIf="searchValue" class="text-info">
+                  • Filtered by: "{{ searchValue }}"
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       [(ngModel)]="tableSearchValue"
+                       (input)="onTableSearch()"
+                       placeholder="Search in table...">
+                <button *ngIf="tableSearchValue"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        (click)="tableSearchValue = ''; onTableSearch()">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <div class="table-responsive" *ngIf="filteredApplications.length > 0">
+            <table class="table table-striped table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">No.</th>
+                  <th scope="col">Reference No.</th>
+                  <th scope="col">Parcel No.</th>
+                  <!-- <th scope="col">Date of submission</th> -->
+                  <th scope="col">Time elapsed</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let app of filteredApplications">
+                  <td>{{ app.id }}</td>
+                  <td>{{ app.referenceNo }}</td>
+                  <td>{{ app.parcelNo }}</td>
+                  <td>{{ app.time_elapsed || 'Unknown' }}</td>
+                  <td>
+                  <button class="btn btn-success btn-sm" (click)="viewApplicationDetails(app)">View</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- No results message -->
+          <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+            <p class="text-muted">No applications found</p>
+            <button class="btn btn-outline-primary" (click)="clearSearch()">Clear Search</button>
           </div>
         </div>
       </div>

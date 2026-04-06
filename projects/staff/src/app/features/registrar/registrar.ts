@@ -255,6 +255,7 @@ private mapApiToLocalApplications(): void {
   console.log('✅ Total mapped applications:', this.applications.length);
   this.filterByStatus(this.currentTab);
 }
+
 private formatDate(dateString: string | null | undefined): string {
   if (!dateString) {
     return 'N/A';

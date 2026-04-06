@@ -21,7 +21,7 @@ import { Application } from '../../shared/interfaces/application';
 
 // Type for search configuration
 type SearchType = 'invoice' | 'parcel' | 'document' | 'receipt';
-type ApplicationStatus = 'ongoing' | 'completed' | 'rejected';
+type ApplicationStatus = 'ongoing' | 'completed' | 'rejected' | 'returned';
 
 @Component({
   selector: 'app-registrar',
@@ -389,7 +389,8 @@ private formatDate(dateString: string | null | undefined): string {
     const statusMap: Record<string, ApplicationStatus> = {
       'assigned': 'ongoing',
       'completed': 'completed',
-      'rejected': 'rejected'
+      'rejected': 'rejected',
+      'returned': 'returned'
     };
     return statusMap[backendStatus] || 'ongoing';
   }
@@ -433,6 +434,8 @@ private formatDate(dateString: string | null | undefined): string {
         return 'Completed Applications';
       case 'rejected':
         return 'Rejected Applications';
+      case 'returned':
+        return 'Returned Applications';
       default:
         return 'Applications';
     }

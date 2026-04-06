@@ -22,7 +22,7 @@
   </div>
 
   <!-- Quick Stats - Uncommented -->
-  <div class="row mb-4">
+  <!-- <div class="row mb-4">
     <div class="col-md-2">
       <div class="card bg-warning text-dark">
         <div class="card-body text-center">
@@ -63,7 +63,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Search Card -->
   <div class="card mb-4">
@@ -123,20 +123,20 @@
     <ul class="nav nav-tabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link"
-                [class.active]="currentTab === 'unassigned'"
-                (click)="setTab('unassigned')"
+                [class.active]="currentTab === 'submitted'"
+                (click)="setTab('submitted')"
                 type="button">
-          Unassigned
-          <span class="badge bg-warning ms-1">{{ getStatusCount('unassigned') }}</span>
+          Ongoing
+          <span class="badge bg-warning ms-1">{{ getStatusCount('submitted') }}</span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link"
-                [class.active]="currentTab === 'ongoing'"
-                (click)="setTab('ongoing')"
+                [class.active]="currentTab === 'returned'"
+                (click)="setTab('returned')"
                 type="button">
-          In Progress
-          <span class="badge bg-primary ms-1">{{ getStatusCount('ongoing') }}</span>
+          Returned
+          <span class="badge bg-primary ms-1">{{ getStatusCount('returned') }}</span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -150,11 +150,11 @@
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link"
-                [class.active]="currentTab === 'verified'"
-                (click)="setTab('verified')"
+                [class.active]="currentTab === 'rejected'"
+                (click)="setTab('rejected')"
                 type="button">
-          Verified
-          <span class="badge bg-info ms-1">{{ getStatusCount('verified') }}</span>
+          Rejected
+          <span class="badge bg-info ms-1">{{ getStatusCount('rejected') }}</span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -239,8 +239,8 @@
                 <th scope="col">Parcel No.</th>
                 <th scope="col">Date Submitted</th>
                 <th scope="col">Time Elapsed</th>
-                <th scope="col">Status</th>
-                <th scope="col" *ngIf="currentTab === 'ongoing'">Assigned Registrar</th>
+                <!-- <th scope="col">Status</th> -->
+                <th scope="col" *ngIf="currentTab === 'submitted'">Assigned Registrar</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -251,11 +251,11 @@
                   <strong>{{ app.referenceNo }}</strong>
                 </td>
                 <td>{{ app.parcelNo }}</td>
-                <td>{{ app.paid_at || 'Payment pending' }}</td>
+                <td>{{ app.paid_at_formatted || 'Payment pending' }}</td>
                 <td>
                   <span class="badge bg-secondary">{{ app.time_elapsed }}</span>
                 </td>
-                <td>
+                <!-- <td>
                   <span class="badge"
                         [class.bg-warning]="app.status === 'unassigned'"
                         [class.bg-primary]="app.status === 'ongoing'"
@@ -263,10 +263,10 @@
                         [class.bg-info]="app.status === 'verified'">
                     {{ app.status | titlecase }}
                   </span>
-                </td>
+                </td> -->
 
                 <!-- Assigned Registrar Column -->
-                <td *ngIf="currentTab === 'ongoing'">
+                <td *ngIf="currentTab === 'submitted'">
                   <div class="d-flex align-items-center gap-2">
                     <span>{{ app.assignedRegistrar || 'Not assigned' }}</span>
                     <!-- Reassign Dropdown -->
@@ -295,20 +295,20 @@
                     </button>
 
                     <!-- Mark as Complete Button -->
-                    <button *ngIf="currentTab === 'ongoing' && canMarkCompleted(app)"
+                    <!-- <button *ngIf="currentTab === 'submitted' && canMarkCompleted(app)"
                             class="btn btn-outline-success"
                             (click)="markAsCompleted(app.id)"
                             title="Mark as Completed">
                       <i class="bi bi-check-lg"></i> Complete
-                    </button>
+                    </button> -->
 
                     <!-- Mark as Verified Button -->
-                    <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
+                    <!-- <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
                             class="btn btn-outline-info"
                             (click)="markAsVerified(app.id)"
                             title="Mark as Verified">
                       <i class="bi bi-shield-check"></i> Verify
-                    </button>
+                    </button> -->
                   </div>
                 </td>
               </tr>
@@ -323,10 +323,10 @@
           </div>
           <h5 class="text-muted">No applications found</h5>
           <p class="text-muted mb-3">
-            {{ currentTab === 'unassigned' ? 'No unassigned applications' :
-               currentTab === 'ongoing' ? 'No ongoing applications' :
+            {{ currentTab === 'submitted' ? 'No unassigned applications' :
+               currentTab === 'returned' ? 'No ongoing applications' :
                currentTab === 'completed' ? 'No completed applications' :
-               currentTab === 'verified' ? 'No verified applications' :
+               currentTab === 'rejected' ? 'No verified applications' :
                'No applications in registry' }}
           </p>
           <button class="btn btn-outline-primary" (click)="clearSearch()">

@@ -3,72 +3,37 @@ export interface CertificateInfo {
   uploaded_at: string;
 }
 
-// export interface Application {
-//   // Backend properties
-//   id: number;
-//   reference_number: string;
-//   parcel_number: string;
-//   purpose: string;
-//   county: string;
-//   registry: string;
-//   status: string;
-//   submitted_at: string;
-//   assigned_to: number | null;
-//   assigned_to_username?: string;
-//   applicant: number;
-
-//   // Frontend display properties
-//   dateSubmitted?: string;
-//   timeElapsed?: string;
-
-//   // For table compatibility
-//   referenceNo?: string;
-//   parcelNo?: string;
-//   applicantName?: string;
-//   applicantId?: number;
-
-//   // Certificate information
-//   certificate?: CertificateInfo;
-
-//   // Payment information (optional)
-//   payment?: any;
-
-//   // Reviews (optional)
-//   reviews?: any[];
-
-//   // Optional: Store full objects for debugging
-//   applicantObject?: any;
-//   assignedToObject?: any;
-
-//   // Additional properties for this component
-//   assignedRegistrar?: string;
-//   assignedRegistrarId?: number | null;
-// }
 export interface Application {
   // Required backend properties
   id: number;
+  id_no: number;
   reference_number: string;
   parcel_number: string;
   purpose: string;
   county: string;
   registry: string;
   status: string;
-  submitted_at: string;
+  submitted_at: string | null;
   assigned_to: number | null;
   applicant: number;
-
-  // Optional frontend properties
-  dateSubmitted?: string;
-  timeElapsed?: string;
+  returned?: boolean;
+  paid_at?: string | null;
+  paid_at_formatted?: string;
+  time_elapsed?: string;
   referenceNo?: string;
   parcelNo?: string;
+
+  // Applicant details - ADD THESE
   applicantName?: string;
+  applicantIdNo?: number;
   applicantId?: number;
+  applicantEmail?: string;
+  applicantPhone?: string;
 
   // Optional additional properties
   assigned_to_username?: string;
   certificate?: CertificateInfo;
-  payment?: any;
+  payment?:{}
   reviews?: any[];
 
   // For component-specific needs
@@ -89,4 +54,66 @@ export interface Registrar {
   role: string;
   first_name?: string;
   last_name?: string;
+}
+
+export interface Application {
+  // ... existing fields
+
+  // New fields for documents
+  documents?: {
+    applicationDocs: Document[];
+    supportingDocs: Document[];
+    certificate?: Certificate;
+  };
+
+  // Search history
+  searchHistory?: SearchRecord[];
+
+  // Status tracking
+  statusHistory?: StatusChange[];
+  rejectionReason?: string;
+  returnReason?: string;
+}
+
+export interface Document {
+  id: number;
+  name: string;
+  type: string;
+  url: string;
+  uploadedAt: string;
+  category: 'application' | 'supporting' | 'certificate';
+}
+
+export interface Certificate {
+  id: number;
+  url: string;
+  referenceNo: string;
+  qrCode: string;
+  generatedAt: string;
+  registrarSignature: string;
+}
+
+export interface SearchRecord {
+  id: number;
+  searchDate: string;
+  searchedBy: string;
+  searchType: string;
+  result: string;
+  certificateRef?: string;
+}
+
+export interface StatusChange {
+  status: string;
+  changedAt: string;
+  changedBy: string;
+  reason?: string;
+}
+
+export interface Payment {
+  id: number;
+  amount: string;
+  invoice_number: string;
+  payment_reference: string;
+  merchant_request_id: string;
+  paid_at: string;
 }

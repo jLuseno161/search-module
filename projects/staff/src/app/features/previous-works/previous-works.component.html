@@ -1,0 +1,158 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<div class="container-fluid mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card card-header-custom text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="mb-0">
+                <i class="material-icons me-2">history</i>
+                Previous Works
+              </h2>
+              <p class="mb-0 mt-2">Welcome, {{ currentUserName }}</p>
+              <small>View completed and verified applications</small>
+            </div>
+            <button class="btn btn-outline-light" (click)="router.navigate(['/registrar-dashboard'])">
+              <i class="material-icons me-1">arrow_back</i>
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Search Card -->
+  <div class="card mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">
+        <i class="material-icons me-2">search</i>
+        Search Previous Works
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Search By</label>
+          <select class="form-select" [(ngModel)]="selectedSearchType">
+            <option *ngFor="let type of searchTypes" [value]="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Search Term</label>
+          <input type="text"
+                 class="form-control"
+                 [(ngModel)]="searchTerm"
+                 (keyup.enter)="onSearch()"
+                 [placeholder]="'Enter ' + selectedSearchType + '...'">
+        </div>
+        <div class="col-md-2">
+          <div class="d-flex gap-2">
+            <button class="btn btn-success w-100" (click)="onSearch()">
+              <i class="material-icons me-1">search</i>
+              Search
+            </button>
+            <button class="btn btn-outline-secondary" (click)="clearSearch()" *ngIf="searchTerm">
+              <i class="material-icons me-1">clear</i>
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Results Info -->
+      <div class="mt-3 text-muted small" *ngIf="searchTerm">
+        <i class="material-icons me-1" style="font-size: 14px;">info</i>
+        Found {{ filteredApplications.length }} of {{ applications.length }} applications matching "{{ searchTerm }}"
+      </div>
+    </div>
+  </div>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Loading previous works...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="alert alert-danger">
+    <i class="material-icons me-2">error</i>
+    {{ error }}
+    <button class="btn btn-outline-danger btn-sm ms-3" (click)="loadPreviousWorks()">
+      <i class="material-icons me-1">refresh</i>
+      Retry
+    </button>
+  </div>
+
+  <!-- Previous Works Table -->
+  <div *ngIf="!isLoading && !error && filteredApplications.length > 0" class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Completed Applications</h5>
+      <small class="text-muted">Total: {{ applications.length }} applications</small>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="">
+            <!-- <tr *ngFor="let app of filteredApplications; let i = index"> -->
+              <th>#</th>
+              <th>Reference No.</th>
+              <th>Parcel No.</th>
+              <th>Status</th>
+              <th>Actions</th>
+            <!-- </tr> -->
+          </thead>
+          <tbody>
+            <tr *ngFor="let app of filteredApplications; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ app.referenceNo || app.reference_number }}</td>
+              <td>{{ app.parcelNo || app.parcel_number }}</td>
+              <td>
+                <span class="badge bg-success">
+                  {{ app.status | titlecase }}
+                </span>
+              </td>
+              <td>
+
+                <button class="btn btn-sm btn-outline-primary me-1"
+                        (click)="viewApplicationDetails(app)"
+                        title="View Details">
+                  <i class="material-icons">visibility</i>
+                </button>
+                <button *ngIf="app.certificate?.signed_file"
+                        class="btn btn-sm btn-outline-info"
+                        (click)="downloadCertificate(app)"
+                        title="Download Certificate">
+                  <i class="material-icons">download</i>
+                </button>
+                 <button class="btn btn-sm btn-outline-secondary"
+                        (click)="viewSupportingDocument(app)"
+                        title="View Supporting Document">
+                  <i class="material-icons">description</i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && !error && applications.length === 0" class="text-center py-5">
+    <i class="material-icons" style="font-size: 64px;">history</i>
+    <h4 class="text-muted mt-3">No Previous Works Found</h4>
+    <p class="text-muted">Completed applications will appear here once you finish processing them.</p>
+    <button class="btn btn-primary" (click)="router.navigate(['/registrar-dashboard'])">
+      <i class="material-icons me-1">dashboard</i>
+      Go to Dashboard
+    </button>
+  </div>
+</div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>

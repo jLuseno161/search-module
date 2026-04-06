@@ -13,57 +13,61 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
-    // Check if user is logged in
-    if (this.authService.isLoggedIn()) {
-      const user = this.authService.currentUserValue;
+    console.log('🔍 AuthGuard checking route:', route.routeConfig?.path);
+    console.log('User logged in?', this.authService.isLoggedIn());
+    console.log('Current user role:', this.authService.getCurrentUserRole());
 
-      // If trying to access login page while logged in, redirect to appropriate dashboard
+    if (this.authService.isLoggedIn()) {
+      const userRole = this.authService.getCurrentUserRole();
+
       if (route.routeConfig?.path === 'login') {
-        this.redirectToRoleDashboard(user?.role || 'user');
+        this.redirectToRoleDashboard(userRole);
         return false;
       }
 
-      // Check if route has role restrictions
-      if (route.data['roles'] && user) {
-        const userRole = user.role; // Don't lowercase - keep original case
+      if (route.data['roles']) {
+        const userRoles = this.authService.getUserRoles();
         const allowedRoles = route.data['roles'] as string[];
-        console.log('🔍 Role check for /registrar-dashboard:', {
-                userRole,
-                allowedRoles,
-                hasAccess: allowedRoles.includes(userRole),
-                routePath: route.routeConfig?.path,
-                routeData: route.data
-              });
-        // Check if user has required role
-        if (!allowedRoles.includes(userRole)) {
+
+        console.log('🔍 Role check:', {
+          userRoles,
+          allowedRoles,
+          routePath: route.routeConfig?.path
+        });
+
+        const hasRequiredRole = userRoles.some(role => allowedRoles.includes(role));
+
+        if (!hasRequiredRole) {
+          console.warn('⛔ User does not have required role');
           this.redirectToRoleDashboard(userRole);
           return false;
         }
       }
 
-      // User is authenticated and has required role (if any)
       return true;
     }
-
 
     if (route.routeConfig?.path === 'login') {
       return true;
     }
 
+    console.log('⛔ Not logged in, redirecting to login');
     this.router.navigate(['/login']);
     return false;
   }
 
   private redirectToRoleDashboard(userRole: string): void {
+    console.log('Redirecting based on role:', userRole);
+
     switch (userRole) {
       case 'admin':
       case 'superuser':
         this.router.navigate(['/admin-dashboard']);
         break;
-      case 'is_registrar_in_charge': 
-        this.router.navigate(['/registrarInCharge']); 
+      case 'is_registrar_in_charge':
+        this.router.navigate(['/registrarInCharge']);
         break;
-      case 'is_registrar': 
+      case 'is_registrar':
         this.router.navigate(['/registrar-dashboard']);
         break;
       default:

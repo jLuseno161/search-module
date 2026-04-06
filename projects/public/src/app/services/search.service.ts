@@ -74,13 +74,13 @@ export class SearchService {
 
       ]
     },
-    {
-      county: 'Nairobi',
-      registries: [
-        'Nairobi',
-        'Central',
-      ]
-    },
+    // {
+    //   county: 'Nairobi',
+    //   registries: [
+    //     'Nairobi',
+    //     'Central',
+    //   ]
+    // },
     {
       county: 'Mombasa',
       registries: [

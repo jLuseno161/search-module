@@ -1,0 +1,308 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="search-form-container">
+  <div class="form-header">
+    <h5>LRA 84 - Search Certificate Form</h5>
+    <p class="text-muted">Complete the search details below</p>
+  </div>
+
+  <form [formGroup]="searchForm" (ngSubmit)="onSaveCertificate()">
+    <div class="row g-3">
+      <!-- Parcel Number (Read-only) -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">TITLE NUMBER</label>
+          <input type="text" class="form-control" formControlName="parcelNumber" readonly>
+        </div>
+      </div>
+
+      <!-- Application Reference (Read-only) -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">SEARCH NUMBER</label>
+          <input type="text" class="form-control" formControlName="referenceNumber" readonly>
+        </div>
+      </div>
+
+      <!-- Search Date -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">Registration Date <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" formControlName="searchDate">
+        </div>
+      </div>
+
+      <!-- Purpose - Read-only -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">Purpose of Search</label>
+          <input type="text" class="form-control" formControlName="purpose" readonly>
+        </div>
+      </div>
+
+      <div></div>
+
+      <!-- Part A - Property Section -->
+      <div class="form-header">
+        <h4><b>Part A - Property Section [easement, e.t.c]</b></h4>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label">Nature of title<span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="nature_of_title" placeholder="absolute, leasehold etc">
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label">Land Size <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="landSize" placeholder="e.g., 2.5 Ha">
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label">Holding Type / Tenure <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="holdingType"
+            list="holdingTypes"
+            placeholder="e.g., Sole Ownership, Joint Tenancy, etc.">
+          <datalist id="holdingTypes">
+            <option value="Sole Ownership">
+            <option value="Joint Tenancy">
+            <option value="Tenancy in Common">
+            <option value="Company/Corporate Ownership">
+            <option value="Trust Ownership">
+            <option value="Cooperative Society">
+            <option value="Government/Public Land">
+            <option value="Leasehold">
+            <option value="Freehold">
+          </datalist>
+          <small class="form-text text-muted">
+            Specifies how property is held (sole, joint, tenancy in common, etc.)
+          </small>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label">Rent Amount</label>
+          <input type="text" class="form-control" formControlName="rent" placeholder="Ksh....">
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label">Term:</label>
+          <input type="text" class="form-control" formControlName="term" placeholder="Time in years">
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label">Folio/Title Reference</label>
+          <input type="text" class="form-control" formControlName="folio" placeholder="e.g., LR No. 12345/1">
+        </div>
+      </div>
+
+      <!-- Part B - Proprietorship Section -->
+      <!-- Part B - Proprietorship Section -->
+      <div></div>
+      <div class="form-header">
+        <h4><b>Part B - Proprietorship Section</b></h4>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">
+          Registered Owners/Proprietors
+          <span class="text-danger">*</span>
+        </label>
+
+        <!-- Dynamic Owner Fields using formControlName -->
+        <div *ngFor="let owner of ownersArray.controls; let i = index; trackBy: trackByIndex" class="mb-2" [formGroupName]="'owners'">
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              [formControlName]="i"
+              [placeholder]="'Enter owner ' + (i + 1) + ' name'">
+
+            <!-- Remove button (show if more than one owner) -->
+            <button
+              *ngIf="ownersArray.length > 1"
+              type="button"
+              class="btn btn-outline-danger"
+              (click)="removeOwner(i)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Owner Button -->
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary mt-2"
+          (click)="addOwner()">
+          <i class="bi bi-plus-circle me-1"></i> Add Another Owner
+        </button>
+
+        <small class="form-text text-muted">
+          Add all registered owners for this property. For multiple owners, click "Add Another Owner".
+        </small>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">Inhibitions, cautions and restrictions</label>
+          <input type="text" class="form-control" formControlName="inhibitions" placeholder="Enter any inhibitions">
+        </div>
+      </div>
+
+
+      <!-- Part C - Encumbrances Section -->
+      <div></div>
+      <div class="form-header">
+        <h4><b>Part C - Encumbrances Section [leases, charges, e.t.c]</b></h4>
+      </div>
+
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label">Encumbrances/Remarks</label>
+          <textarea class="form-control" formControlName="remarks" rows="3"
+                    placeholder="Enter any encumbrances, cautions, restrictions or remarks"></textarea>
+        </div>
+      </div>
+
+      <!-- Signature Section - Show profile signature status -->
+      <div class="col-12">
+        <div class="signature-section card">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">Registrar's Signature</h6>
+          </div>
+          <div class="card-body">
+            <!-- Show signature status -->
+            <div *ngIf="hasSignature" class="alert alert-success mb-3">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <strong>Signature loaded from your profile.</strong> It will be automatically added to the certificate.
+            </div>
+            <div *ngIf="!hasSignature" class="alert alert-warning mb-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>No signature found in your profile.</strong> Please upload your signature in
+              <a routerLink="/profile" class="alert-link">Profile Settings</a> before generating the certificate.
+            </div>
+
+            <!-- Show signature preview if exists -->
+            <div *ngIf="hasSignature && currentUser?.signature" class="mt-3">
+              <label class="form-label">Your Signature:</label>
+              <div class="signature-preview border rounded p-2 bg-light" style="width: 300px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                <img
+                  [src]="getSignatureUrl()"
+                  alt="Your signature"
+                  style="max-width: 280px; max-height: 80px; object-fit: contain;"
+                  (error)="handleSignatureImageError($event)">
+              </div>
+              <small class="text-muted d-block mt-2">
+                <i class="bi bi-info-circle me-1"></i>
+                This signature will appear on the LRA 84 certificate.
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applicant Details -->
+      <div></div>
+      <div class="form-header">
+        <h4><b>Applicant Details</b></h4>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" formControlName="applicantName" readonly>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="text" class="form-control" formControlName="applicantEmail" readonly>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">ID Number:</label>
+          <input type="text" class="form-control" formControlName="IdNumber" readonly>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label">Tel Number:</label>
+          <input type="text" class="form-control" formControlName="applicantPhone" readonly>
+        </div>
+      </div>
+
+      <!-- Success Message after save -->
+      <div class="col-12" *ngIf="isSaved">
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <strong>Certificate saved successfully!</strong> You can now preview the certificate or proceed to upload.
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="col-12">
+        <hr>
+        <div class="d-flex justify-content-end gap-2">
+          <!-- Cancel Button - Always visible -->
+          <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isGenerating">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+          </button>
+
+          <!-- Save Certificate Button - Visible only when NOT saved -->
+          <button *ngIf="!isSaved"
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="onSaveCertificate()"
+                  [disabled]="!searchForm.valid || isGenerating">
+            <i class="bi bi-save me-1"></i>
+            {{ isGenerating ? 'Saving...' : 'Save Certificate' }}
+          </button>
+
+          <!-- Preview Button - Visible only after save -->
+          <button *ngIf="isSaved"
+                  type="button"
+                  class="btn btn-info"
+                  (click)="previewCertificate()"
+                  [disabled]="isGenerating">
+            <i class="bi bi-eye me-1"></i>Preview
+          </button>
+
+          <!-- Next Button - Visible only after save -->
+          <button *ngIf="isSaved"
+                  type="button"
+                  class="btn btn-success"
+                  (click)="goToUploadTab()"
+                  [disabled]="isGenerating">
+            <i class="bi bi-arrow-right me-1"></i>Next: Upload Certificate
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading Indicator during generation -->
+      <div class="col-12" *ngIf="isGenerating">
+        <div class="text-center mt-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Generating certificate with QR code...</p>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

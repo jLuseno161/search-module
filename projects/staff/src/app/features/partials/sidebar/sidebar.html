@@ -1,137 +1,85 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <div class="sidebar-container">
     <div class="sidebar-content">
-        <a href="/" class="logo-container">
-            <!-- Replace with your actual logo path -->
+        <a routerLink="/" class="logo-container">
             <img src="./assets/svgs/nlims_logo.svg" class="logo-img" alt="NLIMS Logo">
         </a>
         <ul class="list-unstyled ps-0">
             <li class="mb-1">
-                <a href="#" class="nav-item active">
+                <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
                     <i class="material-icons">tv</i> Dashboard
                 </a>
             </li>
             <li class="mb-1">
-                <a href="#" class="nav-item">
+                <a routerLink="/applications" routerLinkActive="active" class="nav-item">
                     <i class="material-icons">note_add</i> Applications
                 </a>
             </li>
             <li class="mb-1">
-                <a href="#" class="nav-item">
+                <a routerLink="/previous-works" routerLinkActive="active" class="nav-item">
+                    <i class="material-icons">history</i> Previous Works
+                </a>
+            </li>
+            <li class="mb-1">
+                <a routerLink="/flag-parcel" routerLinkActive="active" class="nav-item">
                     <i class="material-icons">flag</i> Flag Parcel
                 </a>
             </li>
 
             <li class="mb-1">
-                <button class="btn-toggle" data-target="resources-collapse">
-                        <i class="material-icons">assessment</i>
-                        Resources
-                    </button>
-                <div class="collapse" id="resources-collapse">
+                <button class="btn-toggle" (click)="toggleCollapse('resources-collapse')" [class.expanded]="expandedMenus['resources-collapse']">
+                    <i class="material-icons">assessment</i>
+                    Resources
+                </button>
+                <div class="collapse" [class.show]="expandedMenus['resources-collapse']">
                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">layers</i> User Guide
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">fingerprint</i> Finger Print
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">archive</i> Land Forms
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">view_agenda</i> Approved Survey Plans
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">list</i> PDP Approved Plan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">folder</i> Verify Converted Parcel Numbers
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">search</i> Search Application
-                            </a>
-                        </li>
+                        <li><a routerLink="/user-guide" routerLinkActive="active" class="rounded"><i class="material-icons">layers</i>User Guide</a></li>
+                        <li><a routerLink="/fingerprint" routerLinkActive="active" class="rounded"><i class="material-icons">fingerprint</i>Finger Print</a></li>
+                        <li><a routerLink="/land-forms" routerLinkActive="active" class="rounded"><i class="material-icons">archive</i>Land Forms</a></li>
+                        <li><a routerLink="/approved-survey-plans" routerLinkActive="active" class="rounded"><i class="material-icons">view_agenda</i>Approved Survey Plans</a></li>
+                        <li><a routerLink="/pdp-approved-plans" routerLinkActive="active" class="rounded"><i class="material-icons">list</i>PDP Approved Plan</a></li>
+                        <li><a routerLink="/verify-parcels" routerLinkActive="active" class="rounded"><i class="material-icons">folder</i>Verify Converted Parcel Numbers</a></li>
+                        <li><a routerLink="/search-application" routerLinkActive="active" class="rounded"><i class="material-icons">search</i>Search Application</a></li>
                     </ul>
                 </div>
             </li>
 
             <li class="mb-1">
-                <button class="btn-toggle" data-target="staff-collapse">
-                        <i class="material-icons">format_list_bulleted</i>
-                        Staff Management
-                    </button>
-                <div class="collapse" id="staff-collapse">
+                <button class="btn-toggle" (click)="toggleCollapse('staff-collapse')" [class.expanded]="expandedMenus['staff-collapse']">
+                    <i class="material-icons">format_list_bulleted</i>
+                    Staff Management
+                </button>
+                <div class="collapse" [class.show]="expandedMenus['staff-collapse']">
                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">group</i> Officers
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">group</i> Teams
-                            </a>
-                        </li>
+                        <li><a routerLink="/officers" routerLinkActive="active" class="rounded"><i class="material-icons">group</i>Officers</a></li>
+                        <li><a routerLink="/teams" routerLinkActive="active" class="rounded"><i class="material-icons">group</i>Teams</a></li>
                     </ul>
                 </div>
             </li>
 
             <li class="mb-1">
-                <button class="btn-toggle" data-target="communications-collapse">
-                        <i class="material-icons">forum</i>
-                        Communications
-                    </button>
-                <div class="collapse" id="communications-collapse">
+                <button class="btn-toggle" (click)="toggleCollapse('communications-collapse')" [class.expanded]="expandedMenus['communications-collapse']">
+                    <i class="material-icons">forum</i>
+                    Communications
+                </button>
+                <div class="collapse" [class.show]="expandedMenus['communications-collapse']">
                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">event_note</i> Notices
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">mail</i> Staff Memo
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">notifications</i> Notifications
-                            </a>
-                        </li>
+                        <li><a routerLink="/notices" routerLinkActive="active" class="rounded"><i class="material-icons">event_note</i>Notices</a></li>
+                        <li><a routerLink="/staff-memo" routerLinkActive="active" class="rounded"><i class="material-icons">mail</i>Staff Memo</a></li>
+                        <li><a routerLink="/notifications" routerLinkActive="active" class="rounded"><i class="material-icons">notifications</i>Notifications</a></li>
                     </ul>
                 </div>
             </li>
 
             <li class="mb-1">
-                <button class="btn-toggle" data-target="land-processes-collapse">
-                        <i class="material-icons">receipt</i>
-                        Land Processes
-                    </button>
-                <div class="collapse" id="land-processes-collapse">
+                <button class="btn-toggle" (click)="toggleCollapse('land-processes-collapse')" [class.expanded]="expandedMenus['land-processes-collapse']">
+                    <i class="material-icons">receipt</i>
+                    Land Processes
+                </button>
+                <div class="collapse" [class.show]="expandedMenus['land-processes-collapse']">
                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">payment</i> Tickets
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="rounded">
-                                <i class="material-icons">payment</i> Analytics
-                            </a>
-                        </li>
+                        <li><a routerLink="/tickets" routerLinkActive="active" class="rounded"><i class="material-icons">payment</i>Tickets</a></li>
+                        <li><a routerLink="/analytics" routerLinkActive="active" class="rounded"><i class="material-icons">payment</i>Analytics</a></li>
                     </ul>
                 </div>
             </li>
@@ -139,71 +87,22 @@
             <li class="border-top my-3"></li>
 
             <li class="mb-1">
-                <a href="#" class="nav-item">
+                <a routerLink="/configurations" routerLinkActive="active" class="nav-item">
                     <i class="material-icons">build</i> Configurations
                 </a>
             </li>
 
             <li class="mb-1">
-                <a href="#" class="nav-item">
+                <a routerLink="/profile" routerLinkActive="active" class="nav-item">
                     <i class="material-icons">account_circle</i> Account
                 </a>
             </li>
 
             <li class="mb-1">
-                <a href="#" class="nav-item" id="logout-btn" (click)="logout()">
+                <a href="#" class="nav-item" (click)="logout($event)">
                     <i class="material-icons">logout</i> Logout
                 </a>
             </li>
         </ul>
     </div>
 </div>
-
-
-
-<script>
-    // Simple and reliable toggle functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleButtons = document.querySelectorAll('.btn-toggle');
-
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const targetElement = document.getElementById(targetId);
-
-                if (targetElement) {
-                    // Toggle the show class
-                    targetElement.classList.toggle('show');
-
-                    // Toggle the expanded class on the button
-                    this.classList.toggle('expanded');
-
-                    console.log('Toggled:', targetId, 'Show class:', targetElement.classList.contains('show'));
-                } else {
-                    console.error('Target element not found:', targetId);
-                }
-            });
-        });
-
-        // Logout button functionality
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm('Are you sure you want to logout?')) {
-                alert('Logging out...');
-                // In a real application, you would redirect to logout endpoint
-                // window.location.href = '/logout';
-            }
-        });
-
-        // Set active nav item
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (!this.id) { // Don't apply to logout button
-                    e.preventDefault();
-                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                }
-            });
-        });
-    });
-</script>

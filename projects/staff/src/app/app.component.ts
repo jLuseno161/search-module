@@ -4,6 +4,7 @@ import { RouterOutlet, Router } from '@angular/router';
 import { Footer } from './features/partials/footer/footer';
 import { Header } from './features/partials/header/header';
 import { Sidebar } from './features/partials/sidebar/sidebar';
+// import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // import { Footer } from './features/registrar/partials/footer/footer';
 // import { Header } from './features/registrar/partials/header/header';
 // import { Sidebar } from './features/registrar/partials/sidebar/sidebar';
@@ -13,6 +14,7 @@ import { Sidebar } from './features/partials/sidebar/sidebar';
   standalone: true,
   imports: [
     CommonModule,
+    // BrowserAnimationsModule,
     RouterOutlet,
     Sidebar,
     Header,

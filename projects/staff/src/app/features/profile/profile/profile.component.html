@@ -1,0 +1,222 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<div class="profile-container">
+  <mat-card appearance="outlined" class="account-settings-card">
+    <mat-card-header>
+      <div class="mat-mdc-card-header-text"></div>
+      Your Account Settings
+    </mat-card-header>
+
+    <mat-card-content class="main_card">
+      <!-- Profile Information Section -->
+      <div class="settings-section-header">
+        <div>Profile Information</div>
+      </div>
+
+      <mat-card appearance="outlined" class="profile_card">
+        <mat-card-content>
+          <div class="profile-content">
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+              <div class="avatar-container">
+                <img class="profile-img" src="../../../../assets/images/avatar.png" alt="Profile">
+              </div>
+              <div class="upload-btn-container">
+                <button mat-raised-button class="profile-img-upload">
+                  Upload photo
+                </button>
+              </div>
+            </div>
+
+            <!-- User Details - Left Column -->
+            <div class="user-details">
+              <table class="details-table">
+                <tr>
+                  <td>Full Names :</td>
+                  <td>{{ user?.first_name || user?.username || 'N/A' }} {{ user?.last_name || '' }}</td>
+                </tr>
+                <tr>
+                  <td>Designation :</td>
+                  <td>{{ user?.role || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <td>Section :</td>
+                  <td>{{ user?.registry || 'Not Available' }}</td>
+                </tr>
+                <tr>
+                  <td>County :</td>
+                  <td>{{ user?.county || 'N/A' }}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- User Details - Right Column -->
+            <div class="user-details">
+              <table class="details-table">
+                <tr>
+                  <td>Employee Number :</td>
+                  <td>{{ user?.username || 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <td>User ID :</td>
+                  <td>{{ user?.id_no }}</td>
+                </tr>
+                <tr>
+                  <td>Contact :</td>
+                  <td>{{ user?.phone_number || 'Not provided' }}</td>
+                </tr>
+                <tr>
+                  <td>Email Address :</td>
+                  <td>{{ user?.email || 'Not provided' }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Signature Section with Canvas -->
+      <div class="signature-section">
+        <div class="signature-header">
+          <div>Digital Signature</div>
+          <div class="signature-actions">
+            <button mat-flat-button color="primary" (click)="resetSignature()" *ngIf="hasSignature">
+              Draw New Signature
+            </button>
+          </div>
+        </div>
+
+        <div class="signature-content">
+          <!-- Current Signature Preview (if exists) -->
+          <div *ngIf="hasSignature && user?.signature" class="current-signature-preview">
+            <div class="signature-info">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span>Current Signature:</span>
+            </div>
+            <div class="current-signature">
+               <img [src]="getSignatureUrl()"
+         alt="Current Signature"
+         class="signature-image"
+         (error)="handleSignatureImageError($event)">
+            </div>
+          </div>
+
+          <!-- Canvas Signature Pad -->
+          <div class="signature-pad-container">
+            <h4 *ngIf="!hasSignature">Draw Your Signature Below</h4>
+            <h4 *ngIf="hasSignature">Update Your Signature (draw below to replace)</h4>
+
+            <div class="signature-pad card">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">Draw your signature</h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-8">
+                    <div class="signature-canvas-container border rounded p-2 bg-white"
+                        (mousedown)="startDrawing($event)"
+                        (mousemove)="draw($event)"
+                        (mouseup)="stopDrawing()"
+                        (mouseleave)="stopDrawing()">
+                      <!-- FIXED: Changed from 400x150 to 300x100 to match backend limits -->
+                      <canvas #signatureCanvas
+                              width="300"
+                              height="100"
+                              style="width: 300px; height: 100px; cursor: crosshair; background: white;">
+                      </canvas>
+                    </div>
+                    <div class="canvas-instructions text-muted mt-2">
+                      <small>
+                        <i class="bi bi-mouse"></i> Click and drag to draw your signature
+                      </small>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="signature-actions">
+                      <button type="button" class="btn btn-outline-secondary btn-sm mb-2 w-100" (click)="clearSignature()" [disabled]="isUploading">
+                        <i class="bi bi-eraser me-1"></i>Clear Canvas
+                      </button>
+                      <button type="button" class="btn btn-outline-primary btn-sm mb-2 w-100" (click)="saveSignature()" [disabled]="isUploading">
+                        <i class="bi bi-check-lg me-1"></i>{{ isUploading ? 'Uploading...' : 'Save Signature' }}
+                      </button>
+                      <div class="dimension-info mt-2 text-center">
+                        <small class="text-muted d-block">
+                          <i class="bi bi-info-circle me-1"></i>
+                          <strong>Max dimensions:</strong> 300px × 100px<br>
+                          <strong>Max size:</strong> 200KB
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Status -->
+          <div *ngIf="isUploading" class="upload-status text-center mt-3">
+            <mat-spinner diameter="30"></mat-spinner>
+            <p class="mt-2">Uploading signature...</p>
+          </div>
+
+          <!-- Error Message Display -->
+          <div *ngIf="uploadError" class="alert alert-danger mt-3">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ uploadError }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Section -->
+      <div class="password-section">
+        <div class="settings-section-header">
+          <div>Change Password</div>
+        </div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="password-form">
+          <div class="form-group">
+            <label>Current Password <span class="required">*</span></label>
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput type="password" formControlName="current_password" placeholder="Enter current password">
+              <mat-error *ngIf="passwordForm.get('current_password')?.hasError('required') && passwordForm.get('current_password')?.touched">
+                Current password is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-group">
+            <label>New Password <span class="required">*</span></label>
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput type="password" formControlName="password" placeholder="Enter new password">
+              <mat-error *ngIf="passwordForm.get('password')?.hasError('required') && passwordForm.get('password')?.touched">
+                New password is required
+              </mat-error>
+              <mat-error *ngIf="passwordForm.get('password')?.hasError('minlength') && passwordForm.get('password')?.touched">
+                Password must be at least 8 characters
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-group">
+            <label>Confirm New Password <span class="required">*</span></label>
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput type="password" formControlName="passwordconfirm" placeholder="Confirm new password">
+              <mat-error *ngIf="passwordForm.get('passwordconfirm')?.hasError('required') && passwordForm.get('passwordconfirm')?.touched">
+                Please confirm your password
+              </mat-error>
+              <mat-error *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('passwordconfirm')?.touched">
+                Passwords do not match
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions">
+            <button mat-raised-button color="primary" type="submit" [disabled]="!passwordForm.valid || isUploading">
+              <i class="bi bi-shield-lock me-1"></i>
+              Change Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

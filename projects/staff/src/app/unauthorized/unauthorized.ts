@@ -16,7 +16,7 @@ import { AuthService } from '../auth/auth.service';
         <p>You don't have permission to access this page.</p>
         <p *ngIf="authService.currentUserValue" class="user-info">
           Logged in as: <strong>{{ authService.currentUserValue.username }}</strong>
-          ({{ authService.currentUserValue.role }})
+          ({{ getUserRole() }})
         </p>
         <button (click)="goToDashboard()" class="btn-primary">
           Go to Dashboard
@@ -81,10 +81,24 @@ export class UnauthorizedComponent {
     private router: Router
   ) { }
 
+  // Helper method to safely get user role
+  getUserRole(): string {
+    const user = this.authService.currentUserValue;
+    if (!user) return 'unknown';
+
+    // Handle both role and roles array
+    if (user.roles && user.roles.length > 0) {
+      return user.roles[0];
+    }
+    return user.role || 'unknown';
+  }
+
   goToDashboard() {
     const user = this.authService.currentUserValue;
     if (user) {
-      this.navigateBasedOnRole(user.role);
+      // Safely get the role - FIX FOR LINE 87
+      const userRole = this.getUserRole();
+      this.navigateBasedOnRole(userRole);
     } else {
       this.router.navigate(['/login']);
     }
@@ -97,13 +111,14 @@ export class UnauthorizedComponent {
       case 'superuser':
         this.router.navigate(['/admin-dashboard']);
         break;
-      case 'is_registrar_in_charge': // Exact Django role value
+      case 'is_registrar_in_charge':
         this.router.navigate(['/registrarInCharge']);
         break;
-      case 'is_registrar': // Exact Django role value
+      case 'is_registrar':
         this.router.navigate(['/registrar-dashboard']);
         break;
       default:
+        console.log('Unknown role, redirecting to login:', userRole);
         this.router.navigate(['/login']);
     }
   }

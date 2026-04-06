@@ -21,7 +21,7 @@ import { Application } from '../../shared/interfaces/application';
 
 // Type for search configuration
 type SearchType = 'invoice' | 'parcel' | 'document' | 'receipt';
-type ApplicationStatus = 'ongoing' | 'completed' | 'rejected';
+type ApplicationStatus = 'ongoing' | 'completed' | 'rejected' | 'returned';
 
 @Component({
   selector: 'app-registrar',
@@ -94,49 +94,56 @@ export class Registrar implements OnInit {
     this.currentUserName = this.authService.getCurrentUserName();
     this.currentUserRegistry = this.authService.getCurrentUserRegistry();
     this.currentUserRole = this.authService.getCurrentUserRole();
-
-    console.log('👤 Registrar initialized:', {
-      name: this.currentUserName,
-      registry: this.currentUserRegistry,
-      role: this.currentUserRole
-    });
   }
 
   ngOnInit(): void {
-    console.log('🚀 Registrar Dashboard Component Initialized');
-    console.log('👤 Current user:', {
-      name: this.currentUserName,
-      registry: this.currentUserRegistry,
-      role: this.currentUserRole
-    });
     this.loadRegistrars();
     this.loadApplications();
   }
 
   // ========== API METHODS ==========
   loadApplications(): void {
-    this.isLoading = true;
-    this.error = '';
+  this.isLoading = true;
+  this.error = '';
 
-    this.applicationService.getRegistrarAssignedApplications()
-      .subscribe({
-        next: (response: ApiResponse) => {
-          this.apiApplications = response.results;
-          this.isLoading = false;
-          console.log('✅ Applications loaded from API:', this.apiApplications);
+  this.applicationService.getRegistrarAssignedApplications()
+    .subscribe({
+      next: (response: any) => {
+        console.log('📦 Full API Response:', response);
 
-          // Map API data to local applications format
-          this.mapApiToLocalApplications();
-        },
-        error: (error: any) => {
-          this.isLoading = false;
-          this.error = 'Failed to load applications from API. Please try again later.';
-          console.error('❌ Error loading applications from API:', error);
-          this.applications = [];
-          this.filteredApplications = [];
+        // Handle both response formats
+        let applicationsArray = [];
+
+        if (Array.isArray(response)) {
+          // If response is directly an array
+          applicationsArray = response;
+          console.log('✅ Response is an array with', applicationsArray.length, 'applications');
+        } else if (response && response.results && Array.isArray(response.results)) {
+          // If response has a results property
+          applicationsArray = response.results;
+          console.log('✅ Response has results array with', applicationsArray.length, 'applications');
+        } else {
+          console.error('❌ Unexpected response format:', response);
+          applicationsArray = [];
         }
-      });
-  }
+
+        this.apiApplications = applicationsArray;
+        this.isLoading = false;
+        console.log('✅ Applications loaded from API:', this.apiApplications);
+
+        // Map API data to local applications format
+        this.mapApiToLocalApplications();
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        this.error = 'Failed to load applications from API. Please try again later.';
+        console.error('❌ Error loading applications from API:', error);
+        this.applications = [];
+        this.filteredApplications = [];
+      }
+    });
+}
+
 
   private loadRegistrars(): void {
     this.isRegistrarsLoading = true;
@@ -155,95 +162,35 @@ export class Registrar implements OnInit {
     });
   }
 
-  // private mapApiToLocalApplications(): void {
-  //   this.applications = this.apiApplications.map(apiApp => {
-  //     // Map backend status to frontend status for individual registrars
-  //     const statusMap: Record<string, 'ongoing' | 'completed' | 'rejected'> = {
-  //       'assigned': 'ongoing',
-  //       'completed': 'completed',
-  //       'rejected': 'rejected'
-  //     };
-
-  //     const frontendStatus = statusMap[apiApp.status] || 'ongoing';
-
-  //     // Extract user information based on your API structure with safe access
-  //     const applicant = apiApp.user?.normal; // Applicant is normal user
-
-  //     // Handle applicant data
-  //     let applicantName = 'Unknown Applicant';
-  //     let applicantId = 0;
-
-  //     if (applicant) {
-  //       applicantName = `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() || applicant.username || 'Applicant';
-  //       applicantId = applicant.id || 0;
-  //     }
-
-  //     // FIX: Look up registrar name from local registrars array
-  //     let assignedToUsername = 'Not assigned';
-  //     let assignedToId = apiApp.assigned_to;
-
-  //     if (apiApp.assigned_to) {
-  //       const assignedRegistrar = this.registrars.find(reg => reg.id === apiApp.assigned_to);
-  //       if (assignedRegistrar) {
-  //         assignedToUsername = assignedRegistrar.username;
-  //         console.log('✅ Found assigned registrar:', assignedToUsername);
-  //       } else {
-  //         console.log('❌ Registrar not found in local array, ID:', apiApp.assigned_to);
-  //         assignedToUsername = `Registrar #${apiApp.assigned_to}`;
-  //       }
-  //     }
-
-  //     // Create complete application object with all properties
-  //     const application: Application = {
-  //       // Backend properties
-  //       id: apiApp.id,
-  //       reference_number: apiApp.reference_number,
-  //       parcel_number: apiApp.parcel_number,
-  //       purpose: apiApp.purpose,
-  //       county: apiApp.county,
-  //       registry: apiApp.registry,
-  //       status: apiApp.status as any,
-  //       submitted_at: apiApp.submitted_at,
-  //       assigned_to: assignedToId,
-  //       assigned_to_username: assignedToUsername,
-  //       applicant: applicant,
-
-  //       // Frontend display properties
-  //       dateSubmitted: this.formatDate(apiApp.submitted_at),
-  //       timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
-
-  //       // Table compatibility properties
-  //       referenceNo: apiApp.reference_number,
-  //       parcelNo: apiApp.parcel_number,
-  //       applicantName: applicantName,
-  //       applicantId: applicantId,
-  //       certificate: apiApp.certificate ? {
-  //         signed_file: apiApp.certificate.signed_file,
-  //         uploaded_at: this.formatDate(apiApp.certificate.uploaded_at)
-  //       } : undefined
-  //     };
-
-  //     return application;
-  //   });
-
-  //   console.log('✅ Mapped applications:', this.applications);
-  //   this.filterByStatus(this.currentTab);
-  // }
 private mapApiToLocalApplications(): void {
+  if (!this.apiApplications || !Array.isArray(this.apiApplications)) {
+    console.warn('⚠️ No applications to map or invalid format:', this.apiApplications);
+    this.applications = [];
+    this.filteredApplications = [];
+    return;
+  }
+
   this.applications = this.apiApplications.map(apiApp => {
     console.log('🔍 Processing API Application:', apiApp);
 
-    const statusMap: Record<string, 'ongoing' | 'completed' | 'rejected'> = {
-      'assigned': 'ongoing',
-      'completed': 'completed',
-      'rejected': 'rejected'
-    };
+    // Extract paid_at from payment object (FIXED)
+    let paidAtValue = null;
+    if (apiApp.payment && apiApp.payment.paid_at) {
+      paidAtValue = apiApp.payment.paid_at;
+    }
 
-    const frontendStatus = statusMap[apiApp.status] || 'ongoing';
+    // Calculate time elapsed from paid_at
+    let timeElapsed = 'Unknown';
+    if (paidAtValue) {
+      timeElapsed = this.calculateTimeElapsed(paidAtValue);
+    } else {
+      timeElapsed = 'Not paid yet';
+    }
 
-    // FIX: Handle applicant as object
+    // Handle applicant as object
     let applicantName = 'Unknown Applicant';
     let applicantId = 0;
+    let applicantIdNo = 0;
 
     if (apiApp.applicant && typeof apiApp.applicant === 'object') {
       const applicant = apiApp.applicant;
@@ -251,12 +198,10 @@ private mapApiToLocalApplications(): void {
                      `${applicant.first_name || ''} ${applicant.last_name || ''}`.trim() ||
                      'Applicant';
       applicantId = applicant.id || 0;
-      console.log('✅ Applicant object processed:', { name: applicantName, id: applicantId });
-    } else {
-      console.log('❌ Applicant data not found or not an object:', apiApp.applicant);
+      applicantIdNo = applicant.id_no || 0;
     }
 
-    // FIX: Handle assigned_to as object
+    // Handle assigned_to as object
     let assignedToUsername = 'Not assigned';
     let assignedToId: number | null = null;
 
@@ -264,9 +209,9 @@ private mapApiToLocalApplications(): void {
       const assignedRegistrar = apiApp.assigned_to;
       assignedToUsername = assignedRegistrar.username || 'Not assigned';
       assignedToId = assignedRegistrar.id;
-      console.log('✅ Assigned_to object processed:', { name: assignedToUsername, id: assignedToId });
-    } else {
-      console.log('❌ Assigned_to data not found or not an object:', apiApp.assigned_to);
+    } else if (apiApp.assigned_to && typeof apiApp.assigned_to === 'number') {
+      assignedToId = apiApp.assigned_to;
+      assignedToUsername = `Registrar #${assignedToId}`;
     }
 
     // Create certificate info if exists
@@ -279,8 +224,8 @@ private mapApiToLocalApplications(): void {
     }
 
     const application: Application = {
-      // Backend properties
       id: apiApp.id,
+      id_no: applicantIdNo,
       reference_number: apiApp.reference_number,
       parcel_number: apiApp.parcel_number,
       purpose: apiApp.purpose,
@@ -291,53 +236,48 @@ private mapApiToLocalApplications(): void {
       assigned_to: assignedToId,
       assigned_to_username: assignedToUsername,
       applicant: applicantId,
-
-      // Frontend display properties
-      dateSubmitted: this.formatDate(apiApp.submitted_at),
-      timeElapsed: this.calculateTimeElapsed(apiApp.submitted_at),
-
-      // Table compatibility properties
+      paid_at: paidAtValue,
+      paid_at_formatted: paidAtValue ? this.formatDate(paidAtValue) : 'Not paid',  // FIXED
+      time_elapsed: timeElapsed,
       referenceNo: apiApp.reference_number,
       parcelNo: apiApp.parcel_number,
       applicantName: applicantName,
       applicantId: applicantId,
-
-      // Certificate information
+      applicantIdNo: applicantIdNo,
       certificate: certificateInfo,
-
-      // Optional: Store full objects for debugging
       applicantObject: apiApp.applicant,
       assignedToObject: apiApp.assigned_to
     };
-
-    console.log('✅ Created Application object:', {
-      id: application.id,
-      referenceNo: application.referenceNo,
-      applicantName: application.applicantName,
-      assigned_to_username: application.assigned_to_username,
-      assigned_to: application.assigned_to
-    });
 
     return application;
   });
 
   console.log('✅ Total mapped applications:', this.applications.length);
-  console.log('✅ First application sample:', this.applications[0]);
-
   this.filterByStatus(this.currentTab);
 }
-  private formatDate(dateString: string): string {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch (error) {
-      return 'Invalid Date';
-    }
+
+private formatDate(dateString: string | null | undefined): string {
+  if (!dateString) {
+    return 'N/A';
   }
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return 'Invalid date';
+  }
+}
+
+
+
 
   private calculateTimeElapsed(dateString: string): string {
     try {
@@ -418,8 +358,8 @@ private mapApiToLocalApplications(): void {
         // Safe access with fallbacks for all searchable fields
         const referenceNo = app.referenceNo || app.reference_number || '';
         const parcelNo = app.parcelNo || app.parcel_number || '';
-        const dateSubmitted = app.dateSubmitted || '';
-        const timeElapsed = app.timeElapsed || '';
+        const dateSubmitted = app.paid_at_formatted || '';
+        const timeElapsed = app.time_elapsed || '';
         const applicantName = app.applicantName || '';
         const county = app.county || '';
         const registry = app.registry || '';
@@ -450,7 +390,8 @@ private mapApiToLocalApplications(): void {
     const statusMap: Record<string, ApplicationStatus> = {
       'assigned': 'ongoing',
       'completed': 'completed',
-      'rejected': 'rejected'
+      'rejected': 'rejected',
+      'returned': 'returned'
     };
     return statusMap[backendStatus] || 'ongoing';
   }
@@ -494,6 +435,8 @@ private mapApiToLocalApplications(): void {
         return 'Completed Applications';
       case 'rejected':
         return 'Rejected Applications';
+      case 'returned':
+        return 'Returned Applications';
       default:
         return 'Applications';
     }

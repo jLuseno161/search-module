@@ -334,10 +334,12 @@ export class ApplicationDetails implements OnInit {
   canRejectApplication(): boolean {
     if (!this.application || !this.currentUserId) return false;
     const isAssignedToCurrentUser = this.application.assigned_to === this.currentUserId;
-    const isValidStatus = this.application.status === 'assigned';
+    // const isValidStatus = this.application.status === 'submitted';
+    const isValidStatus = this.application.status === 'assigned' || this.application.status === 'submitted';
     const canReject = this.currentUserRole === 'is_registrar' && isValidStatus && isAssignedToCurrentUser;
     return canReject;
   }
+
 
   canReturnApplication(): boolean {
     if (!this.application || !this.currentUserId) return false;
@@ -655,7 +657,7 @@ onNextToUpload(certificateData: any): void {
     console.log('👤 Assigned To:', this.application?.assigned_to);
 
     // Validate
-    if (this.application?.status !== 'assigned') {
+    if (this.application?.status !== 'submitted') {
       this.snackBar?.open(`Application must be "assigned". Current: "${this.application?.status}"`, 'Close', { duration: 3000 });
       return;
     }
@@ -951,7 +953,7 @@ canAccessSearchForm(): boolean {
     const hasCertificate = !!this.selectedCertificate;
     const hasSupportingDoc = !!this.selectedSupportingDoc;
     const hasComment = this.certificateComment.trim().length > 0;
-    const hasCorrectStatus = this.application?.status === 'assigned';
+    const hasCorrectStatus = this.application?.status === 'submitted';
     const isAssignedToCurrentUser = this.application?.assigned_to === this.currentUserId;
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

@@ -210,9 +210,11 @@
         }
 
         .card-header-custom {
-            background-color: #f8f9fa;
+            /* background-color: #f8f9fa; */
             border-bottom: 1px solid #dee2e6;
             padding: 1rem 1.25rem;
+            background-color: #27422e !important;
+            background-image: none !important;
         }
 
         .bordered-table {

@@ -16,14 +16,16 @@ import { CountyRegistryData, Document, Faqs, Parcel } from '../../interfaces/sea
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { SearchService } from '../../services/search.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
+import { ViewChild } from '@angular/core';
+import { MatStepper } from '@angular/material/stepper';
 
 @Component({
   selector: 'app-new-application',
   standalone: true,
-  host: {
-    'ngSkipHydration': 'true'
-  },
+  host: { 'ngSkipHydration': 'true' },
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -39,14 +41,19 @@ import { Router } from '@angular/router';
     MatSelectModule,
     MatOptionModule,
     NgxLoadingModule,
-],
+  ],
   templateUrl: './new-application.component.html',
   styleUrl: './new-application.component.scss'
 })
 export class NewApplicationComponent {
+  @ViewChild('stepper') stepper!: MatStepper;
+
   searchForm: FormGroup;
   parcelsForm: FormGroup;
   documentsForm: FormGroup;
+
+  //user
+  currentUser: any;
 
   parcels: Parcel[] = [];
   documents: Document[] = [];
@@ -69,11 +76,23 @@ export class NewApplicationComponent {
   parcelColumns: string[] = ['no', 'parcel', 'action'];
   documentColumns: string[] = ['no', 'document', 'action'];
 
-  constructor(private fb: FormBuilder, private searchService: SearchService, private router: Router) {
+  //on Edit application
+  isEditMode = false;
+  applicationId: string | null = null;
+  editingParcelId: number | null = null;
+  isUpdatingParcel: boolean = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private searchService: SearchService,
+    private router: Router,
+    private authService: AuthService,
+    private route: ActivatedRoute,
+  ) {
     this.searchForm = this.fb.group({
       // search_type: ['PARCEL_SEARCH', Validators.required],
       purpose_of_search: ['', Validators.required],
-      // search_scope: ['ACTIVE', Validators.required],
+      search_scope: ['ACTIVE', Validators.required],
       registry: ['ACTIVE', Validators.required],
       county: ['ACTIVE', Validators.required],
 
@@ -99,6 +118,15 @@ export class NewApplicationComponent {
     this.searchForm.get('county')?.valueChanges.subscribe(selectedCounty => {
       this.onCountyChange(selectedCounty);
     });
+
+    //get current user
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user
+    }
+
+    //check if application is in edit mode
+    this.checkEditMode();
   }
 
   get parcelNumberControl() {
@@ -112,20 +140,31 @@ export class NewApplicationComponent {
   addParcel() {
     const parcelNumber = this.parcelNumberControl?.value;
     if (parcelNumber) {
-      const newParcel: Parcel = {
-        id: this.nextParcelId++,
-        parcel_number: parcelNumber
-      };
-
-      this.parcels.push(newParcel);
-      this.parcelsDataSource.data = this.parcels;
+      if (this.isEditMode && this.editingParcelId !== null) {
+        // Update existing parcel
+        const parcelIndex = this.parcels.findIndex(p => p.id === this.editingParcelId);
+        if (parcelIndex !== -1) {
+          this.parcels[parcelIndex].parcel_number = parcelNumber;
+          this.parcelsDataSource.data = [...this.parcels];
+          // Reset editing state
+          this.editingParcelId = null;
+          this.isUpdatingParcel = false;
+        }
+      } else {
+        // Creating new parcel
+        const newParcel: Parcel = {
+          id: this.nextParcelId++,
+          parcel_number: parcelNumber
+        };
+        this.parcels.push(newParcel);
+        this.parcelsDataSource.data = this.parcels;
+      }
       this.parcelNumberControl?.reset();
     }
   }
-
   removeParcel(id: number) {
     this.parcels = this.parcels.filter(parcel => parcel.id !== id);
-    this.parcelsDataSource.data = this.parcels; // Update the data source
+    this.parcelsDataSource.data = this.parcels;
   }
 
   onCountyChange(selectedCounty: string | null) {
@@ -151,20 +190,31 @@ export class NewApplicationComponent {
     const file = event.target.files[0];
     const documentName = this.documentsForm.get('document_name')?.value;
 
+    //Rename doc with typed file name
     if (file && documentName) {
-      const newDocument: Document = {
+      const extension = file.name.split('.').pop();
+      const renamedFile = new File([file], `${documentName}.${extension}`, { type: file.type });
+
+      this.documents.push({
         id: this.nextDocumentId++,
         name: documentName,
-        file: file
-      };
+        file: renamedFile
+      });
 
-      this.documents.push(newDocument);
       this.documentsDataSource.data = this.documents;
       this.documentsForm.get('document_name')?.reset();
       event.target.value = '';
     }
   }
 
+  viewDocument(document: Document) {
+    if (document.file) {
+      const fileURL = URL.createObjectURL(document.file);
+      window.open(fileURL, '_blank');
+    } else if (document.url) {
+      window.open(document.url, '_blank');
+    }
+  }
   removeDocument(id: number) {
     this.documents = this.documents.filter(doc => doc.id !== id)
     this.documentsDataSource.data = this.documents
@@ -183,30 +233,193 @@ export class NewApplicationComponent {
   }
 
   submitApplication() {
+    // Check if form is valid
     if (this.searchForm.valid && this.parcels.length > 0) {
-      const formData = {
-        ...this.searchForm.value,
-        purpose: this.searchForm.value.purpose_of_search,
-        parcel_number: this.parcels[0]?.parcel_number || '',
-        // parcels: this.parcels,
-        // documents: this.documents
-      }
-      delete formData.purpose_of_search;
 
-      this.searchService.createSearchApplication(formData).subscribe(
-        {
-          next: (response: any) => {
-            alert('Application submitted successfully!');
-            console.log('Application Submitted Successfuly', response);
-            this.router.navigate(['/search-application']);
-          },
-          error: (error: any) => {
-            console.error('Application creation failed', error);
+      //check if in edit mode 
+      const isEditMode = this.isEditMode;
+      const title = isEditMode ? 'Resubmit Application?' : 'Are you sure?';
+      const text = isEditMode
+        ? 'Are you sure you want to resubmit this corrected application?'
+        : 'Are you sure you want to submit your search application?';
+
+      // Confirmation dialog
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'Are you sure you want to submit your search application?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#8B4513',
+        cancelButtonColor: '#aeb5bbff',
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (isEditMode) {
+            this.updateApplication();
+          } else {
+            this.createApplication();
           }
-        });
+        }
+      });
+    } else {
+      console.log('Form not valid');
+      Swal.fire({
+        title: 'Incomplete Form',
+        text: 'Please complete all required fields and add at least one parcel.',
+        icon: 'warning',
+        confirmButtonColor: '#8B4513'
+      });
     }
-    else (
-      console.log('Form not valid')
-    )
+  }
+
+  createApplication() {
+    const applicationData = new FormData();
+
+    applicationData.append('county', this.searchForm.value.county);
+    applicationData.append('registry', this.searchForm.value.registry);
+    applicationData.append('purpose', this.searchForm.value.purpose_of_search);
+    applicationData.append('parcel_number', this.parcels[0]?.parcel_number || '');
+    applicationData.append('search_scope', this.searchForm.value.search_scope);
+
+    this.documents.forEach((doc) => {
+      if (doc.file) {
+        applicationData.append('ownership_document', doc.file, doc.file.name);
+      }
+    });
+
+    this.searchService.createSearchApplication(applicationData).subscribe({
+      next: (response: any) => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Application submitted successfully!',
+          icon: 'success',
+          confirmButtonColor: '#8B4513'
+        }).then(() => {
+          console.log('Application Submitted Successfully', response);
+          this.router.navigate(['/search-application']);
+        });
+      },
+      error: (error: any) => {
+        console.error('Application creation failed', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Submission failed. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#8B4513'
+        });
+      }
+    });
+  }
+
+  //Edit Application
+  checkEditMode() {
+    this.route.queryParams.subscribe(params => {
+      if (params['mode'] === 'edit') {
+        this.isEditMode = true;
+        this.applicationId = params['id'];
+
+        const stateData =
+          this.router.getCurrentNavigation()?.extras?.state?.['applicationData']
+          || history.state.applicationData;
+
+        console.log('STATE DATA:', stateData);
+
+        if (stateData) {
+          this.populateForm(stateData);
+          // Wait for the view to render, then set the stepper to the second step (index 1)
+          setTimeout(() => {
+            if (this.stepper) {
+              this.stepper.selectedIndex = 1;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  populateForm(data: any) {
+    // 1. Patch search form fields
+    this.searchForm.patchValue({
+      county: data.county,
+      registry: data.registry,
+      purpose_of_search: data.purpose,
+      search_scope: data.search_scope || 'ACTIVE',
+    });
+
+    // 2. Populate parcel table
+    if (data.parcel_number) {
+      this.parcels = [{
+        id: 1,
+        parcel_number: data.parcel_number
+      }];
+      this.parcelsDataSource.data = this.parcels;
+      this.nextParcelId = 2;
+    }
+
+    // 3. Populate documents table
+    if (data.ownership_document) {
+      const docName = data.ownership_document.split('/').pop();
+      this.documents = [{
+        id: 1,
+        name: docName,
+        file: null,
+        url: data.ownership_document // Store document URL for viewing
+
+      }];
+      this.documentsDataSource.data = this.documents;
+      this.nextDocumentId = 2;
+    }
+  }
+
+  editParcel(parcel: Parcel) {
+    this.editingParcelId = parcel.id;
+    this.parcelNumberControl?.setValue(parcel.parcel_number);
+    this.isUpdatingParcel = true;
+
+    setTimeout(() => {
+      const input = document.querySelector('input[formControlName="parcel_number"]') as HTMLInputElement;
+      if (input) input.focus();
+    });
+  }
+
+  updateApplication() {
+    const formData = new FormData();
+    // formData.append('county', this.searchForm.value.county);
+    // formData.append('registry', this.searchForm.value.registry);
+    // formData.append('purpose', this.searchForm.value.purpose_of_search);
+    // formData.append('search_scope', this.searchForm.value.search_scope);
+    // formData.append('id', this.applicationId!);
+    formData.append('parcel_number', this.parcels[0]?.parcel_number || '');
+
+    // Add only new documents (files that were uploaded)
+    this.documents.forEach((doc) => {
+      if (doc.file) {
+        formData.append('ownership_document', doc.file, doc.file.name);
+      }
+    });
+
+    this.searchService.updateApplication(this.applicationId!, formData).subscribe({
+      next: (response: any) => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Application updated and resubmitted successfully!',
+          icon: 'success',
+          confirmButtonColor: '#8B4513'
+        }).then(() => {
+          console.log('Application Updated Successfully', response);
+          this.router.navigate(['/search-application']);
+        });
+      },
+      error: (error: any) => {
+        console.error('Application update failed', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Update failed. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#8B4513'
+        });
+      }
+    });
   }
 }

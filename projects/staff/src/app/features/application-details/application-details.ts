@@ -334,7 +334,6 @@ export class ApplicationDetails implements OnInit {
   canRejectApplication(): boolean {
     if (!this.application || !this.currentUserId) return false;
     const isAssignedToCurrentUser = this.application.assigned_to === this.currentUserId;
-    // const isValidStatus = this.application.status === 'submitted';
     const isValidStatus = this.application.status === 'assigned' || this.application.status === 'submitted';
     const canReject = this.currentUserRole === 'is_registrar' && isValidStatus && isAssignedToCurrentUser;
     return canReject;
@@ -370,8 +369,8 @@ export class ApplicationDetails implements OnInit {
     return this.currentUserRole === 'is_registrar_in_charge' &&
            this.application?.registry === this.currentUserRegistry &&
            (this.application?.status === 'pending' ||
-            this.application?.status === 'submitted' ||
-            this.application?.status === 'assigned');
+            // this.application?.status === 'submitted' ||
+            this.application?.status === 'submitted');
   }
 
   // ========== ACTION METHODS ==========
@@ -415,13 +414,13 @@ export class ApplicationDetails implements OnInit {
   private executeAssignment(applicationId: number, registrarId: number): void {
     this.applicationService.assignApplication(applicationId, registrarId).subscribe({
       next: (response: any) => {
-        const newRegistrarName = this.registrars.find(r => r.id === registrarId)?.username || 'Assigned';
+        const newRegistrarName = this.registrars.find(r => r.id === registrarId)?.username || 'submitted';
         alert(`✅ Application successfully assigned to ${newRegistrarName}!`);
 
         if (this.application) {
           this.application.assigned_to = registrarId;
           this.application.assigned_to_username = newRegistrarName;
-          this.application.status = 'assigned';
+          this.application.status = 'submitted';
         }
 
         this.loadApplicationDetails(this.applicationId!);
@@ -792,10 +791,10 @@ onNextToUpload(certificateData: any): void {
 
   getStatusBadgeClass(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'submitted':
+      // case 'submitted':
       case 'pending':
         return 'badge bg-warning text-dark';
-      case 'assigned':
+      case 'submitted':
         return 'badge bg-primary text-white';
       case 'completed':
       case 'verified':

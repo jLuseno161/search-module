@@ -32,7 +32,7 @@
               <input type="date" class="form-control" [(ngModel)]="customEndDate" (change)="calculateStatistics()">
             </div>
             <div class="col-md-3">
-              <button class="btn btn-primary w-100" (click)="calculateStatistics()" [disabled]="isLoading">
+              <button class="btn btn-success w-100" (click)="calculateStatistics()" [disabled]="isLoading">
                 <i class="bi bi-arrow-repeat me-1"></i>Refresh Stats
               </button>
             </div>
@@ -51,51 +51,37 @@
       <!-- Statistics Content -->
       <div *ngIf="!isLoading && statistics">
         <!-- Summary Cards -->
-        <div class="row mb-4">
-          <div class="col-md-3">
-            <div class="card bg-primary text-white">
+        <div class="row col-12 mb-3">
+          <div class="col-md-4">
+            <div class="card text-black" style="background-color: #f0f3ed;">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 class="mb-1">Total Applications</h6>
-                    <h3 class="mb-0">{{ statistics.total_applications | number }}</h3>
+                    <h3 class="mb-0 text-black">{{ statistics.total_applications | number }}</h3>
                   </div>
                   <i class="bi bi-files fs-1"></i>
                 </div>
-                <small class="text-white-50">{{ statistics.period }}</small>
+                <small class="text-black">{{ statistics.period }}</small>
               </div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card bg-success text-white">
+          <div class="col-md-4">
+            <div class="card text-black" style="background-color: #f0f3ed;">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 class="mb-1">Completed</h6>
-                    <h3 class="mb-0">{{ statistics.completed | number }}</h3>
+                    <h3 class="mb-0 text-black">{{ statistics.completed | number }}</h3>
                   </div>
                   <i class="bi bi-check-circle fs-1"></i>
                 </div>
-                <small class="text-white-50">{{ getCompletionRate() }}% completion rate</small>
+                <small class="text-black">{{ getCompletionRate() }}% completion rate</small>
               </div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card bg-info text-white">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 class="mb-1">Verified</h6>
-                    <h3 class="mb-0">{{ statistics.verified | number }}</h3>
-                  </div>
-                  <i class="bi bi-shield-check fs-1"></i>
-                </div>
-                <small class="text-white-50">{{ getVerificationRate() }}% verified</small>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-warning text-dark">
+          <div class="col-md-4">
+            <div class="card text-dark" style="background-color: #f0f3ed;">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>

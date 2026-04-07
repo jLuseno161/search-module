@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Receipt #{{RECEIPT_NUMBER}}</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 16px;
+        }
+        
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #8B4513;
+        }
+        
+        .receipt-title {
+            text-align: right;
+        }
+        
+        .receipt-title h1 {
+            margin: 0;
+            color: #8B4513;
+            font-size: 20px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section h4 {
+            color: #8B4513;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 4px;
+        }
+        
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .amount {
+            font-weight: 500;
+            color: #2e7d32;
+        }
+        
+        .txn {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .status {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .actions {
+            padding: 16px 0;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button.primary {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+            .actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Payment Receipt</h2>
+        </div>
+
+        <div class="receipt-header">
+            <div>
+                <h3>Ministry of Lands & Physical Planning</h3>
+                <p>Ardhi House, 1st Ngong Avenue</p>
+                <p>P.O. Box 30450-00100, Nairobi, Kenya</p>
+                <p>Email: info@lands.go.ke</p>
+                <p>Phone: +254 700 000 000</p>
+            </div>
+            <div class="receipt-title">
+                <h1>OFFICIAL RECEIPT</h1>
+                <p>#{{RECEIPT_NUMBER}}</p>
+            </div>
+        </div>
+
+        <div class="receipt-details">
+            <div class="section">
+                <h4>Payment Details</h4>
+                <div class="row"><span>Receipt Date:</span><span>{{RECEIPT_DATE}}</span></div>
+                <div class="row"><span>Original Invoice:</span><span>#{{INVOICE_ID}}</span></div>
+                <div class="row"><span>Invoice Date:</span><span>{{INVOICE_DATE}}</span></div>
+            </div>
+
+            <div class="section">
+                <h4>Payment Information</h4>
+                <div class="row"><span>Service:</span><span>{{SERVICE}}</span></div>
+                <div class="row"><span>Amount Paid:</span><span class="amount">KSh {{AMOUNT}}</span></div>
+                <div class="row"><span>Payment Method:</span><span>M-PESA</span></div>
+                <div class="row"><span>Transaction ID:</span><span class="txn">{{TRANSACTION_ID}}</span></div>
+            </div>
+
+            <div class="status">
+                ✓ Payment Completed Successfully
+            </div>
+
+            <div class="footer">
+                <p>This is an official receipt for payment made.</p>
+                <p>Please keep this receipt for your records.</p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button onclick="window.print()" class="primary">Print Receipt</button>
+            <button onclick="window.close()">Close</button>
+        </div>
+    </div>
+</body>
+
+</html>

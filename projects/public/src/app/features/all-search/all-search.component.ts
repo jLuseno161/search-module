@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { MatCard, MatCardContent } from '@angular/material/card';
+import { Component, ViewChild } from '@angular/core';
+import { MatCard, MatCardContent, MatCardModule } from '@angular/material/card';
 import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
@@ -12,6 +12,10 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { SearchService } from '../../services/search.service';
 import { MatDivider } from "@angular/material/divider";
 import { Router } from '@angular/router';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { ViewChildren, QueryList } from '@angular/core';
 
 @Component({
   selector: 'app-all-search',
@@ -23,67 +27,129 @@ import { Router } from '@angular/router';
     MatPaginator,
     MatFormField,
     MatCardContent,
+    MatCardModule,
     MatTableModule,
     CommonModule,
     MatInput,
     MatBadgeModule,
-    MatDivider
+    MatDivider,
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatPaginatorModule,
   ],
   templateUrl: './all-search.component.html',
   styleUrl: './all-search.component.scss'
 })
 export class AllSearchComponent {
 
+  // @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChildren(MatPaginator) paginators!: QueryList<MatPaginator>;
+
   tabs = [
     { label: 'Pending', status: 'pending' },
     { label: 'Submitted', status: 'submitted' },
     { label: 'Completed', status: 'completed' },
+    { label: 'Returned', status: 'returned' },
     { label: 'Rejected', status: 'rejected' }
   ];
 
   displayedColumns: string[] = ['id', 'reference_number', 'date_created', 'elapsed', 'status', 'actions'];
-
-  allApplications: SearchApplication[] = [];
   dataSources: { [key: string]: MatTableDataSource<SearchApplication> } = {};
+  loadingStates: { [status: string]: boolean } = {};
 
   constructor(private searchService: SearchService, private router: Router) { }
 
   ngOnInit() {
     this.tabs.forEach(tab => {
       this.dataSources[tab.status] = new MatTableDataSource<SearchApplication>([]);
-    })
+      this.loadingStates[tab.status] = false;
+    });
 
-    this.searchService.getApplications().subscribe(
-      {
-        next: (response: any) => {
-          this.allApplications = response.results;
-          this.loadTabData('pending');
-        },
-        error: (error: any) => {
-          console.log('No Data Fetched:', error);
-        }
-      });
+    this.tabs.forEach(tab => {
+      this.loadTabData(tab.status);
+    });
   }
 
-  onTabChange(event: any) {
+  // ngAfterViewInit() {
+  //   // Connect paginators after view initialization
+  //   this.tabs.forEach(tab => {
+  //     if (this.dataSources[tab.status] && this.parcelPaginator) {
+  //       this.dataSources[tab.status].paginator = this.parcelPaginator;
+  //     }
+  //   });
+  // }
+  ngAfterViewInit() {
+    this.paginators.changes.subscribe(() => {
+      this.attachPaginators();
+    });
+
+    this.attachPaginators();
+  }
+
+  attachPaginators() {
+    this.paginators.forEach((paginator, index) => {
+      const status = this.tabs[index]?.status;
+      if (status && this.dataSources[status]) {
+        this.dataSources[status].paginator = paginator;
+      }
+    });
+  }
+
+  onTabChange(event: { index: number }) {
     const selectedTab = this.tabs[event.index];
     this.loadTabData(selectedTab.status);
   }
 
   loadTabData(status: string) {
-    const filteredData = this.allApplications.filter(app => app.status === status);
-    this.dataSources[status].data = filteredData;
+    this.loadingStates[status] = true;
+
+    this.searchService.getApplications(status).subscribe({
+      next: (response: any) => {
+        this.dataSources[status].data = response.results; //Array with object wrapper
+        this.dataSources[status].data = response; //with array
+        // console.log(response)
+        // Filtering for reference number only
+        this.dataSources[status].filterPredicate = this.createFilter();
+        this.loadingStates[status] = false;
+      },
+      error: (error: any) => {
+        console.log(error);
+        this.loadingStates[status] = false;
+      }
+    });
   }
 
-  getDataSource(status: string): MatTableDataSource<SearchApplication> {
-    if (!this.dataSources[status]) {
-      this.dataSources[status] = new MatTableDataSource<SearchApplication>([]);
+  //filter predicate for reference number only
+  createFilter(): (data: SearchApplication, filter: string) => boolean {
+    return (data: SearchApplication, filter: string): boolean => {
+      const searchStr = filter.toLowerCase();
+
+      // Search only in reference_number field
+      return data.reference_number?.toLowerCase().includes(searchStr) || false;
+    };
+  }
+
+  // Apply filter to the data source
+  applyFilter(event: Event, status: string) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    const dataSource = this.dataSources[status];
+
+    if (dataSource) {
+      dataSource.filter = filterValue.trim().toLowerCase();
     }
+  }
+
+  // Checks loading state
+  isLoading(status: string): boolean {
+    return this.loadingStates[status];
+  }
+
+  getDataSource(status: string) {
     return this.dataSources[status];
   }
 
   getBadgeCount(status: string): number {
-    return this.allApplications?.filter(app => app.status === status).length;
+    return this.dataSources[status]?.data?.length || 0;
   }
 
   timeElapsed(date: string): string {
@@ -106,8 +172,9 @@ export class AllSearchComponent {
     this.router.navigate(['/new-application']);
   }
 
-  viewApplication(appId: string, status: string) {
-    console.log(`Navigating to ${status} application: ${appId}`);
-    this.router.navigate([`${status}`, appId]);
+  viewApplication(application: any) {
+    this.router.navigate(['search-application', application.status, application.id], {
+      state: { applicationData: application },
+    });
   }
 }

@@ -31,7 +31,8 @@ export interface Parcel {
 export interface Document {
     id: number;
     name: string;
-    file: File;
+    file: File | null;
+    url?: string;
 }
 
 export interface SearchApplication {
@@ -39,5 +40,14 @@ export interface SearchApplication {
     reference_number: string;
     date_created: Date;
     elapsed: string;
+    status: string;
+}
+
+export interface Invoice {
+    id: number;
+    date: string;
+    paymentFor: string;
+    amount: string;
+    balance: string;
     status: string;
 }

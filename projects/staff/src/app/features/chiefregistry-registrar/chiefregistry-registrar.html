@@ -1,28 +1,28 @@
 <!-- Chief Registry Registrar Dashboard -->
 <div class="container-fluid mt-3">
-  <!-- Header -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card bg-success text-white">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <h1 class="h3 mb-1">Chief Registrar Dashboard</h1>
-              <p class="mb-0">Welcome, {{ currentUserName }} - {{ currentUserRegistry }} Registry</p>
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-white" style="background-color: #27422e;">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h3 mb-1">Chief Registrar Dashboard</h1>
+                            <p class="mb-0">Welcome, {{ currentUserName }} - {{ currentUserRegistry }} Registry</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="badge bg-light text-dark fs-6 p-2">
+                                Role: Chief Registrar
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4 text-end">
-              <div class="badge bg-light text-dark fs-6 p-2">
-                Role: Chief Registrar
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Quick Stats - Uncommented -->
-  <!-- <div class="row mb-4">
+    <!-- Quick Stats - Uncommented -->
+    <!-- <div class="row mb-4">
     <div class="col-md-2">
       <div class="card text-dark">
         <div class="card-body text-center">
@@ -65,197 +65,163 @@
     </div>
   </div> -->
 
-  <!-- Search Card -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5 class="card-title mb-0">Search Applications</h5>
-    </div>
-    <div class="card-body">
-      <form (ngSubmit)="onSearch()">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Search Type</label>
-            <select class="form-select"
-                    [(ngModel)]="selectedSearchType"
-                    (change)="onSearchTypeChange()"
-                    name="searchType"
-                    required>
+    <!-- Search Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Search Applications</h5>
+        </div>
+        <div class="card-body">
+            <form (ngSubmit)="onSearch()">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Search Type</label>
+                        <select class="form-select" [(ngModel)]="selectedSearchType" (change)="onSearchTypeChange()" name="searchType" required>
               <option value="parcel">Parcel Number</option>
               <option value="document">Document Number</option>
             </select>
-          </div>
-          <div class="col-md-5">
-            <label class="form-label fw-semibold">{{ inputLabel }}</label>
-            <input type="text"
-                   class="form-control"
-                   [(ngModel)]="searchValue"
-                   [placeholder]="inputPlaceholder"
-                   name="searchValue"
-                   required>
-          </div>
-          <div class="col-md-3">
-            <div class="d-grid gap-2 d-md-flex">
-              <button type="submit" class="btn btn-success flex-fill">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">{{ inputLabel }}</label>
+                        <input type="text" class="form-control" [(ngModel)]="searchValue" [placeholder]="inputPlaceholder" name="searchValue" required>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid gap-2 d-md-flex">
+                            <button type="submit" class="btn flex-fill" style="background-color: #27422e; color: white;">
                 <i class="bi bi-search me-2"></i>Search
               </button>
-              <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
+                            <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
                 <i class="bi bi-x-circle me-2"></i>Clear
               </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Applications Section -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Applications Management</h5>
+                <div class="text-muted small">
+                    Registry: <strong>{{ currentUserRegistry }}</strong>
+                </div>
             </div>
-          </div>
         </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- Applications Section -->
-  <div class="card">
-    <div class="card-header bg-light">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Applications Management</h5>
-        <div class="text-muted small">
-          Registry: <strong>{{ currentUserRegistry }}</strong>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabs Navigation -->
-    <ul class="nav nav-tabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link"
-                [class.active]="currentTab === 'submitted'"
-                (click)="setTab('submitted')"
-                type="button">
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" [class.active]="currentTab === 'submitted'" (click)="setTab('submitted')" type="button">
           Ongoing
           <span class="badge bg-warning ms-1">{{ getStatusCount('submitted') }}</span>
         </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link"
-                [class.active]="currentTab === 'returned'"
-                (click)="setTab('returned')"
-                type="button">
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" [class.active]="currentTab === 'returned'" (click)="setTab('returned')" type="button">
           Returned
           <span class="badge bg-primary ms-1">{{ getStatusCount('returned') }}</span>
         </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link"
-                [class.active]="currentTab === 'completed'"
-                (click)="setTab('completed')"
-                type="button">
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" [class.active]="currentTab === 'completed'" (click)="setTab('completed')" type="button">
           Completed
           <span class="badge bg-success ms-1">{{ getStatusCount('completed') }}</span>
         </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link"
-                [class.active]="currentTab === 'rejected'"
-                (click)="setTab('rejected')"
-                type="button">
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" [class.active]="currentTab === 'rejected'" (click)="setTab('rejected')" type="button">
           Rejected
           <span class="badge bg-info ms-1">{{ getStatusCount('rejected') }}</span>
         </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link"
-                [class.active]="currentTab === 'registry'"
-                (click)="setTab('registry')"
-                type="button">
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" [class.active]="currentTab === 'registry'" (click)="setTab('registry')" type="button">
           All Applications
           <span class="badge bg-secondary ms-1">{{ getStatusCount('registry') }}</span>
         </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link"
-                [class.active]="currentTab === 'statistics'"
-                (click)="setTab('statistics')"
-                type="button">
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" [class.active]="currentTab === 'statistics'" (click)="setTab('statistics')" type="button">
           <i class="bi bi-graph-up me-1"></i>Statistics
         </button>
-      </li>
-    </ul>
+            </li>
+        </ul>
 
-    <!-- Tab Content -->
-    <div class="card-body">
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2 text-muted">Loading applications...</p>
-      </div>
+        <!-- Tab Content -->
+        <div class="card-body">
+            <!-- Loading State -->
+            <div *ngIf="isLoading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading applications...</p>
+            </div>
 
-      <!-- Error State -->
-      <div *ngIf="error && !isLoading" class="alert alert-danger text-center">
-        <p>{{ error }}</p>
-        <button class="btn btn-primary" (click)="retryLoadApplications()">Retry</button>
-      </div>
+            <!-- Error State -->
+            <div *ngIf="error && !isLoading" class="alert alert-danger text-center">
+                <p>{{ error }}</p>
+                <button class="btn btn-primary" (click)="retryLoadApplications()">Retry</button>
+            </div>
 
-      <!-- Statistics Tab Content -->
-      <div *ngIf="!isLoading && currentTab === 'statistics'">
-        <app-statistics [applications]="applications" [registrars]="registrars" [registry]="currentUserRegistry"></app-statistics>
-      </div>
+            <!-- Statistics Tab Content -->
+            <div *ngIf="!isLoading && currentTab === 'statistics'">
+                <app-statistics [applications]="applications" [registrars]="registrars" [registry]="currentUserRegistry"></app-statistics>
+            </div>
 
-      <!-- Applications Tab Content -->
-      <div *ngIf="!isLoading && currentTab !== 'statistics'">
-        <!-- Search within table -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <div class="text-muted">
-              Showing {{ filteredApplications.length }} applications
-              <span *ngIf="tableSearchValue" class="text-info">
+            <!-- Applications Tab Content -->
+            <div *ngIf="!isLoading && currentTab !== 'statistics'">
+                <!-- Search within table -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="text-muted">
+                            Showing {{ filteredApplications.length }} applications
+                            <span *ngIf="tableSearchValue" class="text-info">
                 • Filtered by: "{{ tableSearchValue }}"
               </span>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="input-group">
-              <span class="input-group-text">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
                 <i class="bi bi-search"></i>
               </span>
-              <input type="text"
-                     class="form-control"
-                     [(ngModel)]="tableSearchValue"
-                     (input)="onTableSearch()"
-                     [placeholder]="'Search in ' + currentTab + '...'">
-              <button *ngIf="tableSearchValue"
-                      class="btn btn-outline-secondary"
-                      type="button"
-                      (click)="tableSearchValue = ''; onTableSearch()">
+                            <input type="text" class="form-control" [(ngModel)]="tableSearchValue" (input)="onTableSearch()" [placeholder]="'Search in ' + currentTab + '...'">
+                            <button *ngIf="tableSearchValue" class="btn btn-outline-secondary" type="button" (click)="tableSearchValue = ''; onTableSearch()">
                 <i class="bi bi-x"></i>
               </button>
-            </div>
-          </div>
-        </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Applications Table -->
-        <div *ngIf="filteredApplications.length > 0" class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="table-light">
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Reference No.</th>
-                <th scope="col">Parcel No.</th>
-                <th scope="col">Date Submitted</th>
-                <th scope="col">Time Elapsed</th>
-                <!-- <th scope="col">Status</th> -->
-                <th scope="col" *ngIf="currentTab === 'submitted'">Assigned Registrar</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let app of filteredApplications; let i = index">
-                <td>{{ i + 1 }}</td>
-                <td>
-                  <strong>{{ app.referenceNo }}</strong>
-                </td>
-                <td>{{ app.parcelNo }}</td>
-                <td>{{ app.paid_at_formatted || 'Payment pending' }}</td>
-                <td>
-                  <span class="badge bg-secondary">{{ app.time_elapsed }}</span>
-                </td>
-                <!-- <td>
+                <!-- Applications Table -->
+                <div *ngIf="filteredApplications.length > 0" class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Reference No.</th>
+                                <th scope="col">Parcel No.</th>
+                                <th scope="col">Date Submitted</th>
+                                <th scope="col">Time Elapsed</th>
+                                <!-- <th scope="col">Status</th> -->
+                                <th scope="col" *ngIf="currentTab === 'submitted'">Assigned Registrar</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let app of filteredApplications; let i = index">
+                                <td>{{ i + 1 }}</td>
+                                <td>
+                                    <strong>{{ app.referenceNo }}</strong>
+                                </td>
+                                <td>{{ app.parcelNo }}</td>
+                                <td>{{ app.paid_at_formatted || 'Payment pending' }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ app.time_elapsed }}</span>
+                                </td>
+                                <!-- <td>
                   <span class="badge"
                         [class.bg-warning]="app.status === 'unassigned'"
                         [class.bg-primary]="app.status === 'ongoing'"
@@ -265,15 +231,13 @@
                   </span>
                 </td> -->
 
-                <!-- Assigned Registrar Column -->
-                <td *ngIf="currentTab === 'submitted'">
-                  <div class="d-flex align-items-center gap-2">
-                    <span>{{ app.assignedRegistrar || 'Not assigned' }}</span>
-                    <!-- Reassign Dropdown -->
-                    <div *ngIf="canReassign(app)" class="dropdown">
-                      <select class="form-select form-select-sm"
-                              (change)="manualReassign(app.id, $any($event.target).value)"
-                              title="Reassign to another registrar">
+                                <!-- Assigned Registrar Column -->
+                                <td *ngIf="currentTab === 'submitted'">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>{{ app.assignedRegistrar || 'Not assigned' }}</span>
+                                        <!-- Reassign Dropdown -->
+                                        <div *ngIf="canReassign(app)" class="dropdown">
+                                            <select class="form-select form-select-sm" (change)="manualReassign(app.id, $any($event.target).value)" title="Reassign to another registrar">
                         <option value="">Reassign...</option>
                         <option *ngFor="let registrar of getRegistrarsForCurrentRegistry()"
                                 [value]="registrar.id"
@@ -281,9 +245,9 @@
                           {{ registrar.username }}
                         </option>
                       </select>
-                    </div>
-                  </div>
-                </td>
+                                        </div>
+                                    </div>
+                                </td>
 
                 <!-- Actions Column -->
                 <td>
@@ -294,77 +258,79 @@
                       <i class="bi bi-eye"></i> View
                     </button>
 
-                    <!-- Mark as Complete Button -->
-                    <!-- <button *ngIf="currentTab === 'submitted' && canMarkCompleted(app)"
+                                        <!-- Mark as Complete Button -->
+                                        <!-- <button *ngIf="currentTab === 'submitted' && canMarkCompleted(app)"
                             class="btn btn-outline-success"
                             (click)="markAsCompleted(app.id)"
                             title="Mark as Completed">
                       <i class="bi bi-check-lg"></i> Complete
                     </button> -->
 
-                    <!-- Mark as Verified Button -->
-                    <!-- <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
+                                        <!-- Mark as Verified Button -->
+                                        <!-- <button *ngIf="currentTab === 'completed' && canMarkVerified(app)"
                             class="btn btn-outline-info"
                             (click)="markAsVerified(app.id)"
                             title="Mark as Verified">
                       <i class="bi bi-shield-check"></i> Verify
                     </button> -->
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-        <!-- Empty State -->
-        <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
-          <div class="mb-3">
-            <i class="bi bi-inbox fs-1 text-muted"></i>
-          </div>
-          <h5 class="text-muted">No applications found</h5>
-          <p class="text-muted mb-3">
-            {{ currentTab === 'submitted' ? 'No unassigned applications' :
-               currentTab === 'returned' ? 'No ongoing applications' :
-               currentTab === 'completed' ? 'No completed applications' :
-               currentTab === 'rejected' ? 'No verified applications' :
-               'No applications in registry' }}
-          </p>
-          <button class="btn btn-outline-primary" (click)="clearSearch()">
+                <!-- Empty State -->
+                <div *ngIf="filteredApplications.length === 0" class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                    </div>
+                    <h5 class="text-muted">No applications found</h5>
+                    <p class="text-muted mb-3">
+                        {{ currentTab === 'submitted' ? 'No unassigned applications' : currentTab === 'returned' ? 'No ongoing applications' : currentTab === 'completed' ? 'No completed applications' : currentTab === 'rejected' ? 'No verified applications' : 'No applications
+                        in registry' }}
+                    </p>
+                    <button class="btn btn-outline-primary" (click)="clearSearch()">
             <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters
           </button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 
 <!-- Add custom CSS styles -->
 <style>
-.nav-tabs .nav-link {
-  font-weight: 500;
-  color: #6c757d;
-  cursor: pointer;
-}
-.nav-tabs .nav-link.active {
-  font-weight: 600;
-  color: #0d6efd;
-  border-bottom: 3px solid #0d6efd;
-}
-.card {
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid rgba(0, 0, 0, 0.125);
-}
-.table th {
-  font-weight: 600;
-  background-color: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
-}
-.badge {
-  font-size: 0.75em;
-}
-.form-select-sm {
-  max-width: 150px;
-}
+    .nav-tabs .nav-link {
+        font-weight: 500;
+        color: #6c757d;
+        cursor: pointer;
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        color: #0d6efd;
+        border-bottom: 3px solid #0d6efd;
+    }
+
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    .form-select-sm {
+        max-width: 150px;
+    }
 </style>
 
 <!-- External Dependencies -->

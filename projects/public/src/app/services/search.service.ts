@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CountyRegistryData, Faqs, Search } from '../interfaces/search';
 import { environment } from '../../environments/environment';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -50,71 +52,42 @@ export class SearchService {
 
   private countyRegistryData: CountyRegistryData[] = [
     {
-      county: 'Nairobi',
+      county: 'Kajiado',
       registries: [
-        'Nairobi Central Registry',
-        'Nairobi West Registry',
-        'Nairobi South Registry'
+        'Kajiado Central',
+        'Ngong',
       ]
     },
     {
-      county: 'Mombasa',
+      county: 'Baringo',
       registries: [
-        'Mombasa Main Registry',
-        'Mombasa Island Registry'
+        'Kabarnet',
+        'Eldama Ravine',
       ]
     },
     {
       county: 'Kisumu',
       registries: [
-        'Kisumu Central Registry',
-        'Kisumu Lake Registry'
+        'Kisumu East',
+        'Nyando',
+        'Seme'
+
       ]
     },
+    // {
+    //   county: 'Nairobi',
+    //   registries: [
+    //     'Nairobi',
+    //     'Central',
+    //   ]
+    // },
     {
-      county: 'Nakuru',
+      county: 'Mombasa',
       registries: [
-        'Nakuru Town Registry',
-        'Naivasha Registry',
-        'Molo Registry'
+        'Mombasa Main',
+        'Mombasa Island'
       ]
     },
-    {
-      county: 'Eldoret',
-      registries: [
-        'Eldoret Main Registry'
-      ]
-    },
-    {
-      county: 'Thika',
-      registries: [
-        'Thika Registry'
-      ]
-    },
-    {
-      county: 'Kitale',
-      registries: [
-        'Kitale Registry'
-      ]
-    },
-    {
-      county: 'Malindi',
-      registries: [
-        'Malindi Registry'
-      ]
-    },
-    {
-      county: 'Garissa',
-      registries: [
-        'Garissa Registry'
-      ]
-    },
-    {
-      county: 'Kisii',
-      registries: [
-        'Kisii Registry'
-      ]
-    }
   ]
 
   getFaqs(): Faqs[] {
@@ -125,15 +98,68 @@ export class SearchService {
     return this.countyRegistryData;
   }
 
-  createSearchApplication(applicationData: Search): Observable<any> {
+  createSearchApplication(applicationData: FormData): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/applications/create`, applicationData);
   }
 
-  getApplications(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/applications`);
+  getPendingApplications(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/applications?status=pending`);
   }
 
-  validateParcel(parcelNumber: string): Observable<boolean> {
-    return this.http.get<boolean>(`/api/parcels/validate/${parcelNumber}`);
+  // getApplications(): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/applications`);
+  // }
+
+  getApplications(filteredStatus?: string): Observable<any> {
+    const params: any = {};
+    if (filteredStatus) {
+      params.status = filteredStatus;
+    }
+
+    return this.http.get(`${this.apiUrl}/applications`, { params });
+  }
+
+  makePayment(applicationId: number, paymentData?: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/applications/${applicationId}/pay`, paymentData);
+  }
+
+  downloadSearchResult(applicationId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/certificates/${applicationId}`);
+  }
+
+  getApplicationById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/applications/${id}`);
+  }
+
+  updateApplication(id: string, data: FormData): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/applications/${id}/edit-returned`, data);
+  }
+
+  // verifyApplication(reference: string): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/applications/all`, {
+  //     params: { reference }
+  //   });
+  // }
+
+  verifyApplication(reference: string): Observable<any> {
+    return this.http.get<any[]>(`${this.apiUrl}/applications/all`).pipe(
+      map(applications => {
+        // Log all completed applications
+        const completedApps = applications.filter(app => app.status === 'completed');
+        console.log('All Completed Applications:', completedApps);
+
+        // Find the specific one by reference
+        const found = completedApps.find(app =>
+          app.reference_number === reference ||
+          app.application_number === reference
+        );
+        // console.log('Searching for reference:', reference);
+        return found || null;
+      }),
+      catchError(error => {
+        console.error('Error fetching applications:', error);
+        return of(null);
+      })
+    );
   }
 }

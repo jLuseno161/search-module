@@ -24,7 +24,7 @@
     <!-- Quick Stats - Uncommented -->
     <!-- <div class="row mb-4">
     <div class="col-md-2">
-      <div class="card bg-warning text-dark">
+      <div class="card text-dark">
         <div class="card-body text-center">
           <h4 class="mb-0">{{ getStatusCount('unassigned') }}</h4>
           <p class="mb-0">Unassigned</p>
@@ -249,10 +249,12 @@
                                     </div>
                                 </td>
 
-                                <!-- Actions Column -->
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" (click)="viewApplicationDetails(app)" title="View Details">
+                <!-- Actions Column -->
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-success"
+                            (click)="viewApplicationDetails(app)"
+                            title="View Details">
                       <i class="bi bi-eye"></i> View
                     </button>
 
@@ -304,28 +306,28 @@
         color: #6c757d;
         cursor: pointer;
     }
-    
+
     .nav-tabs .nav-link.active {
         font-weight: 600;
         color: #0d6efd;
         border-bottom: 3px solid #0d6efd;
     }
-    
+
     .card {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         border: 1px solid rgba(0, 0, 0, 0.125);
     }
-    
+
     .table th {
         font-weight: 600;
         background-color: #f8f9fa;
         border-bottom: 2px solid #dee2e6;
     }
-    
+
     .badge {
         font-size: 0.75em;
     }
-    
+
     .form-select-sm {
         max-width: 150px;
     }

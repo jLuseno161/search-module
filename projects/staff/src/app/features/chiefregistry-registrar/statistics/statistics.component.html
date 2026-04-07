@@ -1,1 +1,214 @@
-<p>statistics works!</p>
+<div class="statistics-container">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">
+          <i class="bi bi-graph-up me-2"></i>Registry Statistics
+        </h4>
+        <button class="btn btn-outline-success btn-sm" (click)="exportToCSV()" [disabled]="isLoading">
+          <i class="bi bi-download me-1"></i>Export Report
+        </button>
+      </div>
+
+      <!-- Time Range Selector -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Time Range</label>
+              <select class="form-select" [(ngModel)]="selectedTimeRange" (change)="onTimeRangeChange()">
+                <option value="month">Last Month</option>
+                <option value="3months">Last 3 Months</option>
+                <option value="6months">Last 6 Months</option>
+                <option value="year">Last Year</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+            <div class="col-md-3" *ngIf="selectedTimeRange === 'custom'">
+              <label class="form-label fw-semibold">Start Date</label>
+              <input type="date" class="form-control" [(ngModel)]="customStartDate" (change)="calculateStatistics()">
+            </div>
+            <div class="col-md-3" *ngIf="selectedTimeRange === 'custom'">
+              <label class="form-label fw-semibold">End Date</label>
+              <input type="date" class="form-control" [(ngModel)]="customEndDate" (change)="calculateStatistics()">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-success w-100" (click)="calculateStatistics()" [disabled]="isLoading">
+                <i class="bi bi-arrow-repeat me-1"></i>Refresh Stats
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Calculating statistics...</p>
+      </div>
+
+      <!-- Statistics Content -->
+      <div *ngIf="!isLoading && statistics">
+        <!-- Summary Cards -->
+        <div class="row col-12 mb-3">
+          <div class="col-md-4">
+            <div class="card text-black" style="background-color: #f0f3ed;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1">Total Applications</h6>
+                    <h3 class="mb-0 text-black">{{ statistics.total_applications | number }}</h3>
+                  </div>
+                  <i class="bi bi-files fs-1"></i>
+                </div>
+                <small class="text-black">{{ statistics.period }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-black" style="background-color: #f0f3ed;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1">Completed</h6>
+                    <h3 class="mb-0 text-black">{{ statistics.completed | number }}</h3>
+                  </div>
+                  <i class="bi bi-check-circle fs-1"></i>
+                </div>
+                <small class="text-black">{{ getCompletionRate() }}% completion rate</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-dark" style="background-color: #f0f3ed;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1">Pending</h6>
+                    <h3 class="mb-0">{{ statistics.pending | number }}</h3>
+                  </div>
+                  <i class="bi bi-clock-history fs-1"></i>
+                </div>
+                <small class="text-dark-50">Awaiting processing</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registrar Performance Table -->
+        <div class="card mb-4" *ngIf="statistics.registrars.length > 0">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="bi bi-people me-2"></i>Registrar Performance
+            </h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Registrar</th>
+                    <th class="text-center">Assigned</th>
+                    <th class="text-center">Searches</th>
+                    <th class="text-center">Completed</th>
+                    <th class="text-center">Verified</th>
+                    <th class="text-center">Rejected</th>
+                    <th class="text-center">Avg. Time (days)</th>
+                    <th class="text-center">Completion Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let registrar of statistics.registrars">
+                    <td>
+                      <strong>{{ registrar.registrar_name }}</strong>
+                    </td>
+                    <td class="text-center">{{ registrar.applications_assigned }}</td>
+                    <td class="text-center">
+                      <span class="badge bg-primary">{{ registrar.total_searches }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-success">{{ registrar.completed_applications }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-info">{{ registrar.verified_applications }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-danger">{{ registrar.rejected_applications }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-secondary">{{ registrar.average_processing_time | number:'1.1-1' }}</span>
+                    </td>
+                    <td class="text-center">
+                      <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success"
+                             [style.width]="registrar.completion_rate + '%'"
+                             role="progressbar"
+                             [attr.aria-valuenow]="registrar.completion_rate"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                          {{ registrar.completion_rate | number:'1.0-0' }}%
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <th>Total/Average</th>
+                    <th class="text-center">{{ getTotalAssigned() }}</th>
+                    <th class="text-center">{{ getTotalSearches() }}</th>
+                    <th class="text-center">{{ getTotalCompleted() }}</th>
+                    <th class="text-center">{{ getTotalVerified() }}</th>
+                    <th class="text-center">{{ getTotalRejected() }}</th>
+                    <th class="text-center">{{ getAverageProcessingTime() | number:'1.1-1' }}</th>
+                    <th class="text-center">{{ getOverallCompletionRate() }}%</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Trends -->
+        <div class="card" *ngIf="dailyStats && dailyStats.length > 0">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="bi bi-calendar-week me-2"></i>Daily Trends (Last 30 Days)
+            </h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th class="text-center">Applications</th>
+                    <th class="text-center">Searches</th>
+                    <th class="text-center">Assigned</th>
+                    <th class="text-center">Completed</th>
+                    <th class="text-center">Verified</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let day of dailyStats">
+                    <td>{{ day.date | date:'MMM dd, yyyy' }}</td>
+                    <td class="text-center">{{ day.applications }}</td>
+                    <td class="text-center">{{ day.searches }}</td>
+                    <td class="text-center">{{ day.assigned }}</td>
+                    <td class="text-center">{{ day.completed }}</td>
+                    <td class="text-center">{{ day.verified }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="statistics.registrars.length === 0" class="alert alert-info text-center">
+          <i class="bi bi-info-circle me-2"></i>
+          No statistics available for the selected time period.
+        </div>
+      </div>
+    </div>

@@ -339,6 +339,7 @@ export class ApplicationDetails implements OnInit {
     return canReject;
   }
 
+
   canReturnApplication(): boolean {
     if (!this.application || !this.currentUserId) return false;
     const isAssignedToCurrentUser = this.application.assigned_to === this.currentUserId;

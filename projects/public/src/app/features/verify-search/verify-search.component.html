@@ -57,14 +57,14 @@
         <span class="label">Reference Number:</span>
         <span class="value">{{searchData.reference_number}}</span>
       </div>
-      <div class="info-item">
+      <!-- <div class="info-item">
         <span class="label">Applicant Name:</span>
         <span class="value">{{searchData.applicant?.username | titlecase }}</span>
       </div>
       <div class="info-item">
-        <span class="label">Date Filed:</span>
-        <span class="value">{{searchData.created_at | date:'mediumDate'}}</span>
-      </div>
+        <span class="label">Approved On:</span>
+        <span class="value">{{searchData.certificate.uploaded_at | date:'mediumDate'}}</span>
+      </div> -->
       <div class="info-item">
         <span class="label">Status:</span>
         <span class="value status-badge" [class.valid]="isWithin6Months" [class.invalid]="!isWithin6Months">
@@ -112,8 +112,8 @@
           <span class="value">{{searchData.applicant?.username | titlecase}}</span>
         </div>
         <div class="detail-item">
-          <span class="label">Created On:</span>
-          <span class="value">{{searchData.created_at | date:'medium'}}</span>
+          <span class="label">Approved On:</span>
+          <span class="value">{{searchData.certificate.uploaded_at  | date:'medium'}}</span>
         </div>
         <div class="detail-item">
           <span class="label">Status:</span>
@@ -156,7 +156,7 @@
     <mat-divider></mat-divider>
 
     <!-- Payment Information -->
-    <div *ngIf="searchData.payment" class="details-group">
+    <!-- <div *ngIf="searchData.payment" class="details-group">
       <h3>
         <mat-icon style="color: #8B4513">payment</mat-icon>
         Payment Details
@@ -175,7 +175,7 @@
           <span class="value">{{searchData.payment.payment_reference}}</span>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div class="back-button">
       <button mat-stroked-button (click)="backToSummary()">
